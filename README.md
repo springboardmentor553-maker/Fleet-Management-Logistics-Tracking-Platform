@@ -35,6 +35,9 @@ FleetFlow is a centralized platform for managing fleets, drivers, vehicles, and 
 
 ## Project Structure
 
+## Project Structure
+
+```text
 FleetFlow
 │
 ├── backend
@@ -50,3 +53,4 @@ FleetFlow
 ├── frontend/
 │
 └── README.md
+```
