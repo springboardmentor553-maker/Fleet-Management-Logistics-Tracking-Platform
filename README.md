@@ -1,56 +1,56 @@
-# FleetFlow - Fleet Management & Logistics Tracking Platform
+# FleetFlow Backend
 
-## Project Overview
-FleetFlow is a centralized platform for managing fleets, drivers, vehicles, and shipments. It helps organizations monitor fleet operations, track deliveries, optimize routes, and improve operational efficiency.
+A backend API for the FleetFlow Fleet Management & Logistics Tracking Platform built using FastAPI.
 
 ## Features
-- User Management
-- Fleet Management
-- Shipment Tracking
-- Route Optimization
-- Vehicle Maintenance
-- Driver Management
-- Analytics Dashboard
-- Notifications
-- Reports
 
-## Technology Stack
+- FastAPI-based REST API
+- Modular project structure
+- Database connectivity
+- Router-based API organization
+- Ready for CRUD operations
 
-### Backend
+## Project Structure
+
+FleetFlow/
+│── app/
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│── routers/
+│    │── config.py
+│    │── requirements.txt
+│── README.md
+
+
+## Technologies Used
+
 - Python
 - FastAPI
+- Uvicorn
 
-### Frontend
-- React.js
+## Installation
 
-### Database
-- PostgreSQL
+Clone the repository:
+git clone 
+<https://github.com/springboardmentor553-maker/Fleet-Management-Logistics-Tracking-Platform>
 
-### Tools
-- Git
-- GitHub
-- Docker
-- VS Code
-- Postman
 
-## Project Structure
+Install dependencies:
+pip install -r requirements.txt
 
-## Project Structure
 
-```text
-FleetFlow
-│
-├── backend
-│   ├── app
-│   │   ├── main.py
-│   │   ├── database.py
-│   │   ├── models.py
-│   │   ├── config.py
-│   │   └── routers/
-│   ├── requirements.txt
-│   └── venv/
-│
-├── frontend/
-│
-└── README.md
-```
+Run the application:
+python -m uvicorn app.main:app --reload
+
+
+Open your browser:
+http://127.0.0.1:8000
+
+
+API Documentation:
+http://127.0.0.1:8000/docs
+
+
+## Status
+Project is under development as part of the Infosys Springboard Internship.
