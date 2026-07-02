@@ -54,3 +54,37 @@ FleetFlow
 │
 └── README.md
 ```
+## Steps to Run Backend
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/springboardmentor553-maker/Fleet-Management-Logistics-Tracking-Platform.git
+```
+
+### 2. Navigate to the Backend
+
+```bash
+cd Fleet-Management-Logistics-Tracking-Platform
+cd backend
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run the Backend
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+### 5. Open in Browser
+
+Home:
+http://127.0.0.1:8000
+
+Swagger:
+http://127.0.0.1:8000/docs
