@@ -19,7 +19,10 @@ class Settings:
     PROJECT_NAME: str = "FleetFlow - Fleet Management & Logistics Tracking Platform"
     
     # Retrieve the database URL, default to local postgres if not set
-    
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql://postgres:postgres@localhost:5432/fleetflow_db"
+    )
 
 # Instantiate settings
 settings = Settings()
