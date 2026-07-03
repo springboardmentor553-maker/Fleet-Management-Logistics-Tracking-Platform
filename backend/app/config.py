@@ -1,25 +1,12 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-# Resolve directory paths relative to this file (config.py is in backend/app)
-config_dir = os.path.dirname(os.path.abspath(__file__))  # backend/app
-backend_dir = os.path.dirname(config_dir)                # backend
-workspace_dir = os.path.dirname(backend_dir)             # workspace root
+class Settings(BaseSettings):
+    DATABASE_URL: str = "postgresql://postgres:5609@localhost:5432/fleetflow"
+    SECRET_KEY: str = "your-secret-key-change-this-later"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-# Load .env file from possible locations (workspace root or backend folder)
-load_dotenv(os.path.join(workspace_dir, ".env"))
-load_dotenv(os.path.join(backend_dir, ".env"))
-load_dotenv()  # Fallback to current working directory
+    class Config:
+        env_file = ".env"
 
-class Settings:
-    """
-    Application settings and configurations.
-    Loads variables from the environment or .env file.
-    """
-    PROJECT_NAME: str = "FleetFlow - Fleet Management & Logistics Tracking Platform"
-    
-    # Retrieve the database URL, default to local postgres if not set
-    
-
-# Instantiate settings
 settings = Settings()

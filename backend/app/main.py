@@ -1,18 +1,13 @@
 from fastapi import FastAPI
-from app.config import settings
+from app.database import Base, engine
+from app import models
 
-# Initialize the FastAPI application
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="FleetFlow - Fleet Management & Logistics Tracking Platform Backend APIs",
-    version="1.0.0"
-)
+Base.metadata.create_all(bind=engine)
 
-@app.get("/", tags=["Health Check"])
+app = FastAPI()
+
+@app.get("/")
 def home():
-    """
-    Health check endpoint to verify that the FleetFlow backend is running successfully.
-    """
     return {
         "message": "FleetFlow Backend Running Successfully"
     }
