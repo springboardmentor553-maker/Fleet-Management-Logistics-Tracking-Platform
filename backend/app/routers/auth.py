@@ -43,7 +43,12 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     if not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = create_access_token({"sub": db_user.email})
+    token = create_access_token(
+    {
+        "sub": db_user.email,
+        "role": db_user.role
+    }
+    )
 
     return {
         "access_token": token,
