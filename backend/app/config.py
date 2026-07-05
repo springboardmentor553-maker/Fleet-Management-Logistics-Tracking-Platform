@@ -1,25 +1,24 @@
 import os
 from dotenv import load_dotenv
 
-# Resolve directory paths relative to this file (config.py is in backend/app)
-config_dir = os.path.dirname(os.path.abspath(__file__))  # backend/app
-backend_dir = os.path.dirname(config_dir)                # backend
-workspace_dir = os.path.dirname(backend_dir)             # workspace root
+# Resolve directory paths relative to this file
+config_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.dirname(config_dir)
+workspace_dir = os.path.dirname(backend_dir)
 
-# Load .env file from possible locations (workspace root or backend folder)
+# Load .env
 load_dotenv(os.path.join(workspace_dir, ".env"))
 load_dotenv(os.path.join(backend_dir, ".env"))
-load_dotenv()  # Fallback to current working directory
+load_dotenv()
 
 class Settings:
-    """
-    Application settings and configurations.
-    Loads variables from the environment or .env file.
-    """
-    PROJECT_NAME: str = "FleetFlow - Fleet Management & Logistics Tracking Platform"
-    
-    # Retrieve the database URL, default to local postgres if not set
-    
+    PROJECT_NAME = "FleetFlow - Fleet Management & Logistics Tracking Platform"
 
-# Instantiate settings
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:sriram27@localhost:5432/fleetflow_db"
+    )
+
 settings = Settings()
+
+DATABASE_URL = settings.DATABASE_URL

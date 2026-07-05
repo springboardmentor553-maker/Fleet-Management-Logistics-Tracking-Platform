@@ -1,12 +1,17 @@
 # Core FastAPI framework
 fastapi>=0.100.0
+
 # ASGI server for running FastAPI
 uvicorn[standard]>=0.22.0
+
 # ORM library for database integration
 SQLAlchemy>=2.0.0
+
 # PostgreSQL database driver
 psycopg2-binary>=2.9.6
+
 # Library to load variables from .env file
 python-dotenv>=1.0.0
+
 # Database migrations tool
 alembic>=1.11.0
