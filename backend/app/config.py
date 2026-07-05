@@ -1,0 +1,1 @@
+DATABASE_URL = "postgresql://postgres:Ramya@localhost:5432/fleet_flow_db"
