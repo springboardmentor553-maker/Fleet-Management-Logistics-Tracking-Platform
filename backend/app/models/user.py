@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
-
+#user model for authentication and authorization
 
 class User(Base):
     __tablename__ = "users"
