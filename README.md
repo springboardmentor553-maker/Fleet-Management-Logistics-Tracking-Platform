@@ -88,3 +88,28 @@ http://127.0.0.1:8000
 
 Swagger:
 http://127.0.0.1:8000/docs
+
+## Backend API Modules
+
+- `/dashboard/summary`
+- `/users`
+- `/vehicles`
+- `/drivers`
+- `/routes`
+- `/shipments`
+- `/maintenance`
+- `/notifications`
+- `/reports/operations`
+
+## Steps to Run Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend:
+http://127.0.0.1:5173
+
+The React app expects the backend at `http://127.0.0.1:8000`.
