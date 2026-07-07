@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+fleetflow-frontend/node_modules/
+.env
+.vscode/

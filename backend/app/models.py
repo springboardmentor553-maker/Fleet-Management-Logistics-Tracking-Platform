@@ -27,11 +27,12 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
 
     id = Column(Integer, primary_key=True, index=True)
-    registration_number = Column(String(50), unique=True, nullable=False)
+    vehicle_number = Column(String(50), unique=True, nullable=False)
     vehicle_type = Column(String(50), nullable=False)
     capacity = Column(Float, nullable=False)
     fuel_type = Column(String(30), nullable=False)
-    status = Column(String(30), default="Available")
+    fuel_level = Column(Float, default=100)
+    fuel_status = Column(String(30), default="Sufficient")
 
     user_id = Column(Integer, ForeignKey("users.id"))
 
@@ -44,6 +45,8 @@ class Shipment(Base):
     id = Column(Integer, primary_key=True, index=True)
     source = Column(String(100), nullable=False)
     destination = Column(String(100), nullable=False)
+    shipment_type = Column(String(50), nullable=False)
+    weight = Column(Float, nullable=False)
     status = Column(String(30), default="Pending")
     eta = Column(String(50))
 
