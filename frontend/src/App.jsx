@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import {
   LayoutDashboard, Truck, Package, Route, IdCard, Wrench,
   BarChart3, FileText, Bell, Settings, Search, Moon, Sun,
-  MoreVertical, MapPin, CheckCircle2
+  MoreVertical, MapPin, CheckCircle2, Menu, X
 } from 'lucide-react'
 import './App.css'
 
@@ -15,10 +15,10 @@ const STATUS_MAPPING = {
 }
 
 const SHIPMENT_STATUS = [
-  { label: 'Delivered', count: 12, pct: 57, color: '#1a9c5c' },
-  { label: 'In Transit', count: 6, pct: 29, color: '#2f6fed' },
-  { label: 'Delayed', count: 2, pct: 10, color: '#c9820a' },
-  { label: 'Cancelled', count: 1, pct: 4, color: '#dc4444' },
+  { label: 'Delivered', count: 12, pct: 57, color: '#1a9c5c', bg: '#e7f9ee' },
+  { label: 'In Transit', count: 6, pct: 29, color: '#2f6fed', bg: '#e8f1fe' },
+  { label: 'Delayed', count: 2, pct: 10, color: '#c9820a', bg: '#fff3e6' },
+  { label: 'Cancelled', count: 1, pct: 4, color: '#dc4444', bg: '#fdeaea' },
 ]
 
 const RECENT_ACTIVITY = [
@@ -52,6 +52,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [search, setSearch] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -113,15 +114,37 @@ function App() {
   return (
     <div className={`ff-app ${darkMode ? 'dark' : ''}`}>
 
-      <aside className="ff-sidebar">
-        <div className="ff-logo">
-          <div className="ff-logo-icon"><Truck size={17} /></div>
+      <header className="ff-mobile-header">
+        <button className="ff-menu-trigger" onClick={() => setMenuOpen(!menuOpen)}>
+          <Menu size={22} />
+        </button>
+        <div className="ff-logo-mobile">
+          <div className="ff-logo-icon"><Truck size={15} /></div>
           <span className="ff-logo-text">FleetFlow</span>
+        </div>
+        <div style={{ width: 22 }} />
+      </header>
+
+      {menuOpen && <div className="ff-sidebar-overlay" onClick={() => setMenuOpen(false)} />}
+
+      <aside className={`ff-sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="ff-logo">
+          <div className="ff-logo-layout-wrapper">
+            <div className="ff-logo-icon"><Truck size={17} /></div>
+            <span className="ff-logo-text">FleetFlow</span>
+          </div>
+          <button className="ff-sidebar-close-btn" onClick={() => setMenuOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="ff-nav">
           {NAV_ITEMS.map(item => (
-            <div className={`ff-nav-item ${item.active ? 'active' : ''}`} key={item.label}>
+            <div 
+              className={`ff-nav-item ${item.active ? 'active' : ''}`} 
+              key={item.label}
+              onClick={() => setMenuOpen(false)}
+            >
               <span className="ff-nav-icon">{item.icon}</span>
               <span className="ff-nav-label">{item.label}</span>
               {item.badge && <span className="ff-nav-badge">{item.badge}</span>}
@@ -242,19 +265,48 @@ function App() {
             ) : <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No vehicle data yet</p>}
           </div>
 
+          {/* NEW: Semi-Circle Progress Gauges for Shipment Status (Matches image layout) */}
           <div className="ff-widget-card">
             <div className="ff-widget-title"><span>Shipment Status</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
-            {SHIPMENT_STATUS.map(s => (
-              <div className="ff-bar-row" key={s.label}>
-                <div className="ff-bar-label-row">
-                  <span>{s.label}</span>
-                  <span>{s.count} ({s.pct}%)</span>
-                </div>
-                <div className="ff-bar-track">
-                  <div className="ff-bar-fill" style={{ width: `${s.pct}%`, background: s.color }}></div>
-                </div>
-              </div>
-            ))}
+            <div className="ff-gauge-container">
+              {SHIPMENT_STATUS.map(s => {
+                // Semicircle calculations for dynamic data fills
+                const gaugeData = [
+                  { value: s.pct, color: s.color },
+                  { value: 100 - s.pct, color: 'var(--bg-track)' }
+                ];
+                return (
+                  <div className="ff-gauge-row" key={s.label}>
+                    <div className="ff-gauge-chart-box">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                          <Pie
+                            data={gaugeData}
+                            dataKey="value"
+                            startAngle={180}
+                            endAngle={0}
+                            innerRadius={20}
+                            outerRadius={28}
+                            cx="50%"
+                            cy="100%"
+                            stroke="none"
+                          >
+                            <Cell fill={s.color} />
+                            <Cell fill="var(--bg-track)" />
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="ff-gauge-meta-box">
+                      <span className="ff-gauge-label">{s.label}</span>
+                      <span className="ff-gauge-numbers" style={{ color: s.color }}>
+                        {s.count} <span className="ff-gauge-pct">({s.pct}%)</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="ff-widget-card">
@@ -298,7 +350,6 @@ function App() {
           </div>
         </div>
 
-        {/* Vehicles view equipped with descriptive mobile fallback hooks */}
         <div className="ff-section">
           <div className="ff-section-header">
             <div className="ff-section-title"><Truck size={16} /><span>Vehicles</span></div>
@@ -327,7 +378,6 @@ function App() {
           </div>
         </div>
 
-        {/* Drivers view equipped with descriptive mobile fallback hooks */}
         <div className="ff-section">
           <div className="ff-section-header">
             <div className="ff-section-title"><IdCard size={16} /><span>Drivers</span></div>

@@ -62,6 +62,11 @@ body {
   --cyan-bg: rgba(47, 111, 237, 0.15);
 }
 
+/* Desktop Hidden Mobile Controls */
+.ff-mobile-header, .ff-sidebar-overlay, .ff-sidebar-close-btn {
+  display: none;
+}
+
 /* ===== Sidebar ===== */
 .ff-sidebar {
   width: 224px;
@@ -75,10 +80,16 @@ body {
 .ff-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   padding: 0 8px 20px;
   margin-bottom: 16px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.ff-logo-layout-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .ff-logo-icon {
@@ -160,7 +171,7 @@ body {
   color: #565f7a;
 }
 
-/* ===== Main View Area ===== */
+/* ===== Main Area ===== */
 .ff-main {
   flex: 1;
   padding: 20px 28px 28px;
@@ -304,7 +315,7 @@ body {
 .ff-stat-value { font-size: 21px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.4px; line-height: 1.1; margin-top: 2px; }
 .ff-stat-trend { font-size: 11px; color: #1a9c5c; font-weight: 600; margin-top: 1px; }
 
-/* ===== Widget row ===== */
+/* ===== Widget layout details ===== */
 .ff-widget-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1.2fr;
@@ -364,28 +375,59 @@ body {
 .ff-legend-name { color: var(--text-secondary); font-weight: 500; }
 .ff-legend-meta { font-weight: 600; color: var(--text-primary); }
 
-/* Shipment progress metrics */
-.ff-bar-row { margin-bottom: 12px; }
-.ff-bar-row:last-child { margin-bottom: 0; }
-.ff-bar-label-row {
+/* NEW: Semi-Circle Gauge Layout Patterns (Matches requested design layout) */
+.ff-gauge-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 5px;
-  line-height: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
 }
-.ff-bar-label-row span:last-child { font-weight: 600; color: var(--text-primary); }
-.ff-bar-track {
-  height: 6px;
-  background: var(--bg-track);
-  border-radius: 20px;
+
+.ff-gauge-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.ff-gauge-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ff-gauge-chart-box {
+  width: 65px;
+  height: 35px; /* Half height for semicircle gauges */
+  flex-shrink: 0;
+  position: relative;
   overflow: hidden;
 }
-.ff-bar-fill { height: 100%; border-radius: 20px; }
 
-/* Tracking block elements */
+.ff-gauge-meta-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.ff-gauge-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ff-gauge-numbers {
+  font-weight: 700;
+}
+.ff-gauge-pct {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 2px;
+}
+
+/* Tracking placeholder area */
 .ff-map-placeholder {
   height: 190px;
   border-radius: 10px;
@@ -415,7 +457,7 @@ body {
   line-height: 1.4;
 }
 
-/* Secondary lower listings components */
+/* Secondary metrics components */
 .ff-bottom-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -450,7 +492,7 @@ body {
 .ff-mini-table tr:last-child td { border-bottom: none; }
 .ff-mini-table th:first-child, .ff-mini-table td:first-child { padding-left: 4px; }
 
-/* ===== Core Sections Layout Sizing & Typography ===== */
+/* ===== Data sections layouts base configs ===== */
 .ff-section { 
   margin-bottom: 22px; 
   width: 100%;
@@ -483,7 +525,6 @@ body {
   line-height: 1.4; 
 }
 
-/* Desktop Defaults Table layouts */
 .ff-table-wrap {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -537,7 +578,6 @@ body {
   font-size: 13px; 
 }
 
-/* Badge styling optimization */
 .ff-badge { 
   display: inline-flex; 
   align-items: center; 
@@ -582,36 +622,32 @@ body {
   flex-shrink: 0;
 }
 
-/* FIXED: In absolute syncing with HTML table-layout specifications */
-@media (max-width: 991px) {
+/* ======================================================== */
+/* ===== 100% BULLETPROOF MODERN RESPONSIVE SCREEN RULES ===== */
+/* ======================================================== */
+
+@media (max-width: 1200px) {
   .ff-stats { grid-template-columns: repeat(2, 1fr); }
   .ff-widget-row { grid-template-columns: 1fr; }
   .ff-bottom-row { grid-template-columns: 1fr; }
-  
-  /* CRITICAL HEADING RE-ALIGNMENT: Trigger grid transformation safely right at tablet/condensed width values */
+}
+
+@media (max-width: 991px) {
   .ff-table-wrap {
     background: transparent;
     border: none;
     box-shadow: none;
   }
 
-  /* Structural nodes change dynamically to block elements synchronously */
-  .ff-table, 
-  .ff-table thead, 
-  .ff-table tbody, 
-  .ff-table th, 
-  .ff-table td, 
-  .ff-table tr { 
+  .ff-table, .ff-table thead, .ff-table tbody, .ff-table th, .ff-table td, .ff-table tr { 
     display: block; 
     width: 100%;
   }
 
-  /* Native row headings completely masked to eliminate character collusions */
   .ff-table thead { 
     display: none; 
   }
 
-  /* Row vectors become fully standalone visual data cards */
   .ff-table tbody tr {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -620,9 +656,7 @@ body {
     padding: 14px 16px;
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.02);
   }
-  .ff-table tbody tr:hover { background: var(--bg-card); }
 
-  /* Cells scale into precise space-between flex rows */
   .ff-table tbody td {
     display: flex;
     justify-content: space-between;
@@ -632,15 +666,8 @@ body {
     font-size: 13px;
   }
   
-  .ff-table tbody td:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  .ff-table tbody td:first-child {
-    padding-top: 0;
-  }
+  .ff-table tbody td:last-child { border-bottom: none; }
 
-  /* Static gray subtitles injected through left absolute fields via data-attributes */
   .ff-table tbody td::before {
     content: attr(data-label);
     font-weight: 600;
@@ -648,65 +675,130 @@ body {
     font-size: 11px;
     text-transform: uppercase;
     text-align: left;
-    letter-spacing: 0.2px;
   }
 
-  /* Inline properties updated dynamically */
-  .ff-reg-cell {
-    font-size: 13px;
-    text-align: right;
-  }
-  
-  .ff-driver-cell {
-    justify-content: flex-end;
-    width: auto;
-    padding: 0;
-  }
+  .ff-reg-cell { text-align: right; }
+  .ff-driver-cell { justify-content: flex-end; width: auto; padding: 0; }
 }
 
 @media (max-width: 768px) {
   .ff-app { 
     flex-direction: column; 
+    padding-top: 56px; 
   }
 
-  /* Mobile Minimal Navbar Strip */
-  .ff-sidebar { 
-    width: 100%; 
-    padding: 12px 16px; 
+  .ff-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
     background: var(--bg-sidebar);
+    padding: 0 16px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
-  
-  .ff-logo { 
-    margin-bottom: 0; 
-    border-bottom: none; 
-    padding-bottom: 0; 
+
+  .ff-menu-trigger {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  .ff-logo-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+  }
+  .ff-logo-mobile .ff-logo-text {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .ff-logo-mobile .ff-logo-icon {
+    width: 26px;
+    height: 26px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
-  
-  /* Navigation scroll tracks completely dissolved */
-  .ff-nav { 
-    flex-direction: row; 
-    overflow-x: auto; 
-    padding-top: 10px; 
-    gap: 4px; 
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .ff-nav::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .ff-nav-item { 
-    padding: 6px 12px; 
-    white-space: nowrap; 
-    font-size: 12px;
-  }
-  
-  .ff-sidebar-footer { 
-    display: none; 
+
+  .ff-sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
   }
 
-  /* Mobile Topbar Single Row Layout */
+  .ff-sidebar {
+    position: fixed;
+    top: 0;
+    left: -240px; 
+    bottom: 0;
+    width: 240px;
+    z-index: 1100;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+    padding-top: 14px;
+  }
+  
+  .ff-sidebar.open {
+    transform: translateX(240px); 
+  }
+
+  .ff-logo {
+    padding-bottom: 16px;
+    margin-bottom: 12px;
+  }
+
+  .ff-sidebar-close-btn {
+    display: flex;
+    background: transparent;
+    border: none;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .ff-sidebar-close-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+  }
+
+  .ff-nav {
+    flex-direction: column;
+    overflow-y: auto;
+    padding-top: 4px;
+    gap: 2px;
+  }
+
+  .ff-nav-item {
+    padding: 10px 14px;
+    font-size: 13.5px;
+  }
+
+  .ff-sidebar-footer {
+    display: block;
+    padding-top: 12px;
+  }
+
   .ff-main { 
     padding: 16px; 
   }
@@ -730,7 +822,7 @@ body {
     display: flex;
     flex-direction: row; 
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0; 
   }
 
@@ -740,9 +832,6 @@ body {
     border-radius: 8px;
   }
 
-  .ff-profile {
-    gap: 0;
-  }
   .ff-profile-text {
     display: none; 
   }
@@ -753,7 +842,25 @@ body {
   }
 
   .ff-stats { 
-    grid-template-columns: 1fr; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px; 
+  }
+
+  .ff-stat-card {
+    padding: 10px;
+    gap: 8px;
+    flex-direction: column; 
+    align-items: flex-start;
+  }
+  .ff-stat-icon-box {
+    width: 34px;
+    height: 34px;
+  }
+  .ff-stat-label {
+    font-size: 11px;
+  }
+  .ff-stat-value {
+    font-size: 19px;
   }
 
   .ff-donut-wrap { 
