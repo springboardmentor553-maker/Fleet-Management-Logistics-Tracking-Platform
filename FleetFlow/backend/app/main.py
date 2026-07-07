@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import test_connection
 from app.routers.auth import router as auth_router
@@ -8,8 +9,16 @@ from app.routers.dashboard import router as dashboard_router
 from app.routers.drivers import router as drivers_router
 from app.routers.vehicles import router as vehicles_router
 
-app = FastAPI(title="FleetFlow Backend")
+app = FastAPI(title="FleetFlow Backend", version="1.0.0")
 logger = logging.getLogger(__name__)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(vehicles_router, prefix="/vehicles", tags=["vehicles"])
