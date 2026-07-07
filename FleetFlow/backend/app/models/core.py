@@ -7,23 +7,23 @@ from app.database import Base
 
 # Enums based on project roles and statuses
 class RoleEnum(enum.Enum):
-    ADMIN = "Administrator" #
-    MANAGER = "Fleet Manager" #
-    DRIVER = "Driver" #
-    DISPATCHER = "Dispatcher" #
+    ADMIN = "ADMIN"
+    FLEET_MANAGER = "FLEET_MANAGER"
+    DRIVER = "DRIVER"
+    DISPATCHER = "DISPATCHER"
 
 class VehicleStatusEnum(enum.Enum):
-    AVAILABLE = "Available"
-    IN_USE = "In Use"
-    MAINTENANCE = "Maintenance"
+    AVAILABLE = "AVAILABLE"
+    IN_USE = "IN_USE"
+    MAINTENANCE = "MAINTENANCE"
 
 class ShipmentStatusEnum(enum.Enum):
-    CREATED = "Created" #
-    ASSIGNED = "Assigned" #
-    IN_TRANSIT = "In Transit" #
-    DELAYED = "Delayed" #
-    DELIVERED = "Delivered" #
-    CANCELLED = "Cancelled" #
+    CREATED = "CREATED"
+    ASSIGNED = "ASSIGNED"
+    IN_TRANSIT = "IN_TRANSIT"
+    DELAYED = "DELAYED"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
 
 # --- MODELS ---
 
@@ -33,7 +33,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum(RoleEnum), nullable=False)
+    role = Column(Enum(RoleEnum, name="roleenum"), nullable=False)
     
     # 1-to-1 Relationship: User to Driver Profile (uselist=False enforces 1:1)
     driver_profile = relationship("Driver", back_populates="user", uselist=False)
@@ -45,8 +45,8 @@ class Driver(Base):
     __tablename__ = "drivers"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    license_details = Column(String, nullable=False) #
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    license_details = Column(String, nullable=False)
     
     # Back-reference to User
     user = relationship("User", back_populates="driver_profile")
@@ -61,15 +61,19 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
     
     id = Column(Integer, primary_key=True, index=True)
-    registration_number = Column(String, unique=True, nullable=False) #
-    vehicle_type = Column(String, nullable=False) #
-    capacity = Column(Float, nullable=False) #
-    fuel_type = Column(String, nullable=False) #
-    current_status = Column(Enum(VehicleStatusEnum), default=VehicleStatusEnum.AVAILABLE) #
+    registration_number = Column(String, unique=True, nullable=False)
+    vehicle_type = Column(String, nullable=False)
+    capacity = Column(Float, nullable=False)
+    fuel_type = Column(String, nullable=False)
+    current_status = Column(
+        Enum(VehicleStatusEnum, name="vehiclestatusenum"),
+        default=VehicleStatusEnum.AVAILABLE,
+        nullable=False,
+    )
     
     # Foreign Keys linking Vehicle to User(Manager) and Driver
     manager_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True) #
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     
     # Back-references
     manager = relationship("User", back_populates="managed_vehicles")
@@ -82,9 +86,13 @@ class Shipment(Base):
     __tablename__ = "shipments"
     
     id = Column(Integer, primary_key=True, index=True)
-    status = Column(Enum(ShipmentStatusEnum), default=ShipmentStatusEnum.CREATED)
+    status = Column(
+        Enum(ShipmentStatusEnum, name="shipmentstatusenum"),
+        default=ShipmentStatusEnum.CREATED,
+        nullable=False,
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
-    eta = Column(DateTime, nullable=True) #
+    eta = Column(DateTime, nullable=True)
     
     # Foreign Keys linking Shipment to Driver and Vehicle
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)

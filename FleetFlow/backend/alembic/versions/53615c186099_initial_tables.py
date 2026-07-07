@@ -25,14 +25,14 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('hashed_password', sa.String(), nullable=False),
-    sa.Column('role', sa.Enum('ADMIN', 'MANAGER', 'DRIVER', 'DISPATCHER', name='roleenum'), nullable=False),
+    sa.Column('role', sa.Enum('ADMIN', 'FLEET_MANAGER', 'DRIVER', 'DISPATCHER', name='roleenum'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('drivers',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('license_details', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
@@ -45,7 +45,7 @@ def upgrade() -> None:
     sa.Column('vehicle_type', sa.String(), nullable=False),
     sa.Column('capacity', sa.Float(), nullable=False),
     sa.Column('fuel_type', sa.String(), nullable=False),
-    sa.Column('current_status', sa.Enum('AVAILABLE', 'IN_USE', 'MAINTENANCE', name='vehiclestatusenum'), nullable=True),
+    sa.Column('current_status', sa.Enum('AVAILABLE', 'IN_USE', 'MAINTENANCE', name='vehiclestatusenum'), nullable=False),
     sa.Column('manager_id', sa.Integer(), nullable=True),
     sa.Column('driver_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], ),
@@ -56,7 +56,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_vehicles_id'), 'vehicles', ['id'], unique=False)
     op.create_table('shipments',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('CREATED', 'ASSIGNED', 'IN_TRANSIT', 'DELAYED', 'DELIVERED', 'CANCELLED', name='shipmentstatusenum'), nullable=True),
+    sa.Column('status', sa.Enum('CREATED', 'ASSIGNED', 'IN_TRANSIT', 'DELAYED', 'DELIVERED', 'CANCELLED', name='shipmentstatusenum'), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('eta', sa.DateTime(), nullable=True),
     sa.Column('driver_id', sa.Integer(), nullable=True),

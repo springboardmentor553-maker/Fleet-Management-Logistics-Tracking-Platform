@@ -3,9 +3,18 @@ import logging
 from fastapi import FastAPI, HTTPException
 
 from app.database import test_connection
+from app.routers.auth import router as auth_router
+from app.routers.dashboard import router as dashboard_router
+from app.routers.drivers import router as drivers_router
+from app.routers.vehicles import router as vehicles_router
 
 app = FastAPI(title="FleetFlow Backend")
 logger = logging.getLogger(__name__)
+
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(vehicles_router, prefix="/vehicles", tags=["vehicles"])
+app.include_router(drivers_router, prefix="/drivers", tags=["drivers"])
+app.include_router(dashboard_router, tags=["dashboard"])
 
 
 @app.on_event("startup")

@@ -1,1 +1,1 @@
-from .core import User, Vehicle, Driver, Shipment
+from .core import RoleEnum, Shipment, ShipmentStatusEnum, User, Vehicle, VehicleStatusEnum, Driver
