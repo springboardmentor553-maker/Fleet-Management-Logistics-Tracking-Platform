@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
+
 
 DATABASE_URL = "postgresql://postgres:FleetFlow%40Info@localhost:5432/fleetflow_db"
 
@@ -10,8 +11,4 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
-try:
-    with engine.connect() as connection:
-        print("Database connected successfully!")
-except Exception as e:
-    print("Connection failed:", e)
+Base = declarative_base()
