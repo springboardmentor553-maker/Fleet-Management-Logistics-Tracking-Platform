@@ -3,13 +3,16 @@ import StatCard from './StatCard'
 import { getDashboardStats } from '../api/dashboard'
 
 const CARDS = [
-  { key: 'total_vehicles',       label: 'Total Vehicles',     icon: '🚛', color: '#6366f1' },
-  { key: 'available_vehicles',   label: 'Available Vehicles', icon: '✅', color: '#22c55e' },
-  { key: 'active_drivers',       label: 'Active Drivers',     icon: '👤', color: '#f59e0b' },
-  { key: 'total_shipments',      label: 'Total Shipments',    icon: '📦', color: '#3b82f6' },
-  { key: 'pending_shipments',    label: 'Pending',            icon: '🕐', color: '#8b5cf6' },
-  { key: 'in_transit_shipments', label: 'In Transit',         icon: '🔄', color: '#06b6d4' },
-  { key: 'delivered_shipments',  label: 'Delivered',          icon: '🎯', color: '#10b981' },
+  { key: 'total_vehicles',       label: 'Total Vehicles',      icon: '🚛', color: '#6366f1' },
+  { key: 'available_vehicles',   label: 'Available Vehicles',  icon: '✅', color: '#22c55e' },
+  { key: 'in_transit_vehicles',  label: 'Vehicles In Transit', icon: '🚚', color: '#f97316' },
+  { key: 'total_drivers',        label: 'Total Drivers',       icon: '👥', color: '#64748b' },
+  { key: 'active_drivers',       label: 'Active Drivers',      icon: '👤', color: '#f59e0b' },
+  { key: 'total_shipments',      label: 'Total Shipments',     icon: '📦', color: '#3b82f6' },
+  { key: 'pending_shipments',    label: 'Pending',             icon: '🕐', color: '#8b5cf6' },
+  { key: 'in_transit_shipments', label: 'In Transit',          icon: '🔄', color: '#06b6d4' },
+  { key: 'delivered_shipments',  label: 'Delivered',           icon: '🎯', color: '#10b981' },
+  { key: 'cancelled_shipments',  label: 'Cancelled',           icon: '❌', color: '#ef4444' },
 ]
 
 export default function Dashboard() {

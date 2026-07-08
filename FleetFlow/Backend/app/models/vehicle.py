@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -9,9 +9,13 @@ class Vehicle(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     plate_number = Column(String, unique=True, nullable=False, index=True)
+    vehicle_type = Column(String, nullable=False)          # Truck, Van, Bike, etc.
     model = Column(String, nullable=False)
     capacity_kg = Column(Float, nullable=False)
-    is_available = Column(Boolean, default=True)
+    fuel_type = Column(String, nullable=False)             # Petrol, Diesel, Electric, CNG
+    assigned_driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
+    current_status = Column(String, default="available")  # available, in_transit, maintenance
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    assigned_driver = relationship("Driver", foreign_keys=[assigned_driver_id])
     shipments = relationship("Shipment", back_populates="vehicle")
