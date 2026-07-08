@@ -88,8 +88,46 @@ Successfully created the following database tables:
 - Configured Alembic to read the database URL directly from the `.env` file.
 - Verified that database models and migrations remained synchronized after configuration changes.
 
+---
+
+## Day 3 – Database Relationships & API Foundation (08 July 2026)
+
+### Objectives
+
+- Improve the database schema.
+- Establish relationships between database tables.
+- Prepare the backend for CRUD operations and REST APIs.
+
+### Tasks Completed
+
+- Enhanced SQLAlchemy models for:
+  - User
+  - Driver
+  - Vehicle
+  - Shipment
+- Added additional fields to better match the project requirements.
+- Implemented database relationships using SQLAlchemy:
+  - User ↔ Driver (One-to-One)
+  - Driver ↔ Vehicle (One-to-One)
+  - Vehicle ↔ Shipment (One-to-Many)
+- Generated and applied Alembic migrations for the updated schema and foreign key relationships.
+- Created the initial Pydantic schema for the User model.
+- Configured the database session dependency (`get_db`) for FastAPI.
+- Organized the project structure for upcoming CRUD operations and API development.
+
+### Output
+
+Successfully established relational database tables with foreign key constraints and prepared the backend architecture for REST API implementation.
+
+### Challenges Faced
+
+- Learned how SQLAlchemy relationships differ from database foreign keys.
+- Generated separate Alembic migrations for schema updates and relationship changes.
+- Verified and synchronized the database schema with the updated SQLAlchemy models.
+
 ### Next Steps
 
-- Implement model relationships using SQLAlchemy.
-- Develop authentication and authorization.
-- Build CRUD APIs for Users, Drivers, Vehicles, and Shipments.
+- Implement CRUD operations for the User module.
+- Develop FastAPI routers and API endpoints.
+- Implement password hashing and JWT authentication.
+- Build role-based access control.
