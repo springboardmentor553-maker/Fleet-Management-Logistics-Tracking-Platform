@@ -1,14 +1,15 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
+from typing import Literal
 
 VALID_ROLES = {"admin", "fleet_manager", "driver", "dispatcher"}
 
 
 class UserRegister(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
-    role: str = "admin"
+    name: str = Field(..., example="John Doe", description="Full name of the user")
+    email: EmailStr = Field(..., example="john@fleetflow.com", description="Unique email address")
+    password: str = Field(..., example="secret123", min_length=6, description="Password (min 6 chars)")
+    role: str = Field("admin", example="admin", description="One of: admin, fleet_manager, driver, dispatcher")
 
     @field_validator("role")
     @classmethod
@@ -19,8 +20,8 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., example="admin@fleetflow.com")
+    password: str = Field(..., example="admin123")
 
 
 class TokenResponse(BaseModel):

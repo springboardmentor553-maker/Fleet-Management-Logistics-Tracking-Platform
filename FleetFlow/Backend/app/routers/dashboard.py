@@ -14,10 +14,13 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 def get_stats(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return DashboardStats(
         total_vehicles=db.query(Vehicle).count(),
-        available_vehicles=db.query(Vehicle).filter(Vehicle.is_available == True).count(),
+        available_vehicles=db.query(Vehicle).filter(Vehicle.current_status == "available").count(),
+        in_transit_vehicles=db.query(Vehicle).filter(Vehicle.current_status == "in_transit").count(),
+        total_drivers=db.query(Driver).count(),
         active_drivers=db.query(Driver).filter(Driver.is_available == False).count(),
         total_shipments=db.query(Shipment).count(),
         pending_shipments=db.query(Shipment).filter(Shipment.status == "pending").count(),
         in_transit_shipments=db.query(Shipment).filter(Shipment.status == "in_transit").count(),
         delivered_shipments=db.query(Shipment).filter(Shipment.status == "delivered").count(),
+        cancelled_shipments=db.query(Shipment).filter(Shipment.status == "cancelled").count(),
     )

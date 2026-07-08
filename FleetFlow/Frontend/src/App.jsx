@@ -51,15 +51,15 @@ function Layout({ onLogout }) {
 }
 
 export default function App() {
-  const [token, setToken] = useState(() => sessionStorage.getItem('ff_token') || '')
+  const [token, setToken] = useState(() => localStorage.getItem('ff_token') || '')
 
   function handleLogin(accessToken) {
-    sessionStorage.setItem('ff_token', accessToken)
+    localStorage.setItem('ff_token', accessToken)
     setToken(accessToken)
   }
 
   function handleLogout() {
-    sessionStorage.removeItem('ff_token')
+    localStorage.removeItem('ff_token')
     setToken('')
   }
 
