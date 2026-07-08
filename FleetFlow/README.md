@@ -1,4 +1,4 @@
-# 🚚 FleetFlow — Fleet Management System
+# 🚚 FleetFlow — Fleet Management and Logistics Tracking  Platform
 
 A full-stack fleet management application built with **FastAPI** (Python) and **React** (Vite). It provides real-time fleet operations management including vehicle tracking, driver management, shipment dispatching, and a live dashboard — all secured with JWT-based authentication and role-based access control.
 
