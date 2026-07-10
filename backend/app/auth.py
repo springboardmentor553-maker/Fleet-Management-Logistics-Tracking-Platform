@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.dependencies import (
@@ -27,7 +28,6 @@ def register_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    # Check if email already exists
     existing_user = db.query(User).filter(
         User.email == user.email
     ).first()
@@ -38,10 +38,8 @@ def register_user(
             detail="Email already registered"
         )
 
-    # Hash the password
     hashed_password = hash_password(user.password)
 
-    # Create new user
     new_user = User(
         name=user.name,
         email=user.email,
@@ -58,12 +56,12 @@ def register_user(
 
 @router.post("/login", response_model=Token)
 def login_user(
-    user: UserLogin,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    # Find user by email
+    # Find user by email (username field contains the email)
     db_user = db.query(User).filter(
-        User.email == user.email
+        User.email == form_data.username
     ).first()
 
     if not db_user:
@@ -74,7 +72,7 @@ def login_user(
 
     # Verify password
     if not verify_password(
-        user.password,
+        form_data.password,
         db_user.hashed_password
     ):
         raise HTTPException(
@@ -82,7 +80,6 @@ def login_user(
             detail="Invalid email or password"
         )
 
-    # Create JWT token
     access_token = create_access_token(
         data={
             "sub": db_user.email,
@@ -107,8 +104,31 @@ def get_profile(
 def admin_dashboard(
     current_user: User = Depends(require_role("admin"))
 ):
+    return welcome_message(current_user)
+
+
+@router.get("/fleet-manager")
+def fleet_manager_dashboard(
+    current_user: User = Depends(require_role("fleet manager"))
+):
+    return welcome_message(current_user)
+
+
+@router.get("/dispatcher")
+def dispatcher_dashboard(
+    current_user: User = Depends(require_role("dispatcher"))
+):
+    return welcome_message(current_user)
+
+
+@router.get("/driver")
+def driver_dashboard(
+    current_user: User = Depends(require_role("driver"))
+):
+    return welcome_message(current_user)
+
+def welcome_message(current_user: User):
     return {
-        "message": "Welcome Admin!",
-        "user": current_user.name,
+        "message": f"Welcome {current_user.role} {current_user.name}",
         "role": current_user.role
     }
