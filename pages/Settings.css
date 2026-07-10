@@ -1,0 +1,257 @@
+.settings-page{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:40px;
+    background:#f5f7fb;
+    min-height:100vh;
+}
+
+.settings-card{
+    width:700px;
+    background:#fff;
+    border-radius:20px;
+    padding:35px;
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+}
+
+.settings-header{
+    margin-bottom:35px;
+}
+
+.settings-header h1{
+    margin:0;
+    color:#1976d2;
+    font-size:30px;
+}
+
+.settings-header p{
+    margin-top:8px;
+    color:#666;
+    font-size:15px;
+}
+
+.setting-group{
+    display:flex;
+    flex-direction:column;
+    margin-bottom:22px;
+}
+
+.setting-group label{
+    margin-bottom:8px;
+    font-weight:600;
+    color:#333;
+}
+
+.setting-group input,
+.setting-group select{
+    height:52px;
+    border:1px solid #d8d8d8;
+    border-radius:12px;
+    padding:0 16px;
+    font-size:15px;
+    transition:.3s;
+    outline:none;
+    background:#fafafa;
+}
+
+.setting-group input:focus,
+.setting-group select:focus{
+    border-color:#1976d2;
+    background:#fff;
+    box-shadow:0 0 10px rgba(25,118,210,.15);
+}
+
+.setting-switch{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f7fbff;
+    padding:20px;
+    border-radius:14px;
+    margin:30px 0;
+    border:1px solid #e5eefc;
+}
+
+.setting-switch h4{
+    margin:0;
+    color:#1976d2;
+}
+
+.setting-switch small{
+    color:#666;
+}
+
+.switch{
+    position:relative;
+    width:60px;
+    height:32px;
+}
+
+.switch input{
+    display:none;
+}
+
+.slider{
+    position:absolute;
+    cursor:pointer;
+    inset:0;
+    background:#cfcfcf;
+    border-radius:50px;
+    transition:.35s;
+}
+
+.slider::before{
+    content:"";
+    position:absolute;
+    width:24px;
+    height:24px;
+    left:4px;
+    top:4px;
+    background:#fff;
+    border-radius:50%;
+    transition:.35s;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+
+.switch input:checked + .slider{
+    background:#1976d2;
+}
+
+.switch input:checked + .slider::before{
+    transform:translateX(28px);
+}
+
+.settings-buttons{
+    display:flex;
+    gap:18px;
+    margin-top:35px;
+}
+
+.save-btn{
+    flex:1;
+    height:54px;
+    border:none;
+    border-radius:50px;
+    background:#1976d2;
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.save-btn:hover{
+    background:#1565c0;
+    transform:translateY(-2px);
+    box-shadow:0 10px 25px rgba(25,118,210,.25);
+}
+
+.reset-btn{
+    width:170px;
+    border:none;
+    border-radius:50px;
+    background:#ef4444;
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.reset-btn:hover{
+    background:#dc2626;
+    transform:translateY(-2px);
+    box-shadow:0 10px 25px rgba(239,68,68,.25);
+}
+
+.settings-loading{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:80vh;
+    font-size:22px;
+    font-weight:600;
+    color:#1976d2;
+}
+
+@media(max-width:768px){
+
+.settings-page{
+padding:20px;
+}
+
+.settings-card{
+width:100%;
+padding:25px;
+}
+
+.settings-buttons{
+flex-direction:column;
+}
+
+.reset-btn{
+width:100%;
+}
+
+.setting-switch{
+flex-direction:column;
+align-items:flex-start;
+gap:15px;
+}
+
+}
+/* ===========================
+   DARK THEME
+=========================== */
+
+body.dark-theme {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+body.dark-theme .settings-page {
+  background: #0f172a;
+}
+
+body.dark-theme .settings-card {
+  background: #1e293b;
+  color: white;
+}
+
+body.dark-theme .settings-header h1 {
+  color: #60a5fa;
+}
+
+body.dark-theme .settings-header p {
+  color: #cbd5e1;
+}
+
+body.dark-theme .setting-group label {
+  color: #f1f5f9;
+}
+
+body.dark-theme .setting-group input,
+body.dark-theme .setting-group select {
+  background: #334155;
+  color: white;
+  border: 1px solid #475569;
+}
+
+body.dark-theme .setting-group input:focus,
+body.dark-theme .setting-group select:focus {
+  border-color: #60a5fa;
+}
+
+body.dark-theme .setting-switch {
+  background: #334155;
+  border-color: #475569;
+}
+
+body.dark-theme .setting-switch h4 {
+  color: white;
+}
+
+body.dark-theme .setting-switch small {
+  color: #cbd5e1;
+}
