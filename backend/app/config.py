@@ -16,7 +16,7 @@ class Settings:
 
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:sriram27@localhost:5432/fleetflow_db"
+        "postgresql://postgres:122827@localhost:5432/fleetflow_db"
     )
 
 settings = Settings()
