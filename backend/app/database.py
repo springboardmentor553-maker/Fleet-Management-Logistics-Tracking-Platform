@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql://postgres:password@localhost:5432/fleetflow_db"
+from app.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 
