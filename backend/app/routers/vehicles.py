@@ -3,12 +3,13 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app import schemas
+from app.utils.dependencies import require_role
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 
 @router.post("/", response_model=schemas.VehicleResponse)
-def create_vehicle(vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)):
+def create_vehicle(vehicle: schemas.VehicleCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     existing = db.query(models.Vehicle).filter(
         models.Vehicle.registration_number == vehicle.registration_number
     ).first()

@@ -870,3 +870,330 @@ body {
     gap: 12px;
   }
 }
+
+/* ===== Page header (title + action button) ===== */
+.ff-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.ff-page-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ff-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ff-btn-primary:hover { opacity: 0.9; }
+
+/* ===== Filter bar (Fleet page) ===== */
+.ff-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ff-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  cursor: pointer;
+  outline: none;
+}
+
+/* ===== Tabs (Shipments page) ===== */
+.ff-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ff-tab {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ff-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ===== Track button ===== */
+.ff-btn-track {
+  background: var(--cyan-bg);
+  color: var(--accent);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ff-btn-track:hover { opacity: 0.85; }
+
+/* ===== Driver stat mini cards ===== */
+.ff-driver-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ff-mini-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.ff-mini-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.ff-mini-stat-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+
+/* ===== Drivers layout: table + detail card ===== */
+.ff-driver-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 992px) {
+  .ff-driver-layout {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+}
+
+.ff-row-selected { background: var(--bg-hover); }
+
+.ff-driver-detail-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.ff-driver-detail-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--cyan-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 auto;
+}
+
+.ff-driver-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+/* ===== Modal ===== */
+.ff-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.ff-modal {
+  background: var(--bg-card);
+  border-radius: 12px;
+  width: 360px;
+  max-width: 90vw;
+  padding: 20px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.ff-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.ff-modal-error {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.ff-modal-success {
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.ff-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ff-modal-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.ff-modal-form input,
+.ff-modal-form select {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.ff-row-menu {
+  position: absolute;
+  right: 0;
+  top: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 120px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.ff-row-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ff-row-menu-item:hover { background: var(--bg-hover); }
+.ff-row-menu-item.danger { color: var(--red); }
+.ff-row-menu-item.danger:hover { background: var(--red-bg); }
+
+.ff-logout-btn {
+  cursor: pointer;
+  color: var(--red, #dc4444);
+}
+
+.ff-profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  min-width: 220px;
+  z-index: 200;
+  overflow: hidden;
+}
+
+.ff-profile-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ff-profile-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ff-profile-dropdown-item:hover { background: var(--bg-hover); }
+.ff-profile-dropdown-item.danger { color: var(--red); }
+.ff-profile-dropdown-item.danger:hover { background: var(--red-bg); }
+
+.ff-profile-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 992px) {
+  .ff-profile-layout {
+    grid-template-columns: 280px 1fr;
+    align-items: start;
+  }
+}
+
+.ff-profile-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.ff-profile-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
