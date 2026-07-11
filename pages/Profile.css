@@ -1,0 +1,282 @@
+/* =========================================
+   PROFILE PAGE
+========================================= */
+
+.profile-page{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:30px;
+    background:#f5f7fb;
+    min-height:100vh;
+    box-sizing:border-box;
+}
+
+/* =========================================
+   PROFILE CARD
+========================================= */
+
+.profile-card{
+    width:100%;
+    max-width:650px;
+    background:#fff;
+    border-radius:18px;
+    padding:35px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    text-align:center;
+}
+
+/* =========================================
+   AVATAR
+========================================= */
+
+.profile-avatar{
+    font-size:110px;
+    color:#1976d2;
+    margin-bottom:15px;
+}
+
+.profile-card h2{
+    margin:0;
+    color:#1f2937;
+}
+
+.profile-card p{
+    color:#6b7280;
+    margin-top:8px;
+}
+
+/* =========================================
+   PROFILE INFO
+========================================= */
+
+.profile-info{
+    margin-top:30px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+/* =========================================
+   ROW
+========================================= */
+
+.info-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    padding:15px 18px;
+    background:#f8fbff;
+    border:1px solid #e7eefb;
+    border-radius:12px;
+}
+
+.info-row label{
+    font-weight:600;
+    color:#444;
+    min-width:120px;
+    text-align:left;
+}
+
+.info-row span{
+    flex:1;
+    text-align:right;
+    color:#1976d2;
+    font-weight:600;
+    word-break:break-word;
+}
+
+/* =========================================
+   INPUT
+========================================= */
+
+.info-row input{
+    flex:1;
+    min-width:0;
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #1976d2;
+    border-radius:8px;
+    outline:none;
+    font-size:14px;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.profile-buttons{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+.profile-card button{
+    margin-top: 20px;
+    width:220px;
+    height:50px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(135deg,#5aa9ff,#1976d2);
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 8px 20px rgba(25,118,210,.25);
+}
+
+.profile-card button:hover{
+    background:linear-gradient(135deg,#4098ff,#1565c0);
+    transform:translateY(-2px);
+}
+
+.cancel-btn{
+    background:#e0e0e0 !important;
+    color:#444 !important;
+    box-shadow:none !important;
+}
+
+.cancel-btn:hover{
+    background:#d5d5d5 !important;
+}
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.logout{
+    margin:20px auto 0;
+    width:220px;
+    height:50px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    border-radius:50px;
+    background:linear-gradient(135deg,#ff9ea5,#ff6b6b);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 8px 18px rgba(255,107,107,.25);
+}
+
+.logout:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,#ff878d,#ff5c5c);
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media(max-width:768px){
+
+.profile-page{
+    padding:20px;
+}
+
+.profile-card{
+    padding:25px;
+}
+
+.profile-avatar{
+    font-size:90px;
+}
+
+.info-row{
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+.info-row label{
+    width:100%;
+}
+
+.info-row span{
+    width:100%;
+    text-align:left;
+}
+
+.info-row input{
+    width:100%;
+}
+
+.profile-card button,
+.logout{
+    width:100%;
+}
+
+.profile-buttons{
+    flex-direction:column;
+}
+
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media(max-width:480px){
+
+.profile-page{
+    padding:12px;
+}
+
+.profile-card{
+    padding:18px;
+}
+
+.profile-avatar{
+    font-size:75px;
+}
+
+.profile-card h2{
+    font-size:22px;
+}
+
+.info-row{
+    padding:12px;
+}
+
+.info-row label{
+    font-size:14px;
+}
+
+.info-row span{
+    font-size:14px;
+}
+
+.info-row input{
+    font-size:14px;
+}
+
+.profile-card button{
+    margin-top: 20px;
+    width:220px;
+    height:50px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(135deg,#5aa9ff,#1976d2);
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 8px 20px rgba(25,118,210,.25);
+}
+
+.profile-card button:hover{
+    background:linear-gradient(135deg,#4098ff,#1565c0);
+    transform:translateY(-2px);
+}
+.logout{
+    height:46px;
+    font-size:15px;
+}
+
+}
