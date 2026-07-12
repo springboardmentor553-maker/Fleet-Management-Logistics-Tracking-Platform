@@ -8,5 +8,5 @@ class Vehicle(Base):
     id = Column(Integer, primary_key=True, index=True)
     vehicle_number = Column(String, unique=True, nullable=False)
     vehicle_type = Column(String, nullable=False)
-    capacity = Column(Integer)
+    capacity = Column(String)
     status = Column(String, default="Available")

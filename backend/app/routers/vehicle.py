@@ -98,3 +98,46 @@ def delete_vehicle(
     return {
         "message": "Vehicle deleted successfully"
     }
+from fastapi import HTTPException
+
+@router.put("/{vehicle_id}")
+def update_vehicle(
+    vehicle_id: int,
+    vehicle: VehicleCreate,
+    db: Session = Depends(get_db)
+):
+    db_vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+
+    if not db_vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    db_vehicle.vehicle_number = vehicle.vehicle_number
+    db_vehicle.vehicle_type = vehicle.vehicle_type
+    db_vehicle.capacity = vehicle.capacity
+    db_vehicle.status = vehicle.status
+
+    db.commit()
+    db.refresh(db_vehicle)
+
+    return {
+        "message": "Vehicle updated successfully",
+        "vehicle": db_vehicle
+    }
+from fastapi import HTTPException
+
+@router.delete("/{vehicle_id}")
+def delete_vehicle(
+    vehicle_id: int,
+    db: Session = Depends(get_db)
+):
+    db_vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+
+    if not db_vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    db.delete(db_vehicle)
+    db.commit()
+
+    return {
+        "message": "Vehicle deleted successfully"
+    }
