@@ -6,27 +6,31 @@ export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
   const isEditMode = !!vehicleToEdit
 
   const [form, setForm] = useState({
-    registration_number: '',
-    vehicle_type: '',
-    capacity: '',
-    fuel_type: '',
-    status: 'available',
-  })
+  registration_number: '',
+  vehicle_type: '',
+  capacity: '',
+  fuel_type: '',
+  status: 'available',
+  current_lat: '',
+  current_lng: '',
+})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (vehicleToEdit) {
-      setForm({
-        registration_number: vehicleToEdit.registration_number || '',
-        vehicle_type: vehicleToEdit.vehicle_type || '',
-        capacity: vehicleToEdit.capacity || '',
-        fuel_type: vehicleToEdit.fuel_type || '',
-        status: vehicleToEdit.status || 'available',
-      })
-    }
-  }, [vehicleToEdit])
+  if (vehicleToEdit) {
+    setForm({
+      registration_number: vehicleToEdit.registration_number || '',
+      vehicle_type: vehicleToEdit.vehicle_type || '',
+      capacity: vehicleToEdit.capacity || '',
+      fuel_type: vehicleToEdit.fuel_type || '',
+      status: vehicleToEdit.status || 'available',
+      current_lat: vehicleToEdit.current_lat ?? '',
+      current_lng: vehicleToEdit.current_lng ?? '',
+    })
+  }
+}, [vehicleToEdit])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -40,6 +44,8 @@ export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
       const payload = {
         ...form,
         capacity: form.capacity ? parseFloat(form.capacity) : null,
+        current_lat: form.current_lat !== '' ? parseFloat(form.current_lat) : null,
+        current_lng: form.current_lng !== '' ? parseFloat(form.current_lng) : null,
       }
 
       let res
@@ -84,11 +90,17 @@ export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
           <input name="fuel_type" placeholder="Diesel, Petrol, CNG" value={form.fuel_type} onChange={handleChange} />
 
           <label>Status</label>
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="available">Available</option>
-            <option value="in_use">In Use</option>
-            <option value="maintenance">Maintenance</option>
-          </select>
+            <select name="status" value={form.status} onChange={handleChange}>
+              <option value="available">Available</option>
+              <option value="in_use">In Use</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+
+            <label>Current Latitude (optional)</label>
+            <input name="current_lat" type="number" step="any" placeholder="e.g. 28.6139" value={form.current_lat} onChange={handleChange} />
+
+            <label>Current Longitude (optional)</label>
+            <input name="current_lng" type="number" step="any" placeholder="e.g. 77.2090" value={form.current_lng} onChange={handleChange} />
 
           <button type="submit" className="ff-btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
             {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Vehicle' : 'Add Vehicle')}

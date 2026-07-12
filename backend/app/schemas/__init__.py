@@ -47,6 +47,8 @@ class VehicleCreate(BaseModel):
     capacity: Optional[float] = None
     fuel_type: Optional[str] = None
     status: str = "available"
+    current_lat: Optional[float] = None
+    current_lng: Optional[float] = None
 
 
 class VehicleResponse(BaseModel):
@@ -56,6 +58,8 @@ class VehicleResponse(BaseModel):
     capacity: Optional[float]
     fuel_type: Optional[str]
     status: str
+    current_lat: Optional[float] = None
+    current_lng: Optional[float] = None
 
     class Config:
         from_attributes = True

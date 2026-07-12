@@ -34,8 +34,10 @@ class Vehicle(Base):
     vehicle_type = Column(String, nullable=False)
     capacity = Column(Float)
     fuel_type = Column(String)
-    status = Column(String, default="available")  # available, in_use, maintenance
+    status = Column(String, default="available")
     assigned_driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
+    current_lat = Column(Float, nullable=True)
+    current_lng = Column(Float, nullable=True)
 
     driver = relationship("Driver", back_populates="vehicle")
 

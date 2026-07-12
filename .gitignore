@@ -24,3 +24,6 @@ Thumbs.db
 # Node
 node_modules/
 dist/
+
+# API key
+frontend/.env

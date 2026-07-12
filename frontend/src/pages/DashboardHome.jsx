@@ -2,6 +2,7 @@ import React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench } from 'lucide-react'
 import WidgetMenu from '../components/WidgetMenu'
+import LiveMap from '../components/LiveMap'
 
 const STATUS_MAPPING = {
   available: { label: 'Running', color: '#1a9c5c' },
@@ -168,11 +169,9 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
 
         {/* Temporary Asset Map Blueprint Placeholder */}
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
-          <div className="ff-map-placeholder">
-            <span className="ff-map-pin" style={{ top: '26%', left: '30%' }}><MapPin size={20} fill="currentColor" /></span>
-            <span className="ff-map-pin" style={{ top: '54%', left: '62%' }}><MapPin size={20} fill="currentColor" /></span>
-            <div className="ff-map-note">Map integration</div>
+          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
+          <div style={{ height: '220px' }}>
+            <LiveMap vehicles={vehicles} />
           </div>
         </div>
       </div>
@@ -180,7 +179,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
       {/* Auxiliary Operation Logs & Preventive Maintenance Layout */}
       <div className="ff-bottom-row">
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Recent Activities</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
+          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
           {RECENT_ACTIVITY.map((a, i) => (
             <div className="ff-activity-item" key={i}>
               <div className="ff-activity-icon" style={{ background: a.bg, color: a.color }}>{a.icon}</div>

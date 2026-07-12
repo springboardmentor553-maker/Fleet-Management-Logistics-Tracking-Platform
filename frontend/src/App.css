@@ -1047,8 +1047,23 @@ body {
   width: 360px;
   max-width: 90vw;
   padding: 20px;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.ff-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ff-modal::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.ff-modal::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .ff-modal-header {
@@ -1110,7 +1125,7 @@ body {
   border-radius: 8px;
   box-shadow: var(--shadow);
   min-width: 120px;
-  z-index: 100;
+  z-index: 10000;
   overflow: hidden;
 }
 
@@ -1196,4 +1211,75 @@ body {
   color: var(--text-secondary);
   padding: 8px 0;
   border-top: 1px solid var(--border);
+}
+
+.ff-tracking-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .ff-tracking-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.ff-tracking-map {
+  height: 320px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.ff-tracking-details {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.ff-tracking-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.ff-tracking-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .ff-tracking-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.ff-tracking-map {
+  height: 320px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.ff-tracking-details {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.ff-tracking-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
 }

@@ -2,33 +2,17 @@ import AddShipmentModal from '../components/AddShipmentModal'
 import { useState } from 'react'
 import { Package } from 'lucide-react'
 import { canEdit } from '../utils/permissions'
+import ShipmentTrackingPanel from '../components/ShipmentTrackingPanel'
+import { getStatusBadgeClass } from '../utils/statusBadge'
+
 
 const TABS = ['All', 'Created', 'Assigned', 'In Transit', 'Delayed', 'Delivered', 'Cancelled']
 const tabToStatus = (tab) => tab.toLowerCase().replace(' ', '_')
 
-// Helper function to map raw backend status strings to valid App.css style tokens
-const getStatusBadgeClass = (statusString) => {
-  if (!statusString) return 'in_use';
-  const cleanStatus = statusString.toLowerCase().replace('_', ' ').trim();
-
-  // Mapping to green token configurations
-  if (cleanStatus === 'delivered') return 'delivered';
-  
-  // Mapping to violet/blue token configurations
-  if (cleanStatus === 'in transit' || cleanStatus === 'assigned') return 'in_use';
-  
-  // Mapping to amber/red token configurations
-  if (cleanStatus === 'delayed' || cleanStatus === 'cancelled') return 'maintenance';
-  
-  // Mapping to grey/inactive token configurations
-  if (cleanStatus === 'created') return 'inactive';
-
-  return 'in_use';
-};
-
 const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, search, onShipmentAdded }) => {
   const [activeTab, setActiveTab] = useState('All')
   const [showModal, setShowModal] = useState(false)
+  const [trackingShipment, setTrackingShipment] = useState(null)
 
   const filteredShipments = (shipments || []).filter(s => {
     const matchesSearch =
@@ -93,7 +77,7 @@ const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, searc
                     </span>
                   </td>
                   <td data-label="" style={{ textAlign: 'right' }}>
-                    <button className="ff-btn-track" onClick={() => alert(`Tracking ${s.tracking_id} — map coming soon`)}>
+                    <button className="ff-btn-track" onClick={() => setTrackingShipment(s)}>
                       Track
                     </button>
                   </td>
@@ -109,6 +93,15 @@ const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, searc
           drivers={drivers}
           onClose={() => setShowModal(false)}
           onSuccess={(newShipment) => onShipmentAdded(newShipment)}
+        />
+      )}
+
+      {trackingShipment && (
+        <ShipmentTrackingPanel
+        shipment={trackingShipment}
+        vehicle={vehicles.find(v => v.id === trackingShipment.vehicle_id)}
+        driver={drivers.find(d => d.id === trackingShipment.driver_id)}
+        onClose={() => setTrackingShipment(null)}
         />
       )}
     </div>
