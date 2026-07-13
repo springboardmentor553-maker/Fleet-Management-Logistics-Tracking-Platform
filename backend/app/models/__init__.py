@@ -66,3 +66,20 @@ class Shipment(Base):
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     eta = Column(DateTime, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Trip(Base):
+    __tablename__ = "trips"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
+    origin = Column(String, nullable=False)
+    destination = Column(String, nullable=False)
+    scheduled_start = Column(DateTime, nullable=False)
+    scheduled_end = Column(DateTime, nullable=True)
+    status = Column(String, default="scheduled")  # scheduled, ongoing, completed, cancelled
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    vehicle = relationship("Vehicle")
+    driver = relationship("Driver")

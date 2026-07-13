@@ -114,7 +114,6 @@ class ShipmentResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class ShipmentStatusUpdate(BaseModel):
     status: str
 
@@ -124,3 +123,33 @@ class UpdateProfileRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
+
+class TripCreate(BaseModel):
+    vehicle_id: int
+    driver_id: int
+    origin: str
+    destination: str
+    scheduled_start: datetime
+    scheduled_end: Optional[datetime] = None
+    status: str = "scheduled"
+    notes: Optional[str] = None
+
+
+class TripResponse(BaseModel):
+    id: int
+    vehicle_id: int
+    driver_id: int
+    origin: str
+    destination: str
+    scheduled_start: datetime
+    scheduled_end: Optional[datetime]
+    status: str
+    notes: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TripStatusUpdate(BaseModel):
+    status: str

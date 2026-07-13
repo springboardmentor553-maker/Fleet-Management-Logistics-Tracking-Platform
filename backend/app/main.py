@@ -3,7 +3,7 @@ from app.database import Base, engine
 from fastapi.staticfiles import StaticFiles
 import os
 from app import models
-from app.routers import auth, vehicles, drivers, shipments
+from app.routers import auth, vehicles, drivers, shipments, trips
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import WebSocket, WebSocketDisconnect
 from app.websocket_manager import manager
@@ -26,6 +26,7 @@ app.include_router(auth.router)
 app.include_router(vehicles.router)
 app.include_router(drivers.router)
 app.include_router(shipments.router)
+app.include_router(trips.router)
 
 
 @app.get("/")

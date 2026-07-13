@@ -15,11 +15,12 @@ import Register from './pages/Register'
 import DriverDetail from './pages/DriverDetail'
 import Profile from './pages/Profile'
 import RoutesPage from './pages/Routes'
+import Trips from './pages/Trips'
 
 function DashboardLayout({
-  vehicles, drivers, shipments, loading,
+  vehicles, drivers, shipments, trips, loading,
   darkMode, setDarkMode, search, setSearch,
-  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh
+  menuOpen, setMenuOpen, onVehicleAdded, onVehicleDeleted, onShipmentAdded, onDriverAdded, onDriverDeleted, onShipmentStatusUpdate, onRefresh, onTripAdded, onTripDeleted
 }) {
   return (
     <div className={`ff-app ${darkMode ? 'dark' : ''}`}>
@@ -94,6 +95,10 @@ function DashboardLayout({
             element={<DriverDetail drivers={drivers} vehicles={vehicles} shipments={shipments} />}
           />
           <Route path="/routes" element={<RoutesPage />} />
+          <Route
+            path="/trips"
+            element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
+          />
           <Route path="/profile" element={<Profile />} />
         </Routes>
 
@@ -106,6 +111,7 @@ function App() {
   const [vehicles, setVehicles] = useState([])
   const [drivers, setDrivers] = useState([])
   const [shipments, setShipments] = useState([])
+  const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [search, setSearch] = useState('')
@@ -116,12 +122,14 @@ const fetchAllData = () => {
   Promise.all([
     api.get('/vehicles/'),
     api.get('/drivers/'),
-    api.get('/shipments/')
+    api.get('/shipments/'),
+    api.get('/trips/')
   ])
-    .then(([vehiclesRes, driversRes, shipmentsRes]) => {
+    .then(([vehiclesRes, driversRes, shipmentsRes, tripsRes]) => {
       setVehicles(vehiclesRes.data)
       setDrivers(driversRes.data)
       setShipments(shipmentsRes.data)
+      setTrips(tripsRes.data)
     })
     .catch(error => console.log("Fetch failed: ", error))
     .finally(() => setLoading(false))
@@ -185,6 +193,18 @@ useEffect(() => {
     setShipments(prev => prev.map(s => s.id === updatedShipment.id ? updatedShipment : s))
   }
 
+  const handleTripAdded = (trip, isEdit = false) => {
+  if (isEdit) {
+    setTrips(prev => prev.map(t => t.id === trip.id ? trip : t))
+  } else {
+    setTrips(prev => [...prev, trip])
+  }
+}
+
+const handleTripDeleted = (tripId) => {
+  setTrips(prev => prev.filter(t => t.id !== tripId))
+}
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -194,7 +214,7 @@ useEffect(() => {
         element={
           <ProtectedRoute>
             <DashboardLayout
-              vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading}
+              vehicles={vehicles} drivers={drivers} shipments={shipments} trips={trips} loading={loading}
               darkMode={darkMode} setDarkMode={setDarkMode}
               search={search} setSearch={setSearch}
               menuOpen={menuOpen} setMenuOpen={setMenuOpen}
@@ -205,6 +225,8 @@ useEffect(() => {
               onDriverDeleted={handleDriverDeleted}
               onShipmentStatusUpdate={handleShipmentStatusUpdate}
               onRefresh={fetchAllData}
+              onTripAdded={handleTripAdded}
+              onTripDeleted={handleTripDeleted}
             />
           </ProtectedRoute>
         }

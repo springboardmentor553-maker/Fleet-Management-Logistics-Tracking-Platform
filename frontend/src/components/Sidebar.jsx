@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Truck, Package, Route, IdCard, Wrench,
-  BarChart3, FileText, Bell, Settings, X, LogOut
+  BarChart3, FileText, Bell, Settings, X, LogOut, Calendar
 } from 'lucide-react'
 
 // Array configuration for central sidebar navigation links
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { icon: <Truck size={16} />, label: 'Fleet', path: '/fleet' },
   { icon: <Package size={16} />, label: 'Shipments', path: '/shipments' },
   { icon: <Route size={16} />, label: 'Routes', path: '/routes' },
+  { icon: <Calendar size={16} />, label: 'Trips', path: '/trips' },
   { icon: <IdCard size={16} />, label: 'Drivers', path: '/drivers' },
   { icon: <Wrench size={16} />, label: 'Maintenance', path: '/maintenance' },
   { icon: <BarChart3 size={16} />, label: 'Analytics', path: '/analytics' },
