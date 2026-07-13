@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
 import { vehicleService, driverService, getApiErrorMessage } from '../services/api'
+import { 
+  CheckCircle2, 
+  AlertCircle, 
+  Wrench, 
+  Check, 
+  CheckSquare, 
+  AlertTriangle,
+  ClipboardList
+} from 'lucide-react'
 
 export default function Maintenance() {
   const [vehicles, setVehicles] = useState([])
@@ -72,78 +81,108 @@ export default function Maintenance() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Toast Overlay */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.type}`}>
-            <span>{toast.type === 'success' ? '✅' : '❌'}</span>
-            {toast.message}
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="toast-icon toast-icon--success" aria-hidden="true" />
+            ) : (
+              <AlertCircle className="toast-icon toast-icon--error" aria-hidden="true" />
+            )}
+            <span>{toast.message}</span>
           </div>
         ))}
       </div>
 
+      {/* Header Panel */}
       <div>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px' }}>Maintenance Log</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Track and authorize repairs, inspections, and active vehicle maintenance schedules.</p>
+        <h1 className="page-title">Maintenance Log</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+          Track and authorize repairs, inspections, and active vehicle maintenance schedules.
+        </p>
       </div>
 
       {error ? (
-        <div style={errorCardStyle}>
-          <p style={{ color: 'var(--danger-color)', fontWeight: 500 }}>{error}</p>
+        <div className="error-card">
+          <AlertTriangle className="error-card__icon" />
+          <h2 className="error-card__title">Retrieve Failed</h2>
+          <p className="error-card__desc">{error}</p>
+          <button className="btn btn--primary" onClick={loadData}>
+            Retry Load
+          </button>
         </div>
       ) : loading ? (
         <div className="loading-container" style={{ minHeight: '40vh' }}>
           <div className="loading-spinner"></div>
         </div>
       ) : (
-        <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafbfd' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Vehicles currently out-of-service</span>
-            <span className="badge badge--maintenance" style={{ fontSize: '0.75rem' }}>
-              {maintenanceVehicles.length} Vehicles
+        /* DataGrid Style Container */
+        <div className="datagrid-container">
+          <div className="datagrid-header-bar">
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
+              Vehicles currently out-of-service
+            </span>
+            <span className="badge badge--warning" style={{ fontSize: '12px', fontWeight: 600 }}>
+              <Wrench style={{ width: '13px', height: '13px' }} />
+              <span>{maintenanceVehicles.length} Vehicles</span>
             </span>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="datagrid-wrapper">
+            <table className="datagrid">
               <thead>
-                <tr style={{ backgroundColor: '#fafbfd' }}>
-                  <th style={thStyle}>Vehicle / Plate</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Assigned Driver</th>
-                  <th style={thStyle}>Maintenance Status</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <tr>
+                  <th>Vehicle / Plate</th>
+                  <th>Type</th>
+                  <th>Assigned Driver</th>
+                  <th>Maintenance Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {maintenanceVehicles.length > 0 ? (
                   maintenanceVehicles.map((vehicle) => (
-                    <tr key={vehicle.id} style={trStyle}>
-                      <td style={{ ...tdStyle, fontWeight: 600 }}>{vehicle.vehicle_number}</td>
-                      <td style={tdStyle}>{vehicle.vehicle_type}</td>
-                      <td style={tdStyle}>{getDriverName(vehicle.driver_id)}</td>
-                      <td style={tdStyle}>
-                        <span className="badge badge--maintenance" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>
-                          🔧 {vehicle.status}
+                    <tr key={vehicle.id}>
+                      <td style={{ fontWeight: 600 }}>{vehicle.vehicle_number}</td>
+                      <td>{vehicle.vehicle_type}</td>
+                      <td>{getDriverName(vehicle.driver_id)}</td>
+                      <td>
+                        <span className="badge badge--danger" style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                          <Wrench style={{ width: '12px', height: '12px' }} />
+                          <span>{vehicle.status}</span>
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right' }}>
-                        <button
-                          className="btn btn--primary"
-                          style={{ padding: '6px 12px', fontSize: '0.85rem', backgroundColor: 'var(--success-color)' }}
-                          disabled={submittingId === vehicle.id}
-                          onClick={() => handleReleaseToService(vehicle)}
-                        >
-                          {submittingId === vehicle.id ? 'Releasing...' : '✅ Release to Service'}
-                        </button>
+                      <td>
+                        <div className="datagrid-actions">
+                          <button
+                            className="btn btn--primary"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '12px', 
+                              backgroundColor: 'var(--success)', 
+                              borderColor: 'transparent',
+                              color: '#FFFFFF'
+                            }}
+                            disabled={submittingId === vehicle.id}
+                            onClick={() => handleReleaseToService(vehicle)}
+                          >
+                            <Check style={{ width: '14px', height: '14px' }} />
+                            <span>{submittingId === vehicle.id ? 'Releasing...' : 'Release to Service'}</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                      🎉 All fleet vehicles are currently active and available. No pending maintenance logs.
+                    <td colSpan="5">
+                      <div className="empty-state">
+                        <CheckCircle2 className="empty-state__icon" style={{ color: 'var(--success)' }} />
+                        <p className="empty-state__title">All vehicles are active</p>
+                        <p className="empty-state__desc">No pending vehicle maintenance schedules or repairs.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -154,34 +193,4 @@ export default function Maintenance() {
       )}
     </div>
   )
-}
-
-const thStyle = {
-  textAlign: 'left',
-  padding: '14px 20px',
-  fontSize: '0.825rem',
-  textTransform: 'uppercase',
-  color: 'var(--text-secondary)',
-  borderBottom: '1px solid var(--border-color)',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-}
-
-const tdStyle = {
-  padding: '14px 20px',
-  borderBottom: '1px solid var(--border-color)',
-  fontSize: '0.9rem',
-}
-
-const trStyle = {
-  borderBottom: '1px solid var(--border-color)',
-  transition: 'background-color 0.15s ease',
-}
-
-const errorCardStyle = {
-  padding: '24px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fee2e2',
-  borderRadius: '12px',
-  textAlign: 'center',
 }

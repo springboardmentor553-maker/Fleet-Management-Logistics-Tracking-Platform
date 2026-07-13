@@ -1,0 +1,31 @@
+# Python venv
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Databases & local configs
+backend/.env
+.env
+
+# Frontend builds & packages
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/yarn-error.log
+frontend/npm-debug.log*
+
+# System files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python dependencies cache
+pip_cache/

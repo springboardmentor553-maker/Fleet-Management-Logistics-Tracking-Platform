@@ -43,6 +43,15 @@ Fleet-Management-Logistics-Tracking-Platform/
 │   ├── database.py
 │   └── models.py
 │
+├── frontend/
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── pages/
+│       ├── services/
+│       ├── App.jsx
+│       └── main.jsx
+│
 ├── backend/
 ├── routers/
 └── LICENSE
@@ -51,6 +60,18 @@ Fleet-Management-Logistics-Tracking-Platform/
 ## Current Backend Status
 
 At the moment, the backend exposes a simple FastAPI route at `/` that returns a success message. The database and model modules are placeholders for upcoming development.
+
+## Frontend Scaffold
+
+The `frontend/` folder is now structured for a Vite + React app with separate areas for components, pages, and services. It includes:
+
+- `frontend/package.json`
+- `frontend/vite.config.js`
+- `frontend/index.html`
+- `frontend/src/App.jsx`
+- `frontend/src/main.jsx`
+
+To run it later, install dependencies inside `frontend/` and start Vite with `npm run dev`.
 
 ## Run the Backend Locally
 

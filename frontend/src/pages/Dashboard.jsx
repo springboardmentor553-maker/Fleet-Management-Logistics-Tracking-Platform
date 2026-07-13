@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api, { getApiErrorMessage } from '../services/api'
+import { 
+  Truck, 
+  Users, 
+  Package, 
+  CheckCircle2, 
+  Wrench, 
+  ClipboardCheck, 
+  Plus, 
+  UserPlus, 
+  ArrowRight,
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react'
 
 export default function Dashboard() {
   const [data, setData] = useState({
@@ -14,6 +27,17 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+  const storedUser = localStorage.getItem('fleetflow_user')
+  let role = 'Fleet Manager'
+  if (storedUser) {
+    try {
+      const parsedUser = JSON.parse(storedUser)
+      role = parsedUser?.role || 'Fleet Manager'
+    } catch (e) {
+      // ignore
+    }
+  }
 
   async function fetchDashboardData() {
     try {
@@ -42,17 +66,18 @@ export default function Dashboard() {
     return (
       <div className="loading-container" style={{ minHeight: '60vh', flexDirection: 'column', gap: '16px' }}>
         <div className="loading-spinner"></div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading dashboard data...</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Loading dashboard telemetry...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f8d7da', margin: '20px 0' }}>
-        <h2 style={{ color: 'var(--danger-color)', marginBottom: '12px' }}>Connection Error</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 20px auto' }}>{error}</p>
-        <button className="btn btn--primary" onClick={fetchDashboardData}>
+      <div className="error-card">
+        <AlertTriangle className="error-card__icon" />
+        <h2 className="error-card__title">Connection Failure</h2>
+        <p className="error-card__desc">{error}</p>
+        <button className="btn btn--primary" onClick={fetchDashboardData} style={{ marginTop: '12px' }}>
           Retry Connection
         </button>
       </div>
@@ -72,91 +97,115 @@ export default function Dashboard() {
   const latestDrivers = [...data.drivers].reverse().slice(0, 5)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Title Header */}
       <div>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px' }}>Operational Overview</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Real-time statistics fetched directly from the FleetFlow telemetry server.</p>
+        <h1 className="page-title">Welcome back, {role}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+          Operational Overview &bull; Real-time logistics telemetry data.
+        </p>
       </div>
 
       {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#eff6ff', '#2563eb')}>🚚</div>
-          <div>
-            <p style={kpiLabelStyle}>Total Vehicles</p>
-            <h3 style={kpiValueStyle}>{totalVehicles}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+        {/* Total Vehicles */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#EFF6FF', color: 'var(--primary)' }}>
+            <Truck className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Total Vehicles</span>
+            <span className="kpi-card__value">{totalVehicles}</span>
           </div>
         </div>
 
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#ecfdf5', '#10b981')}>👨‍✈️</div>
-          <div>
-            <p style={kpiLabelStyle}>Total Drivers</p>
-            <h3 style={kpiValueStyle}>{totalDrivers}</h3>
+        {/* Total Drivers */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#F0FDF4', color: '#16A34A' }}>
+            <Users className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Total Drivers</span>
+            <span className="kpi-card__value">{totalDrivers}</span>
           </div>
         </div>
 
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#fef3c7', '#f59e0b')}>📦</div>
-          <div>
-            <p style={kpiLabelStyle}>Total Shipments</p>
-            <h3 style={kpiValueStyle}>{totalShipments}</h3>
+        {/* Total Shipments */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#FEF3C7', color: '#D97706' }}>
+            <Package className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Total Shipments</span>
+            <span className="kpi-card__value">{totalShipments}</span>
           </div>
         </div>
 
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#e0f2fe', '#0284c7')}>✅</div>
-          <div>
-            <p style={kpiLabelStyle}>Available Fleets</p>
-            <h3 style={kpiValueStyle}>{availableVehicles}</h3>
+        {/* Available Fleets */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#E0F2FE', color: '#0284C7' }}>
+            <CheckCircle2 className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Available Fleets</span>
+            <span className="kpi-card__value">{availableVehicles}</span>
           </div>
         </div>
 
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#fef2f2', '#ef4444')}>🔧</div>
-          <div>
-            <p style={kpiLabelStyle}>In Maintenance</p>
-            <h3 style={kpiValueStyle}>{maintenanceVehicles}</h3>
+        {/* In Maintenance */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#FEF2F2', color: '#DC2626' }}>
+            <Wrench className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">In Maintenance</span>
+            <span className="kpi-card__value">{maintenanceVehicles}</span>
           </div>
         </div>
 
-        <div style={kpiCardStyle}>
-          <div style={kpiIconBg('#f0fdf4', '#15803d')}>🏁</div>
-          <div>
-            <p style={kpiLabelStyle}>Delivered Orders</p>
-            <h3 style={kpiValueStyle}>{deliveredShipments}</h3>
+        {/* Delivered Orders */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#F0FDF4', color: '#15803D' }}>
+            <ClipboardCheck className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Delivered Orders</span>
+            <span className="kpi-card__value">{deliveredShipments}</span>
           </div>
         </div>
       </div>
 
       {/* Main Grid: Data Tables & Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr', gap: '32px', alignItems: 'start' }}>
         
-        {/* Left Side: Recent Shipments */}
-        <section style={panelStyle}>
-          <div style={panelHeaderStyle}>
-            <h2 style={panelTitleStyle}>Recent Shipments</h2>
-            <Link to="/shipments" style={panelLinkStyle}>View All</Link>
+        {/* Left Column: Recent Shipments DataGrid */}
+        <section className="datagrid-container">
+          <div className="datagrid-header-bar">
+            <h2 className="section-title" style={{ fontSize: '16px' }}>Recent Shipments</h2>
+            <Link to="/shipments" className="btn btn--secondary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>
+              <span>View All</span>
+              <ArrowRight style={{ width: '14px', height: '14px' }} />
+            </Link>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={tableStyle}>
+          <div className="datagrid-wrapper">
+            <table className="datagrid">
               <thead>
                 <tr>
-                  <th style={thStyle}>Name</th>
-                  <th style={thStyle}>Source</th>
-                  <th style={thStyle}>Destination</th>
-                  <th style={thStyle}>Status</th>
+                  <th>Shipment Description</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {latestShipments.length > 0 ? (
                   latestShipments.map((shipment) => (
-                    <tr key={shipment.id} style={trStyle}>
-                      <td style={tdStyle}>{shipment.shipment_name}</td>
-                      <td style={tdStyle}>{shipment.source}</td>
-                      <td style={tdStyle}>{shipment.destination}</td>
-                      <td style={tdStyle}>
-                        <span className={`badge badge--${shipment.status?.toLowerCase()}`}>
+                    <tr key={shipment.id}>
+                      <td style={{ fontWeight: 600 }}>{shipment.shipment_name}</td>
+                      <td>{shipment.source}</td>
+                      <td>{shipment.destination}</td>
+                      <td>
+                        <span className={`badge badge--${shipment.status?.toLowerCase().replace(' ', '')}`}>
                           {shipment.status}
                         </span>
                       </td>
@@ -164,8 +213,12 @@ export default function Dashboard() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" style={{ padding: '24px', textStyle: 'italic', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                      No shipments created yet.
+                    <td colSpan="4">
+                      <div className="empty-state">
+                        <Package className="empty-state__icon" />
+                        <p className="empty-state__title">No shipments dispatched yet</p>
+                        <p className="empty-state__desc">Dispatched cargo logs will list here.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -174,46 +227,54 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Right Side: Quick Actions & Drivers */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Right Column: Quick Actions & Drivers */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
-          {/* Quick Actions */}
-          <section style={panelStyle}>
-            <h2 style={{ ...panelTitleStyle, marginBottom: '16px' }}>Quick Operations</h2>
+          {/* Quick Operations Panel */}
+          <section className="card" style={{ padding: '20px' }}>
+            <div className="card__header" style={{ marginBottom: '16px' }}>
+              <h3 className="card__title" style={{ fontSize: '15px' }}>Quick Operations</h3>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Link to="/shipments" className="btn btn--secondary" style={{ textAlign: 'center', textDecoration: 'none', display: 'block' }}>
-                📦 Create Shipment
+              <Link to="/shipments" className="btn btn--secondary" style={{ justifyContent: 'flex-start', textDecoration: 'none' }}>
+                <Plus className="btn-icon" style={{ color: 'var(--primary)' }} />
+                <span>Create Shipment</span>
               </Link>
-              <Link to="/vehicles" className="btn btn--secondary" style={{ textAlign: 'center', textDecoration: 'none', display: 'block' }}>
-                🚚 Register Vehicle
+              <Link to="/vehicles" className="btn btn--secondary" style={{ justifyContent: 'flex-start', textDecoration: 'none' }}>
+                <Truck className="btn-icon" style={{ color: 'var(--success)' }} />
+                <span>Register Vehicle</span>
               </Link>
-              <Link to="/drivers" className="btn btn--secondary" style={{ textAlign: 'center', textDecoration: 'none', display: 'block' }}>
-                👨‍✈️ Register Driver
+              <Link to="/drivers" className="btn btn--secondary" style={{ justifyContent: 'flex-start', textDecoration: 'none' }}>
+                <UserPlus className="btn-icon" style={{ color: 'var(--warning)' }} />
+                <span>Register Driver</span>
               </Link>
             </div>
           </section>
 
-          {/* Recent Drivers */}
-          <section style={panelStyle}>
-            <div style={panelHeaderStyle}>
-              <h2 style={panelTitleStyle}>Recent Drivers</h2>
-              <Link to="/drivers" style={panelLinkStyle}>View All</Link>
+          {/* Recent Drivers List */}
+          <section className="card" style={{ padding: '20px' }}>
+            <div className="card__header" style={{ marginBottom: '16px' }}>
+              <h3 className="card__title" style={{ fontSize: '15px' }}>Recent Drivers</h3>
+              <Link to="/drivers" style={{ fontSize: '12px', color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>View All</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {latestDrivers.length > 0 ? (
                 latestDrivers.map((driver) => (
-                  <div key={driver.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
+                  <div key={driver.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
                     <div>
-                      <h4 style={{ fontWeight: 600, fontSize: '0.9rem' }}>{driver.name}</h4>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{driver.phone}</p>
+                      <h4 style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-main)' }}>{driver.name}</h4>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{driver.phone}</p>
                     </div>
-                    <span className={`badge badge--${driver.status?.toLowerCase()}`} style={{ fontSize: '0.7rem' }}>
+                    <span className={`badge badge--${driver.status?.toLowerCase().replace(' ', '')}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
                       {driver.status}
                     </span>
                   </div>
                 ))
               ) : (
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No registered drivers.</p>
+                <div className="empty-state" style={{ padding: '16px' }}>
+                  <Users className="empty-state__icon" style={{ width: '32px', height: '32px' }} />
+                  <p className="empty-state__title" style={{ fontSize: '13px' }}>No active drivers</p>
+                </div>
               )}
             </div>
           </section>
@@ -223,96 +284,4 @@ export default function Dashboard() {
       </div>
     </div>
   )
-}
-
-// Inline styles designed for strict clean look, complementing main.css
-const kpiCardStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '20px',
-  backgroundColor: '#fff',
-  borderRadius: '12px',
-  border: '1px solid var(--border-color)',
-  boxShadow: 'var(--shadow-sm)',
-  gap: '16px',
-}
-
-const kpiIconBg = (bg, color) => ({
-  width: '46px',
-  height: '46px',
-  borderRadius: '8px',
-  backgroundColor: bg,
-  color: color,
-  display: 'flex',
-  alignItems: 'center',
-  justifycontent: 'center',
-  justifyContent: 'center',
-  fontSize: '1.4rem',
-  flexShrink: 0,
-})
-
-const kpiLabelStyle = {
-  fontSize: '0.8rem',
-  color: 'var(--text-secondary)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-  marginBottom: '2px',
-}
-
-const kpiValueStyle = {
-  fontSize: '1.5rem',
-  fontWeight: 700,
-  lineHeight: 1.1,
-}
-
-const panelStyle = {
-  backgroundColor: '#fff',
-  borderRadius: '12px',
-  border: '1px solid var(--border-color)',
-  padding: '24px',
-  boxShadow: 'var(--shadow-sm)',
-}
-
-const panelHeaderStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '16px',
-}
-
-const panelTitleStyle = {
-  fontSize: '1rem',
-  fontWeight: 600,
-}
-
-const panelLinkStyle = {
-  fontSize: '0.85rem',
-  color: 'var(--primary-color)',
-  textDecoration: 'none',
-  fontWeight: 500,
-}
-
-const tableStyle = {
-  width: '100%',
-  borderCollapse: 'collapse',
-}
-
-const thStyle = {
-  textAlign: 'left',
-  padding: '12px 10px',
-  fontSize: '0.8rem',
-  textTransform: 'uppercase',
-  color: 'var(--text-secondary)',
-  borderBottom: '1px solid var(--border-color)',
-  fontWeight: 600,
-}
-
-const tdStyle = {
-  padding: '12px 10px',
-  borderBottom: '1px solid var(--border-color)',
-  fontSize: '0.875rem',
-}
-
-const trStyle = {
-  transition: 'background-color 0.2s',
 }

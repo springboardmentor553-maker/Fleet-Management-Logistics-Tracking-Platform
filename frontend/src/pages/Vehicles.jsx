@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react'
 import { vehicleService, driverService, getApiErrorMessage } from '../services/api'
+import { 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  CheckCircle2, 
+  AlertCircle, 
+  X, 
+  ChevronLeft, 
+  ChevronRight,
+  Truck
+} from 'lucide-react'
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([])
@@ -164,7 +176,9 @@ export default function Vehicles() {
 
   // Get driver name by ID
   const getDriverName = (driverId) => {
-    if (!driverId) return <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Unassigned</span>
+    if (!driverId) {
+      return <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '13px' }}>Unassigned</span>
+    }
     const driverObj = drivers.find((d) => d.id === driverId)
     return driverObj ? driverObj.name : `ID: ${driverId}`
   }
@@ -186,42 +200,57 @@ export default function Vehicles() {
   const paginatedVehicles = filteredVehicles.slice(startIndex, startIndex + itemsPerPage)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Toast Overlay */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.type}`}>
-            <span>{toast.type === 'success' ? '✅' : '❌'}</span>
-            {toast.message}
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="toast-icon toast-icon--success" aria-hidden="true" />
+            ) : (
+              <AlertCircle className="toast-icon toast-icon--error" aria-hidden="true" />
+            )}
+            <span>{toast.message}</span>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header Row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px' }}>Fleet Registry</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Track and manage your vehicles, transport capacity, and driver assignments.</p>
+          <h1 className="page-title">Fleet Registry</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+            Track and manage your vehicles, transport capacity, and driver assignments.
+          </p>
         </div>
         <button className="btn btn--primary" onClick={handleOpenAddModal}>
-          ➕ Register Vehicle
+          <Plus style={{ width: '16px', height: '16px' }} />
+          <span>Register Vehicle</span>
         </button>
       </div>
 
       {error ? (
-        <div style={errorCardStyle}>
-          <p style={{ color: 'var(--danger-color)', fontWeight: 500 }}>{error}</p>
+        <div className="error-card">
+          <AlertCircle className="error-card__icon" />
+          <h2 className="error-card__title">Retrieve Failed</h2>
+          <p className="error-card__desc">{error}</p>
+          <button className="btn btn--primary" onClick={loadData}>
+            Retry Load
+          </button>
         </div>
       ) : loading ? (
         <div className="loading-container" style={{ minHeight: '40vh' }}>
           <div className="loading-spinner"></div>
         </div>
       ) : (
-        <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+        /* DataGrid Container */
+        <div className="datagrid-container">
           {/* Search bar */}
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#fafbfd' }}>
-            <label className="navbar__search" style={{ maxWidth: '350px', margin: 0 }}>
-              <span className="navbar__searchIcon">🔎</span>
+          <div className="datagrid-header-bar">
+            <label className="navbar__search" style={{ maxWidth: '360px', margin: 0 }} htmlFor="vehicle-search">
+              <Search className="navbar__searchIcon" aria-hidden="true" />
               <input
+                id="vehicle-search"
                 className="navbar__searchInput"
                 type="search"
                 placeholder="Search by plate, type, driver..."
@@ -232,55 +261,71 @@ export default function Vehicles() {
                 }}
               />
             </label>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
               Showing {filteredVehicles.length} {filteredVehicles.length === 1 ? 'vehicle' : 'vehicles'}
             </span>
           </div>
 
           {/* Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="datagrid-wrapper">
+            <table className="datagrid">
               <thead>
-                <tr style={{ backgroundColor: '#fafbfd' }}>
-                  <th style={thStyle}>Vehicle ID / Plate</th>
-                  <th style={thStyle}>Reg. Number</th>
-                  <th style={thStyle}>Type</th>
-                  <th style={thStyle}>Capacity (kg)</th>
-                  <th style={thStyle}>Fuel Type</th>
-                  <th style={thStyle}>Driver</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <tr>
+                  <th>Vehicle ID / Plate</th>
+                  <th>Reg. Number</th>
+                  <th>Type</th>
+                  <th>Capacity (kg)</th>
+                  <th>Fuel Type</th>
+                  <th>Driver</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedVehicles.length > 0 ? (
                   paginatedVehicles.map((vehicle) => (
-                    <tr key={vehicle.id} style={trStyle}>
-                      <td style={{ ...tdStyle, fontWeight: 600 }}>{vehicle.vehicle_number}</td>
-                      <td style={tdStyle}>{vehicle.registration_number}</td>
-                      <td style={tdStyle}>{vehicle.vehicle_type}</td>
-                      <td style={tdStyle}>{vehicle.capacity.toLocaleString()} kg</td>
-                      <td style={tdStyle}>{vehicle.fuel_type}</td>
-                      <td style={tdStyle}>{getDriverName(vehicle.driver_id)}</td>
-                      <td style={tdStyle}>
-                        <span className={`badge badge--${vehicle.status?.toLowerCase() || 'available'}`}>
+                    <tr key={vehicle.id}>
+                      <td style={{ fontWeight: 600 }}>{vehicle.vehicle_number}</td>
+                      <td>{vehicle.registration_number}</td>
+                      <td>{vehicle.vehicle_type}</td>
+                      <td>{vehicle.capacity.toLocaleString()} kg</td>
+                      <td>{vehicle.fuel_type}</td>
+                      <td>{getDriverName(vehicle.driver_id)}</td>
+                      <td>
+                        <span className={`badge badge--${vehicle.status?.toLowerCase().replace(' ', '') || 'available'}`}>
                           {vehicle.status}
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right' }}>
-                        <button className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', marginRight: '6px' }} onClick={() => handleOpenEditModal(vehicle)}>
-                          ✏️ Edit
-                        </button>
-                        <button className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--danger-color)', borderColor: '#fee2e2' }} onClick={() => handleDeleteTrigger(vehicle.id)}>
-                          🗑️ Delete
-                        </button>
+                      <td>
+                        <div className="datagrid-actions">
+                          <button 
+                            className="btn btn--secondary" 
+                            style={{ padding: '6px 10px', fontSize: '12px' }} 
+                            onClick={() => handleOpenEditModal(vehicle)}
+                          >
+                            <Edit2 style={{ width: '13px', height: '13px' }} />
+                            <span>Edit</span>
+                          </button>
+                          <button 
+                            className="btn btn--outline-danger" 
+                            style={{ padding: '6px 10px', fontSize: '12px' }} 
+                            onClick={() => handleDeleteTrigger(vehicle.id)}
+                          >
+                            <Trash2 style={{ width: '13px', height: '13px' }} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                      No vehicles found matching search parameters.
+                    <td colSpan="8">
+                      <div className="empty-state">
+                        <Truck className="empty-state__icon" />
+                        <p className="empty-state__title">No vehicles found</p>
+                        <p className="empty-state__desc">Try checking spelling or register a new fleet vehicle.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -290,26 +335,28 @@ export default function Vehicles() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="pagination" style={{ padding: '16px 20px', backgroundColor: '#fafbfd' }}>
+            <div className="pagination">
               <span className="pagination__info">
                 Page {currentPage} of {totalPages}
               </span>
               <div className="pagination__buttons">
                 <button
                   className="btn btn--secondary"
-                  style={{ padding: '4px 12px' }}
+                  style={{ padding: '6px 12px' }}
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((c) => c - 1)}
                 >
-                  Previous
+                  <ChevronLeft style={{ width: '16px', height: '16px' }} />
+                  <span>Previous</span>
                 </button>
                 <button
                   className="btn btn--secondary"
-                  style={{ padding: '4px 12px' }}
+                  style={{ padding: '6px 12px' }}
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((c) => c + 1)}
                 >
-                  Next
+                  <span>Next</span>
+                  <ChevronRight style={{ width: '16px', height: '16px' }} />
                 </button>
               </div>
             </div>
@@ -323,13 +370,16 @@ export default function Vehicles() {
           <div className="modal" style={{ maxWidth: '480px' }}>
             <div className="modal__header">
               <h3 className="modal__title">{editingVehicle ? 'Modify Vehicle Specs' : 'Register Vehicle'}</h3>
-              <button className="modal__close" onClick={handleCloseModal}>×</button>
+              <button className="modal__close" onClick={handleCloseModal} aria-label="Close modal">
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal__body">
                 {submitError && (
                   <div className="login-form__error" style={{ marginBottom: '16px' }}>
-                    {submitError}
+                    <AlertCircle className="toast-icon" />
+                    <span>{submitError}</span>
                   </div>
                 )}
                 <div className="form-group">
@@ -454,11 +504,13 @@ export default function Vehicles() {
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: '400px' }}>
             <div className="modal__header">
-              <h3 className="modal__title" style={{ color: 'var(--danger-color)' }}>Delete Confirmation</h3>
-              <button className="modal__close" onClick={() => setDeleteConfirmId(null)}>×</button>
+              <h3 className="modal__title" style={{ color: 'var(--danger)' }}>Delete Confirmation</h3>
+              <button className="modal__close" onClick={() => setDeleteConfirmId(null)} aria-label="Close delete modal">
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
             </div>
             <div className="modal__body">
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13.5px', lineHeight: '1.5' }}>
                 Are you sure you want to remove this vehicle? This will unassign the vehicle from any active shipment records in the database.
               </p>
             </div>
@@ -475,34 +527,4 @@ export default function Vehicles() {
       )}
     </div>
   )
-}
-
-const thStyle = {
-  textAlign: 'left',
-  padding: '14px 20px',
-  fontSize: '0.825rem',
-  textTransform: 'uppercase',
-  color: 'var(--text-secondary)',
-  borderBottom: '1px solid var(--border-color)',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-}
-
-const tdStyle = {
-  padding: '14px 20px',
-  borderBottom: '1px solid var(--border-color)',
-  fontSize: '0.9rem',
-}
-
-const trStyle = {
-  borderBottom: '1px solid var(--border-color)',
-  transition: 'background-color 0.15s ease',
-}
-
-const errorCardStyle = {
-  padding: '24px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fee2e2',
-  borderRadius: '12px',
-  textAlign: 'center',
 }

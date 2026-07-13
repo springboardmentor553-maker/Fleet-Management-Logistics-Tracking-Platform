@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react'
 import { driverService, getApiErrorMessage } from '../services/api'
+import { 
+  UserPlus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  CheckCircle2, 
+  AlertCircle, 
+  X, 
+  ChevronLeft, 
+  ChevronRight,
+  Users
+} from 'lucide-react'
 
 export default function Drivers() {
   const [drivers, setDrivers] = useState([])
@@ -155,45 +167,60 @@ export default function Drivers() {
   const paginatedDrivers = filteredDrivers.slice(startIndex, startIndex + itemsPerPage)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Toast Notification Mount */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.type}`}>
-            <span>{toast.type === 'success' ? '✅' : '❌'}</span>
-            {toast.message}
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="toast-icon toast-icon--success" aria-hidden="true" />
+            ) : (
+              <AlertCircle className="toast-icon toast-icon--error" aria-hidden="true" />
+            )}
+            <span>{toast.message}</span>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header Row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px' }}>Drivers Directory</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Coordinate and manage active driver profiles and authorization credentials.</p>
+          <h1 className="page-title">Drivers Directory</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+            Coordinate and manage active driver profiles and authorization credentials.
+          </p>
         </div>
         <button className="btn btn--primary" onClick={handleOpenAddModal}>
-          ➕ Add Driver
+          <UserPlus style={{ width: '16px', height: '16px' }} />
+          <span>Add Driver</span>
         </button>
       </div>
 
       {error ? (
-        <div style={errorCardStyle}>
-          <p style={{ color: 'var(--danger-color)', fontWeight: 500 }}>{error}</p>
+        <div className="error-card">
+          <AlertCircle className="error-card__icon" />
+          <h2 className="error-card__title">Retrieve Failed</h2>
+          <p className="error-card__desc">{error}</p>
+          <button className="btn btn--primary" onClick={loadDrivers}>
+            Retry Load
+          </button>
         </div>
       ) : loading ? (
         <div className="loading-container" style={{ minHeight: '40vh' }}>
           <div className="loading-spinner"></div>
         </div>
       ) : (
-        <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+        /* DataGrid Component Container */
+        <div className="datagrid-container">
           {/* Filters Bar */}
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#fafbfd' }}>
-            <label className="navbar__search" style={{ maxWidth: '350px', margin: 0 }}>
-              <span className="navbar__searchIcon">🔎</span>
+          <div className="datagrid-header-bar">
+            <label className="navbar__search" style={{ maxWidth: '360px', margin: 0 }} htmlFor="driver-search">
+              <Search className="navbar__searchIcon" aria-hidden="true" />
               <input
+                id="driver-search"
                 className="navbar__searchInput"
                 type="search"
-                placeholder="Search by name, license number, or phone..."
+                placeholder="Search by name, license, or phone..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value)
@@ -201,49 +228,65 @@ export default function Drivers() {
                 }}
               />
             </label>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
               Showing {filteredDrivers.length} {filteredDrivers.length === 1 ? 'driver' : 'drivers'}
             </span>
           </div>
 
           {/* DataTable */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="datagrid-wrapper">
+            <table className="datagrid">
               <thead>
-                <tr style={{ backgroundColor: '#fafbfd' }}>
-                  <th style={thStyle}>Driver Name</th>
-                  <th style={thStyle}>License Number</th>
-                  <th style={thStyle}>Phone Number</th>
-                  <th style={thStyle}>Duty Status</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <tr>
+                  <th>Driver Name</th>
+                  <th>License Number</th>
+                  <th>Phone Number</th>
+                  <th>Duty Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedDrivers.length > 0 ? (
                   paginatedDrivers.map((driver) => (
-                    <tr key={driver.id} style={trStyle}>
-                      <td style={{ ...tdStyle, fontWeight: 500 }}>{driver.name}</td>
-                      <td style={tdStyle}>{driver.license_number}</td>
-                      <td style={tdStyle}>{driver.phone}</td>
-                      <td style={tdStyle}>
-                        <span className={`badge badge--${driver.status?.toLowerCase() || 'available'}`}>
+                    <tr key={driver.id}>
+                      <td style={{ fontWeight: 600 }}>{driver.name}</td>
+                      <td>{driver.license_number}</td>
+                      <td>{driver.phone}</td>
+                      <td>
+                        <span className={`badge badge--${driver.status?.toLowerCase().replace(' ', '') || 'available'}`}>
                           {driver.status}
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right' }}>
-                        <button className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', marginRight: '6px' }} onClick={() => handleOpenEditModal(driver)}>
-                          ✏️ Edit
-                        </button>
-                        <button className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--danger-color)', borderColor: '#fee2e2' }} onClick={() => handleDeleteTrigger(driver.id)}>
-                          🗑️ Delete
-                        </button>
+                      <td>
+                        <div className="datagrid-actions">
+                          <button 
+                            className="btn btn--secondary" 
+                            style={{ padding: '6px 10px', fontSize: '12px' }} 
+                            onClick={() => handleOpenEditModal(driver)}
+                          >
+                            <Edit2 style={{ width: '13px', height: '13px' }} />
+                            <span>Edit</span>
+                          </button>
+                          <button 
+                            className="btn btn--outline-danger" 
+                            style={{ padding: '6px 10px', fontSize: '12px' }} 
+                            onClick={() => handleDeleteTrigger(driver.id)}
+                          >
+                            <Trash2 style={{ width: '13px', height: '13px' }} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                      No drivers match your search parameters.
+                    <td colSpan="5">
+                      <div className="empty-state">
+                        <Users className="empty-state__icon" />
+                        <p className="empty-state__title">No drivers match search query</p>
+                        <p className="empty-state__desc">Try checking spelling or create a new driver profile.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -253,26 +296,28 @@ export default function Drivers() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="pagination" style={{ padding: '16px 20px', backgroundColor: '#fafbfd' }}>
+            <div className="pagination">
               <span className="pagination__info">
                 Page {currentPage} of {totalPages}
               </span>
               <div className="pagination__buttons">
                 <button
                   className="btn btn--secondary"
-                  style={{ padding: '4px 12px' }}
+                  style={{ padding: '6px 12px' }}
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((c) => c - 1)}
                 >
-                  Previous
+                  <ChevronLeft style={{ width: '16px', height: '16px' }} />
+                  <span>Previous</span>
                 </button>
                 <button
                   className="btn btn--secondary"
-                  style={{ padding: '4px 12px' }}
+                  style={{ padding: '6px 12px' }}
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((c) => c + 1)}
                 >
-                  Next
+                  <span>Next</span>
+                  <ChevronRight style={{ width: '16px', height: '16px' }} />
                 </button>
               </div>
             </div>
@@ -286,13 +331,16 @@ export default function Drivers() {
           <div className="modal" style={{ maxWidth: '460px' }}>
             <div className="modal__header">
               <h3 className="modal__title">{editingDriver ? 'Modify Driver Record' : 'Register Driver'}</h3>
-              <button className="modal__close" onClick={handleCloseModal}>×</button>
+              <button className="modal__close" onClick={handleCloseModal} aria-label="Close modal">
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal__body">
                 {submitError && (
                   <div className="login-form__error" style={{ marginBottom: '16px' }}>
-                    {submitError}
+                    <AlertCircle className="toast-icon" />
+                    <span>{submitError}</span>
                   </div>
                 )}
                 <div className="form-group">
@@ -304,7 +352,7 @@ export default function Drivers() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Enter name"
+                    placeholder="e.g. John Doe"
                     required
                   />
                 </div>
@@ -367,11 +415,13 @@ export default function Drivers() {
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: '400px' }}>
             <div className="modal__header">
-              <h3 className="modal__title" style={{ color: 'var(--danger-color)' }}>Delete Confirmation</h3>
-              <button className="modal__close" onClick={() => setDeleteConfirmId(null)}>×</button>
+              <h3 className="modal__title" style={{ color: 'var(--danger)' }}>Delete Confirmation</h3>
+              <button className="modal__close" onClick={() => setDeleteConfirmId(null)} aria-label="Close delete modal">
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
             </div>
             <div className="modal__body">
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13.5px', lineHeight: '1.5' }}>
                 Are you sure you want to delete this driver? This action cannot be undone and will unassign the driver from all active operations.
               </p>
             </div>
@@ -388,34 +438,4 @@ export default function Drivers() {
       )}
     </div>
   )
-}
-
-const thStyle = {
-  textAlign: 'left',
-  padding: '14px 20px',
-  fontSize: '0.825rem',
-  textTransform: 'uppercase',
-  color: 'var(--text-secondary)',
-  borderBottom: '1px solid var(--border-color)',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-}
-
-const tdStyle = {
-  padding: '14px 20px',
-  borderBottom: '1px solid var(--border-color)',
-  fontSize: '0.9rem',
-}
-
-const trStyle = {
-  borderBottom: '1px solid var(--border-color)',
-  transition: 'background-color 0.15s ease',
-}
-
-const errorCardStyle = {
-  padding: '24px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fee2e2',
-  borderRadius: '12px',
-  textAlign: 'center',
 }
