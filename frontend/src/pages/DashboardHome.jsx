@@ -23,7 +23,7 @@ const UPCOMING_MAINTENANCE = [
   { vehicle: '—', service: 'Tire Replacement', status: 'upcoming' },
 ]
 
-const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, search, onRefresh }) => {
+const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = [], loading, search, onRefresh }) => {
   const activeDrivers = vehicles ? drivers.filter(d => d.status === 'active').length : 0
   const totalVehicles = vehicles ? vehicles.length : 0
 
@@ -66,6 +66,15 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
     return { ...item, pct }
   })
 
+  // Real trip counts, derived from the Trip Scheduling data
+  const totalTripsCount = trips.length
+  const tripsToday = trips.filter(t => {
+    if (!t.scheduled_start) return false
+    const d = new Date(t.scheduled_start)
+    const today = new Date()
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
+  }).length
+
   return (
     <>
       {/* Top Statistical Counters Section */}
@@ -73,9 +82,8 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
         <div className="ff-stat-card">
           <div className="ff-stat-icon-box green"><Truck size={20} fill="currentColor" fillOpacity={0.1} /></div>
           <div className="ff-stat-text">
-            <span className="ff-stat-label">Active Vehicles</span>
+            <span className="ff-stat-label">Total Vehicles</span>
             <span className="ff-stat-value">{loading ? '—' : totalVehicles}</span>
-            {/* <span className="ff-stat-trend">+5 Today</span> */}
           </div>
         </div>
         <div className="ff-stat-card">
@@ -83,7 +91,6 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
           <div className="ff-stat-text">
             <span className="ff-stat-label">Active Drivers</span>
             <span className="ff-stat-value">{loading ? '—' : activeDrivers}</span>
-            {/* <span className="ff-stat-trend">+3 Today</span> */}
           </div>
         </div>
         <div className="ff-stat-card">
@@ -91,15 +98,14 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
           <div className="ff-stat-text">
             <span className="ff-stat-label">Active Shipments</span>
             <span className="ff-stat-value">{loading ? '—' : totalShipmentsCount}</span>
-            {/* <span className="ff-stat-trend">+18 Today</span> */}
           </div>
         </div>
         <div className="ff-stat-card">
           <div className="ff-stat-icon-box dark-blue"><Route size={20} /></div>
           <div className="ff-stat-text">
             <span className="ff-stat-label">Today's Trips</span>
-            <span className="ff-stat-value">42</span>
-            {/* <span className="ff-stat-trend">+7 Today</span> */}
+            <span className="ff-stat-value">{loading ? '—' : tripsToday}</span>
+            <span className="ff-stat-trend">{loading ? '' : `${totalTripsCount} total trips`}</span>
           </div>
         </div>
       </div>
@@ -167,7 +173,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
           </div>
         </div>
 
-        {/* Temporary Asset Map Blueprint Placeholder */}
+        {/* Live Vehicle Tracking Map */}
         <div className="ff-widget-card">
           <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
           <div style={{ height: '220px' }}>
@@ -179,7 +185,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], loading, s
       {/* Auxiliary Operation Logs & Preventive Maintenance Layout */}
       <div className="ff-bottom-row">
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
+          <div className="ff-widget-title"><span>Recent Activities</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
           {RECENT_ACTIVITY.map((a, i) => (
             <div className="ff-activity-item" key={i}>
               <div className="ff-activity-icon" style={{ background: a.bg, color: a.color }}>{a.icon}</div>

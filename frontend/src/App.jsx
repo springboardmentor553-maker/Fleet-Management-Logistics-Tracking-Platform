@@ -72,6 +72,7 @@ function DashboardLayout({
                 vehicles={vehicles}
                 drivers={drivers}
                 shipments={shipments}
+                trips={trips}
                 loading={loading}
                 search={search}
                 onRefresh={onRefresh}
