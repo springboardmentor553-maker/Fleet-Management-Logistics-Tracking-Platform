@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from backend.app.routers.dashboard import router as dashboard_router
+from backend.app.routers.driver import router as driver_router
 
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.vehicle import router as vehicle_router
@@ -12,6 +13,7 @@ app = FastAPI(title="FleetFlow API")
 app.include_router(auth_router)
 app.include_router(vehicle_router)
 app.include_router(dashboard_router)
+app.include_router(driver_router)
 
 
 @app.get("/")
