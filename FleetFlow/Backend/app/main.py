@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment
+from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment, trip, gps, route
 
 app = FastAPI(
     title="FleetFlow API",
@@ -25,6 +25,9 @@ app.include_router(driver.router)
 app.include_router(drivers.router)
 app.include_router(dashboard.router)
 app.include_router(shipment.router)
+app.include_router(trip.router)
+app.include_router(gps.router)
+app.include_router(route.router)
 
 
 def custom_openapi():
