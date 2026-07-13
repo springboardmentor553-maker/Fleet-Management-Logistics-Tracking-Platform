@@ -12,7 +12,9 @@ import Login from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
 import api from './api/axios'
 import Register from './pages/Register'
+import DriverDetail from './pages/DriverDetail'
 import Profile from './pages/Profile'
+import RoutesPage from './pages/Routes'
 
 function DashboardLayout({
   vehicles, drivers, shipments, loading,
@@ -87,6 +89,11 @@ function DashboardLayout({
             path="/drivers"
             element={<Drivers drivers={drivers} loading={loading} search={search} onDriverAdded={onDriverAdded} onDriverDeleted={onDriverDeleted} />}
           />
+          <Route
+            path="/drivers/:id"
+            element={<DriverDetail drivers={drivers} vehicles={vehicles} shipments={shipments} />}
+          />
+          <Route path="/routes" element={<RoutesPage />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
 

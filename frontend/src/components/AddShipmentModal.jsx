@@ -4,13 +4,14 @@ import api from '../api/axios'
 
 export default function AddShipmentModal({ vehicles = [], drivers = [], onClose, onSuccess }) {
   const [form, setForm] = useState({
-    tracking_id: '',
-    origin: '',
-    destination: '',
-    status: 'created',
-    vehicle_id: '',
-    driver_id: '',
-  })
+  tracking_id: '',
+  origin: '',
+  destination: '',
+  status: 'created',
+  vehicle_id: '',
+  driver_id: '',
+  eta: '',
+})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -28,6 +29,7 @@ export default function AddShipmentModal({ vehicles = [], drivers = [], onClose,
         ...form,
         vehicle_id: form.vehicle_id ? parseInt(form.vehicle_id) : null,
         driver_id: form.driver_id ? parseInt(form.driver_id) : null,
+        eta: form.eta ? new Date(form.eta).toISOString() : null,
       }
       const res = await api.post('/shipments/', payload)
       onSuccess(res.data)
@@ -88,6 +90,9 @@ export default function AddShipmentModal({ vehicles = [], drivers = [], onClose,
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          
+          <label>Estimated Arrival (ETA)</label>
+          <input name="eta" type="datetime-local" value={form.eta} onChange={handleChange} />
 
           <button type="submit" className="ff-btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
             {loading ? 'Adding...' : 'Add Shipment'}

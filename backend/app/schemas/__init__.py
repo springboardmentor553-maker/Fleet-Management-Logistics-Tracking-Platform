@@ -97,6 +97,7 @@ class ShipmentCreate(BaseModel):
     status: str = "created"
     vehicle_id: Optional[int] = None
     driver_id: Optional[int] = None
+    eta: Optional[datetime] = None
 
 
 class ShipmentResponse(BaseModel):

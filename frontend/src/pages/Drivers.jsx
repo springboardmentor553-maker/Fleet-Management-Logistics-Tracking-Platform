@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { IdCard, Plus, Phone, User } from 'lucide-react'
 import AddDriverModal from '../components/AddDriverModal'
 import RowMenu from '../components/RowMenu'
@@ -6,6 +7,7 @@ import api from '../api/axios'
 import { canEdit } from '../utils/permissions'
 
 const Drivers = ({ drivers = [], loading, search, onDriverAdded, onDriverDeleted }) => {
+  const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -149,7 +151,11 @@ const Drivers = ({ drivers = [], loading, search, onDriverAdded, onDriverDeleted
               <span className={`ff-badge status-${selectedDriver.status}`}>{selectedDriver.status}</span>
             </div>
 
-            <button className="ff-btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 16 }}>
+            <button
+              className="ff-btn-primary"
+              style={{ width: '100%', justifyContent: 'center', marginTop: 16 }}
+              onClick={() => navigate(`/drivers/${selectedDriver.id}`)}
+            >
               View Full Profile
             </button>
           </div>

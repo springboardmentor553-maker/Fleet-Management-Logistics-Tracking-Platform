@@ -24,6 +24,33 @@ export async function getRoute(origin, destination) {
   }
 }
 
+// Fetches multiple route alternatives and tags them as "fastest" (least time) or "shortest" (least distance)
+export async function getRouteOptions(origin, destination) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&alternatives=true`
+    const response = await fetch(url)
+    const data = await response.json()
+
+    if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+      return null
+    }
+
+    const parsedRoutes = data.routes.map(route => ({
+      coordinates: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+      distanceKm: route.distance / 1000,
+      durationMin: route.duration / 60,
+    }))
+
+    const fastest = parsedRoutes.reduce((a, b) => (a.durationMin <= b.durationMin ? a : b))
+    const shortest = parsedRoutes.reduce((a, b) => (a.distanceKm <= b.distanceKm ? a : b))
+
+    return { fastest, shortest, hasAlternatives: parsedRoutes.length > 1 }
+  } catch (err) {
+    console.error('Route options fetch failed:', err)
+    return null
+  }
+}
+
 // Given a route's coordinate list and a progress value (0 to 1), finds the point along the route
 export function getPositionAlongRoute(coordinates, progress) {
   if (!coordinates || coordinates.length < 2) return null
