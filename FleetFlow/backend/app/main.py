@@ -7,6 +7,7 @@ from app.database import test_connection
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.drivers import router as drivers_router
+from app.routers.shipments import router as shipments_router
 from app.routers.vehicles import router as vehicles_router
 
 app = FastAPI(title="FleetFlow Backend", version="1.0.0")
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(vehicles_router, prefix="/vehicles", tags=["vehicles"])
 app.include_router(drivers_router, prefix="/drivers", tags=["drivers"])
+app.include_router(shipments_router, prefix="/shipments", tags=["shipments"])
 app.include_router(dashboard_router, tags=["dashboard"])
 
 

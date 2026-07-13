@@ -84,20 +84,38 @@ class Vehicle(Base):
 
 class Shipment(Base):
     __tablename__ = "shipments"
-    
+
     id = Column(Integer, primary_key=True, index=True)
+
+    # Auto-generated tracking number, e.g. FLT100001
+    tracking_number = Column(String, unique=True, nullable=False, index=True)
+
+    # Sender / Receiver information
+    sender_name = Column(String, nullable=False)
+    receiver_name = Column(String, nullable=False)
+
+    # Locations
+    pickup_location = Column(String, nullable=False)
+    delivery_location = Column(String, nullable=False)
+
+    # Shipment status
     status = Column(
         Enum(ShipmentStatusEnum, name="shipmentstatusenum"),
         default=ShipmentStatusEnum.CREATED,
         nullable=False,
     )
-    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Cargo details
+    weight = Column(Float, nullable=False)  # in kg
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     eta = Column(DateTime, nullable=True)
-    
+
     # Foreign Keys linking Shipment to Driver and Vehicle
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
-    
+
     # Back-references
     driver = relationship("Driver", back_populates="shipments")
     vehicle = relationship("Vehicle", back_populates="shipments")
