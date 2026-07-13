@@ -4,6 +4,7 @@ from app.database import get_db
 from app import models
 from app import schemas
 from app.utils.dependencies import require_role
+from app.websocket_manager import manager
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
@@ -37,7 +38,7 @@ def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{vehicle_id}", response_model=schemas.VehicleResponse)
-def update_vehicle(vehicle_id: int, updated: schemas.VehicleCreate, db: Session = Depends(get_db)):
+async def update_vehicle(vehicle_id: int, updated: schemas.VehicleCreate, db: Session = Depends(get_db)):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
@@ -47,6 +48,18 @@ def update_vehicle(vehicle_id: int, updated: schemas.VehicleCreate, db: Session 
 
     db.commit()
     db.refresh(vehicle)
+
+    # Broadcast the updated location to all connected clients in real time
+    if vehicle.current_lat is not None and vehicle.current_lng is not None:
+        await manager.broadcast({
+            "type": "vehicle_location_update",
+            "vehicle_id": vehicle.id,
+            "registration_number": vehicle.registration_number,
+            "current_lat": vehicle.current_lat,
+            "current_lng": vehicle.current_lng,
+            "status": vehicle.status,
+        })
+
     return vehicle
 
 

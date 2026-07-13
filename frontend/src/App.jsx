@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Truck, Menu, Search, Sun, Moon, Bell } from 'lucide-react'
 import './App.css'
@@ -129,6 +129,28 @@ const fetchAllData = () => {
 
 useEffect(() => {
   fetchAllData()
+}, [])
+
+const wsRef = useRef(null)
+
+useEffect(() => {
+  const ws = new WebSocket('ws://127.0.0.1:8000/ws/tracking')
+  wsRef.current = ws
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    if (data.type === 'vehicle_location_update') {
+      setVehicles(prev => prev.map(v =>
+        v.id === data.vehicle_id
+          ? { ...v, current_lat: data.current_lat, current_lng: data.current_lng }
+          : v
+      ))
+    }
+  }
+
+  ws.onerror = (err) => console.log('WebSocket error:', err)
+
+  return () => ws.close()
 }, [])
 
   const handleVehicleAdded = (vehicle, isEdit = false) => {

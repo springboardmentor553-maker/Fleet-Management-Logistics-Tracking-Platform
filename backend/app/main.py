@@ -5,6 +5,8 @@ import os
 from app import models
 from app.routers import auth, vehicles, drivers, shipments
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import WebSocket, WebSocketDisconnect
+from app.websocket_manager import manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,3 +33,12 @@ def home():
     return {
         "message": "FleetFlow Backend Running Successfully"
     }
+
+@app.websocket("/ws/tracking")
+async def websocket_tracking(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # keeps connection alive
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
