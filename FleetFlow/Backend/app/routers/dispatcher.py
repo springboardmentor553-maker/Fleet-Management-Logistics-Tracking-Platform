@@ -5,6 +5,7 @@ from app.utils.roles import Role, require_roles
 from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
+from app.models.trip import Trip
 from app.models.user import User
 from app.schemas.shipment import ShipmentCreate, ShipmentAssign, ShipmentResponse
 
@@ -53,6 +54,15 @@ def assign_shipment(
     shipment.status = "in_transit"
     driver.is_available = False
     vehicle.current_status = "in_transit"
+
+    trip = Trip(
+        shipment_id=shipment.id,
+        driver_id=driver.id,
+        vehicle_id=vehicle.id,
+        status="scheduled",
+    )
+    db.add(trip)
+
     db.commit()
     db.refresh(shipment)
     return shipment

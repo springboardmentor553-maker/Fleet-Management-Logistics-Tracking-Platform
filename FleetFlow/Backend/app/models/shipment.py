@@ -11,6 +11,10 @@ class Shipment(Base):
     origin = Column(String, nullable=False)
     destination = Column(String, nullable=False)
     weight_kg = Column(Float, nullable=False)
+    origin_lat = Column(Float, nullable=True)
+    origin_lng = Column(Float, nullable=True)
+    destination_lat = Column(Float, nullable=True)
+    destination_lng = Column(Float, nullable=True)
     status = Column(String, default="pending")  # pending, in_transit, delivered, cancelled
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
