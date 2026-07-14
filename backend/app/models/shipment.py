@@ -33,3 +33,4 @@ class Shipment(Base):
 
     driver = relationship("Driver")
     vehicle = relationship("Vehicle", back_populates="shipments")
+    trip = relationship("Trip", back_populates="shipment", uselist=False)

@@ -28,6 +28,6 @@ class Trip(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
-    shipment = relationship("Shipment")
-    driver = relationship("Driver")
-    vehicle = relationship("Vehicle")
+    shipment = relationship("Shipment", back_populates="trip")
+    driver = relationship("Driver", back_populates="trips")
+    vehicle = relationship("Vehicle", back_populates="trips")
