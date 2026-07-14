@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, DateTime, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -23,6 +23,12 @@ class ShipmentStatusEnum(enum.Enum):
     IN_TRANSIT = "IN_TRANSIT"
     DELAYED = "DELAYED"
     DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
+
+class TripStatusEnum(enum.Enum):
+    SCHEDULED = "SCHEDULED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
 
 # --- MODELS ---
@@ -56,6 +62,9 @@ class Driver(Base):
     
     # 1-to-Many Relationship: One Driver handles multiple Shipments
     shipments = relationship("Shipment", back_populates="driver")
+    
+    # 1-to-Many Relationship: One Driver can have many Trips over time
+    trips = relationship("Trip", back_populates="driver")
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -81,6 +90,9 @@ class Vehicle(Base):
     
     # 1-to-Many Relationship: One Vehicle carries multiple Shipments
     shipments = relationship("Shipment", back_populates="vehicle")
+    
+    # 1-to-Many Relationship: One Vehicle can be used across many Trips over time
+    trips = relationship("Trip", back_populates="vehicle")
 
 class Shipment(Base):
     __tablename__ = "shipments"
@@ -119,3 +131,45 @@ class Shipment(Base):
     # Back-references
     driver = relationship("Driver", back_populates="shipments")
     vehicle = relationship("Vehicle", back_populates="shipments")
+    
+    # 1-to-1 Relationship: A Shipment belongs to at most one Trip
+    trip = relationship("Trip", back_populates="shipment", uselist=False)
+
+
+class Trip(Base):
+    """Represents a single logistics trip that carries a shipment."""
+    __tablename__ = "trips"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Foreign Keys
+    # UNIQUE ensures a shipment can belong to at most one trip
+    shipment_id = Column(
+        Integer,
+        ForeignKey("shipments.id", ondelete="SET NULL"),
+        nullable=True,
+        unique=True,
+    )
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+
+    # Trip logistics details
+    pickup_location = Column(String, nullable=False)
+    destination = Column(String, nullable=False)
+    scheduled_start_time = Column(DateTime, nullable=False)
+    scheduled_end_time = Column(DateTime, nullable=True)
+
+    # Status
+    status = Column(
+        Enum(TripStatusEnum, name="tripstatusenum"),
+        default=TripStatusEnum.SCHEDULED,
+        nullable=False,
+    )
+
+    # Timestamp
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    shipment = relationship("Shipment", back_populates="trip")
+    driver = relationship("Driver", back_populates="trips")
+    vehicle = relationship("Vehicle", back_populates="trips")
