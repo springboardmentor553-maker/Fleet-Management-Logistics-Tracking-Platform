@@ -57,9 +57,9 @@ export default function Reports() {
   const maintenanceVehicles = vehicles.filter((v) => v.status?.toLowerCase() === 'maintenance' || v.status?.toLowerCase() === 'under maintenance').length
   const busyVehicles = vehicles.filter((v) => v.status?.toLowerCase() === 'in use' || v.status?.toLowerCase() === 'busy').length
 
-  const deliveredShipments = shipments.filter((s) => s.status?.toLowerCase() === 'delivered').length
-  const transitShipments = shipments.filter((s) => s.status?.toLowerCase() === 'in transit' || s.status?.toLowerCase() === 'transit').length
-  const pendingShipments = shipments.filter((s) => s.status?.toLowerCase() === 'created' || s.status?.toLowerCase() === 'pending').length
+  const deliveredShipments = shipments.filter((s) => s.current_status?.toLowerCase() === 'delivered').length
+  const transitShipments = shipments.filter((s) => s.current_status?.toLowerCase() === 'in transit' || s.current_status?.toLowerCase() === 'transit').length
+  const pendingShipments = shipments.filter((s) => s.current_status?.toLowerCase() === 'created' || s.current_status?.toLowerCase() === 'pending').length
 
   const handleExportCSV = () => {
     const csvRows = [

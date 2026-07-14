@@ -11,7 +11,6 @@ import {
   Plus, 
   UserPlus, 
   ArrowRight,
-  TrendingUp,
   AlertTriangle
 } from 'lucide-react'
 
@@ -90,7 +89,7 @@ export default function Dashboard() {
   const totalShipments = data.shipments.length
   const availableVehicles = data.vehicles.filter((v) => v.status?.toLowerCase() === 'available').length
   const maintenanceVehicles = data.vehicles.filter((v) => v.status?.toLowerCase() === 'maintenance' || v.status?.toLowerCase() === 'under maintenance').length
-  const deliveredShipments = data.shipments.filter((s) => s.status?.toLowerCase() === 'delivered').length
+  const deliveredShipments = data.shipments.filter((s) => s.current_status?.toLowerCase() === 'delivered').length
 
   // Latest records
   const latestShipments = [...data.shipments].reverse().slice(0, 5)
@@ -191,7 +190,7 @@ export default function Dashboard() {
             <table className="datagrid">
               <thead>
                 <tr>
-                  <th>Shipment Description</th>
+                  <th>Tracking / Sender</th>
                   <th>Origin</th>
                   <th>Destination</th>
                   <th>Status</th>
@@ -201,12 +200,17 @@ export default function Dashboard() {
                 {latestShipments.length > 0 ? (
                   latestShipments.map((shipment) => (
                     <tr key={shipment.id}>
-                      <td style={{ fontWeight: 600 }}>{shipment.shipment_name}</td>
-                      <td>{shipment.source}</td>
-                      <td>{shipment.destination}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div>{shipment.tracking_number}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                          {shipment.sender_name}
+                        </div>
+                      </td>
+                      <td>{shipment.pickup_location}</td>
+                      <td>{shipment.delivery_location}</td>
                       <td>
-                        <span className={`badge badge--${shipment.status?.toLowerCase().replace(' ', '')}`}>
-                          {shipment.status}
+                        <span className={`badge badge--${shipment.current_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                          {shipment.current_status}
                         </span>
                       </td>
                     </tr>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { shipmentService, vehicleService, getApiErrorMessage } from '../services/api'
+import { shipmentService, vehicleService, driverService, getApiErrorMessage } from '../services/api'
 import { 
   Plus, 
   Search, 
@@ -17,6 +17,7 @@ import {
 export default function Shipments() {
   const [shipments, setShipments] = useState([])
   const [vehicles, setVehicles] = useState([])
+  const [drivers, setDrivers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -29,11 +30,14 @@ export default function Shipments() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingShipment, setEditingShipment] = useState(null)
   const [formData, setFormData] = useState({
-    shipment_name: '',
-    source: '',
-    destination: '',
-    status: 'Created',
-    vehicle_id: '',
+    sender_name: '',
+    receiver_name: '',
+    pickup_location: '',
+    delivery_location: '',
+    weight: '',
+    assigned_driver_id: '',
+    assigned_vehicle_id: '',
+    current_status: 'Created',
   })
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -61,14 +65,16 @@ export default function Shipments() {
     try {
       setLoading(true)
       setError('')
-      const [shipmentsRes, vehiclesRes] = await Promise.all([
+      const [shipmentsRes, vehiclesRes, driversRes] = await Promise.all([
         shipmentService.getAll(),
         vehicleService.getAll(),
+        driverService.getAll(),
       ])
       setShipments(shipmentsRes.data || [])
       setVehicles(vehiclesRes.data || [])
+      setDrivers(driversRes.data || [])
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to fetch shipments or vehicle details from the server.'))
+      setError(getApiErrorMessage(err, 'Failed to fetch shipments, vehicles, or driver details.'))
     } finally {
       setLoading(false)
     }
@@ -77,11 +83,14 @@ export default function Shipments() {
   const handleOpenAddModal = () => {
     setEditingShipment(null)
     setFormData({
-      shipment_name: '',
-      source: '',
-      destination: '',
-      status: 'Created',
-      vehicle_id: vehicles.length > 0 ? vehicles[0].id : '',
+      sender_name: '',
+      receiver_name: '',
+      pickup_location: '',
+      delivery_location: '',
+      weight: '',
+      assigned_driver_id: drivers.length > 0 ? drivers[0].id.toString() : '',
+      assigned_vehicle_id: vehicles.length > 0 ? vehicles[0].id.toString() : '',
+      current_status: 'Created',
     })
     setSubmitError('')
     setIsModalOpen(true)
@@ -90,11 +99,14 @@ export default function Shipments() {
   const handleOpenEditModal = (shipment) => {
     setEditingShipment(shipment)
     setFormData({
-      shipment_name: shipment.shipment_name || '',
-      source: shipment.source || '',
-      destination: shipment.destination || '',
-      status: shipment.status || 'Created',
-      vehicle_id: shipment.vehicle_id || '',
+      sender_name: shipment.sender_name || '',
+      receiver_name: shipment.receiver_name || '',
+      pickup_location: shipment.pickup_location || '',
+      delivery_location: shipment.delivery_location || '',
+      weight: shipment.weight !== null && shipment.weight !== undefined ? shipment.weight.toString() : '',
+      assigned_driver_id: shipment.assigned_driver_id ? shipment.assigned_driver_id.toString() : '',
+      assigned_vehicle_id: shipment.assigned_vehicle_id ? shipment.assigned_vehicle_id.toString() : '',
+      current_status: shipment.current_status || 'Created',
     })
     setSubmitError('')
     setIsModalOpen(true)
@@ -114,12 +126,12 @@ export default function Shipments() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (
-      !formData.shipment_name.trim() ||
-      !formData.source.trim() ||
-      !formData.destination.trim() ||
-      !formData.vehicle_id
+      !formData.sender_name.trim() ||
+      !formData.receiver_name.trim() ||
+      !formData.pickup_location.trim() ||
+      !formData.delivery_location.trim()
     ) {
-      setSubmitError('All fields are required.')
+      setSubmitError('Sender, Receiver, Pickup, and Delivery locations are required.')
       return
     }
 
@@ -127,8 +139,14 @@ export default function Shipments() {
     setSubmitError('')
 
     const payload = {
-      ...formData,
-      vehicle_id: parseInt(formData.vehicle_id, 10),
+      sender_name: formData.sender_name.trim(),
+      receiver_name: formData.receiver_name.trim(),
+      pickup_location: formData.pickup_location.trim(),
+      delivery_location: formData.delivery_location.trim(),
+      weight: formData.weight ? parseFloat(formData.weight) : null,
+      assigned_driver_id: formData.assigned_driver_id ? parseInt(formData.assigned_driver_id, 10) : null,
+      assigned_vehicle_id: formData.assigned_vehicle_id ? parseInt(formData.assigned_vehicle_id, 10) : null,
+      current_status: formData.current_status,
     }
 
     try {
@@ -143,7 +161,7 @@ export default function Shipments() {
       }
       handleCloseModal()
     } catch (err) {
-      setSubmitError(getApiErrorMessage(err, 'Failed to save shipment. Make sure vehicle ID is correct.'))
+      setSubmitError(getApiErrorMessage(err, 'Failed to save shipment. Make sure all ID fields are valid.'))
     } finally {
       setSubmitting(false)
     }
@@ -177,16 +195,30 @@ export default function Shipments() {
     return vehicleObj ? vehicleObj.vehicle_number : `ID: ${vehicleId}`
   }
 
+  // Get driver name by ID
+  const getDriverName = (driverId) => {
+    if (!driverId) {
+      return <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '13px' }}>Unassigned</span>
+    }
+    const driverObj = drivers.find((d) => d.id === driverId)
+    return driverObj ? driverObj.name : `ID: ${driverId}`
+  }
+
   // Filter
   const filteredShipments = shipments.filter((s) => {
-    const plate = getVehicleNumber(s.vehicle_id)
+    const plate = getVehicleNumber(s.assigned_vehicle_id)
     const plateStr = typeof plate === 'string' ? plate : ''
+    const driverName = getDriverName(s.assigned_driver_id)
+    const driverNameStr = typeof driverName === 'string' ? driverName : ''
     return (
-      s.shipment_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plateStr.toLowerCase().includes(searchTerm.toLowerCase())
+      s.tracking_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.receiver_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.pickup_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.delivery_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.current_status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plateStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      driverNameStr.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })
 
@@ -272,7 +304,7 @@ export default function Shipments() {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Shipment Name</th>
+                  <th>Tracking Number</th>
                   <th>Source / Origin</th>
                   <th>Destination</th>
                   <th>Assigned Vehicle</th>
@@ -285,13 +317,23 @@ export default function Shipments() {
                   paginatedShipments.map((shipment) => (
                     <tr key={shipment.id}>
                       <td>#{shipment.id}</td>
-                      <td style={{ fontWeight: 600 }}>{shipment.shipment_name}</td>
-                      <td>{shipment.source}</td>
-                      <td>{shipment.destination}</td>
-                      <td>{getVehicleNumber(shipment.vehicle_id)}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div>{shipment.tracking_number}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                          {shipment.sender_name} &rarr; {shipment.receiver_name}
+                        </div>
+                      </td>
+                      <td>{shipment.pickup_location}</td>
+                      <td>{shipment.delivery_location}</td>
                       <td>
-                        <span className={`badge badge--${shipment.status?.toLowerCase().replace(' ', '') || 'created'}`}>
-                          {shipment.status}
+                        <div>{getVehicleNumber(shipment.assigned_vehicle_id)}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                          Driver: {getDriverName(shipment.assigned_driver_id)}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge badge--${shipment.current_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                          {shipment.current_status}
                         </span>
                       </td>
                       <td>
@@ -380,41 +422,56 @@ export default function Shipments() {
                     <span>{submitError}</span>
                   </div>
                 )}
-                <div className="form-group">
-                  <label className="form-label" htmlFor="shipment_name">Shipment Description / Name</label>
-                  <input
-                    className="form-input"
-                    type="text"
-                    id="shipment_name"
-                    name="shipment_name"
-                    value={formData.shipment_name}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Industrial Electronics Consignment"
-                    required
-                  />
-                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="source">Source / Origin</label>
+                    <label className="form-label" htmlFor="sender_name">Sender Name</label>
                     <input
                       className="form-input"
                       type="text"
-                      id="source"
-                      name="source"
-                      value={formData.source}
+                      id="sender_name"
+                      name="sender_name"
+                      value={formData.sender_name}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Acme Corp"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="receiver_name">Receiver Name</label>
+                    <input
+                      className="form-input"
+                      type="text"
+                      id="receiver_name"
+                      name="receiver_name"
+                      value={formData.receiver_name}
+                      onChange={handleInputChange}
+                      placeholder="e.g. John Doe"
+                      required
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="pickup_location">Source / Origin</label>
+                    <input
+                      className="form-input"
+                      type="text"
+                      id="pickup_location"
+                      name="pickup_location"
+                      value={formData.pickup_location}
                       onChange={handleInputChange}
                       placeholder="e.g. New York, NY"
                       required
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="destination">Destination</label>
+                    <label className="form-label" htmlFor="delivery_location">Destination</label>
                     <input
                       className="form-input"
                       type="text"
-                      id="destination"
-                      name="destination"
-                      value={formData.destination}
+                      id="delivery_location"
+                      name="delivery_location"
+                      value={formData.delivery_location}
                       onChange={handleInputChange}
                       placeholder="e.g. Los Angeles, CA"
                       required
@@ -423,39 +480,69 @@ export default function Shipments() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="status">Delivery Status</label>
+                    <label className="form-label" htmlFor="weight">Weight (kg)</label>
+                    <input
+                      className="form-input"
+                      type="number"
+                      step="0.01"
+                      id="weight"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 150.5"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="current_status">Delivery Status</label>
                     <select
                       className="form-select"
-                      id="status"
-                      name="status"
-                      value={formData.status}
+                      id="current_status"
+                      name="current_status"
+                      value={formData.current_status}
                       onChange={handleInputChange}
                     >
                       <option value="Created">Created</option>
+                      <option value="Assigned">Assigned</option>
                       <option value="In Transit">In Transit</option>
+                      <option value="Delayed">Delayed</option>
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="vehicle_id">Assigned Vehicle</label>
+                    <label className="form-label" htmlFor="assigned_vehicle_id">Assigned Vehicle</label>
                     <select
                       className="form-select"
-                      id="vehicle_id"
-                      name="vehicle_id"
-                      value={formData.vehicle_id}
+                      id="assigned_vehicle_id"
+                      name="assigned_vehicle_id"
+                      value={formData.assigned_vehicle_id}
                       onChange={handleInputChange}
-                      required
                     >
-                      {vehicles.length > 0 ? (
-                        vehicles.map((v) => (
-                          <option key={v.id} value={v.id}>
-                            {v.vehicle_number} ({v.vehicle_type})
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">No vehicles available</option>
-                      )}
+                      <option value="">Unassigned</option>
+                      {vehicles.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.vehicle_number} ({v.vehicle_type})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="assigned_driver_id">Assigned Driver</label>
+                    <select
+                      className="form-select"
+                      id="assigned_driver_id"
+                      name="assigned_driver_id"
+                      value={formData.assigned_driver_id}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Unassigned</option>
+                      {drivers.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name} ({d.status})
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
