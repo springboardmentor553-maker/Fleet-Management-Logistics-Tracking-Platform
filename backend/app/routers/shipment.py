@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.shipment import Shipment, ShipmentStatus
 from app.models.vehicle import Vehicle
+from app.models.driver import Driver
 from app.schemas.shipment import (
     ShipmentCreate,
     ShipmentUpdate,
@@ -32,110 +32,105 @@ def add_shipment(
     shipment: ShipmentCreate,
     db: Session = Depends(get_db)
 ):
-    vehicle = db.query(Vehicle).filter(Vehicle.id == shipment.vehicle_id).first()
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+    if shipment.assigned_vehicle_id is not None:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == shipment.assigned_vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
 
-    # Generate a tracking number and map schemas to models
+    if shipment.assigned_driver_id is not None:
+        driver = db.query(Driver).filter(Driver.id == shipment.assigned_driver_id).first()
+        if not driver:
+            raise HTTPException(status_code=404, detail="Driver not found")
+
+    # Generate a unique tracking number sequentially (e.g., FLT100001, FLT100002, ...)
+    last_shipment = db.query(Shipment).filter(Shipment.tracking_number.like("FLT%")).order_by(Shipment.id.desc()).first()
+    if last_shipment and last_shipment.tracking_number:
+        try:
+            num_part = int(last_shipment.tracking_number[3:])
+            new_tracking = f"FLT{num_part + 1:06d}"
+        except (ValueError, TypeError):
+            new_tracking = "FLT100001"
+    else:
+        new_tracking = "FLT100001"
+
     db_shipment = Shipment(
-        tracking_number=f"TRK-{uuid.uuid4().hex[:8].upper()}",
-        sender_name="Default Sender",
-        receiver_name="Default Receiver",
-        pickup_location=shipment.source,
-        delivery_location=shipment.destination,
-        current_status=ShipmentStatus(shipment.status) if shipment.status in [s.value for s in ShipmentStatus] else ShipmentStatus.CREATED,
-        weight=1.0,
-        assigned_vehicle_id=shipment.vehicle_id
+        tracking_number=new_tracking,
+        sender_name=shipment.sender_name,
+        receiver_name=shipment.receiver_name,
+        pickup_location=shipment.pickup_location,
+        delivery_location=shipment.delivery_location,
+        current_status=shipment.current_status,
+        weight=shipment.weight,
+        assigned_driver_id=shipment.assigned_driver_id,
+        assigned_vehicle_id=shipment.assigned_vehicle_id
     )
 
     db.add(db_shipment)
     db.commit()
     db.refresh(db_shipment)
 
-    return {
-        "id": db_shipment.id,
-        "shipment_name": shipment.shipment_name,
-        "source": db_shipment.pickup_location,
-        "destination": db_shipment.delivery_location,
-        "status": db_shipment.current_status.value,
-        "vehicle_id": db_shipment.assigned_vehicle_id
-    }
+    return db_shipment
 
 
 @router.get("/", response_model=List[ShipmentResponse])
 def fetch_all_shipments(
     db: Session = Depends(get_db)
 ):
-    db_shipments = db.query(Shipment).all()
-    return [
-        {
-            "id": s.id,
-            "shipment_name": f"Shipment {s.id}",
-            "source": s.pickup_location,
-            "destination": s.delivery_location,
-            "status": s.current_status.value if hasattr(s.current_status, 'value') else s.current_status,
-            "vehicle_id": s.assigned_vehicle_id
-        } for s in db_shipments
-    ]
+    return db.query(Shipment).all()
 
 
-@router.get("/{shipment_id}", response_model=ShipmentResponse)
+@router.get("/{id}", response_model=ShipmentResponse)
 def fetch_shipment(
-    shipment_id: int,
+    id: int,
     db: Session = Depends(get_db)
 ):
-    db_shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
-    
-    return {
-        "id": db_shipment.id,
-        "shipment_name": f"Shipment {db_shipment.id}",
-        "source": db_shipment.pickup_location,
-        "destination": db_shipment.delivery_location,
-        "status": db_shipment.current_status.value if hasattr(db_shipment.current_status, 'value') else db_shipment.current_status,
-        "vehicle_id": db_shipment.assigned_vehicle_id
-    }
+    return db_shipment
 
 
-@router.put("/{shipment_id}", response_model=ShipmentResponse)
+@router.put("/{id}", response_model=ShipmentResponse)
 def edit_shipment(
-    shipment_id: int,
+    id: int,
     shipment: ShipmentUpdate,
     db: Session = Depends(get_db)
 ):
-    db_shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
 
-    vehicle = db.query(Vehicle).filter(Vehicle.id == shipment.vehicle_id).first()
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+    if shipment.assigned_vehicle_id is not None:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == shipment.assigned_vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
 
-    db_shipment.pickup_location = shipment.source
-    db_shipment.delivery_location = shipment.destination
-    db_shipment.current_status = ShipmentStatus(shipment.status) if shipment.status in [s.value for s in ShipmentStatus] else ShipmentStatus.CREATED
-    db_shipment.assigned_vehicle_id = shipment.vehicle_id
+    if shipment.assigned_driver_id is not None:
+        driver = db.query(Driver).filter(Driver.id == shipment.assigned_driver_id).first()
+        if not driver:
+            raise HTTPException(status_code=404, detail="Driver not found")
+
+    db_shipment.sender_name = shipment.sender_name
+    db_shipment.receiver_name = shipment.receiver_name
+    db_shipment.pickup_location = shipment.pickup_location
+    db_shipment.delivery_location = shipment.delivery_location
+    db_shipment.current_status = shipment.current_status
+    db_shipment.weight = shipment.weight
+    db_shipment.assigned_driver_id = shipment.assigned_driver_id
+    db_shipment.assigned_vehicle_id = shipment.assigned_vehicle_id
 
     db.commit()
     db.refresh(db_shipment)
 
-    return {
-        "id": db_shipment.id,
-        "shipment_name": shipment.shipment_name,
-        "source": db_shipment.pickup_location,
-        "destination": db_shipment.delivery_location,
-        "status": db_shipment.current_status.value if hasattr(db_shipment.current_status, 'value') else db_shipment.current_status,
-        "vehicle_id": db_shipment.assigned_vehicle_id
-    }
+    return db_shipment
 
 
-@router.delete("/{shipment_id}")
+@router.delete("/{id}")
 def remove_shipment(
-    shipment_id: int,
+    id: int,
     db: Session = Depends(get_db)
 ):
-    db_shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
 
