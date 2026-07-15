@@ -3,7 +3,7 @@ from typing import Any
 
 import bcrypt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,10 @@ from app.database import get_db
 from app.models.core import RoleEnum, User
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# HTTPBearer gives Swagger a clean "paste your token" dialog
+# (OAuth2PasswordBearer was sending form-encoded data to /auth/login
+#  which expects JSON, causing 422 errors)
+bearer_scheme = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
@@ -79,10 +82,10 @@ def _decode_token(token: str, secret_key: str, expected_type: str) -> dict[str, 
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    payload = _decode_token(token, settings.jwt_secret_key, "access")
+    payload = _decode_token(credentials.credentials, settings.jwt_secret_key, "access")
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(

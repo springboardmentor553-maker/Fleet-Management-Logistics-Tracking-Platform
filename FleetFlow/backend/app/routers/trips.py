@@ -1,12 +1,17 @@
-"""Trip CRUD router – Milestone 3, Tasks 3-5.
+"""Trip CRUD router – Milestone 3 + Google Maps Tasks.
 
 Responsibilities:
   - Full CRUD for the trips table.
-  - Validates that referenced shipment, driver, and vehicle exist (Task 4).
+  - Validates that referenced shipment, driver, and vehicle exist.
   - Prevents double-assignment: a driver or vehicle already on an active trip
-    (SCHEDULED or IN_PROGRESS) cannot be assigned to a new trip (Task 5).
+    (SCHEDULED or IN_PROGRESS) cannot be assigned to a new trip.
   - Prevents a shipment from being assigned to more than one trip.
+  - Geocodes pickup and destination on trip creation (Task 3).
+  - GET /{trip_id}/route: returns distance, duration, and polyline via
+    Google Directions API (Task 4 & 5).
 """
+
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -21,9 +26,12 @@ from app.models.core import (
     User,
     Vehicle,
 )
-from app.schemas.trip import TripCreate, TripRead, TripUpdate
+from app.schemas.trip import RouteResponse, TripCreate, TripRead, TripUpdate
+from app.services.directions import DirectionsError, get_route
+from app.services.geocoding import GeocodingError, geocode_location
 from app.services.security import get_current_user, require_roles
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # ---------------------------------------------------------------------------
@@ -165,17 +173,34 @@ def create_trip(
     payload: TripCreate,
     db: Session = Depends(get_db),
 ) -> TripRead:
-    # --- Task 4: Validate referenced entities exist ---
+    # --- Validate referenced entities exist ---
     _validate_shipment(db, payload.shipment_id)
     _validate_driver(db, payload.driver_id)
     _validate_vehicle(db, payload.vehicle_id)
 
-    # --- Task 5: Prevent double assignment ---
+    # --- Prevent double assignment ---
     _check_shipment_not_already_in_trip(db, payload.shipment_id)
     _check_driver_not_active(db, payload.driver_id)
     _check_vehicle_not_active(db, payload.vehicle_id)
 
-    trip = Trip(**payload.model_dump())
+    trip_data = payload.model_dump()
+
+    # --- Geocode pickup and destination locations (best-effort) ---
+    try:
+        p_lat, p_lng = geocode_location(payload.pickup_location)
+        trip_data["pickup_lat"] = p_lat
+        trip_data["pickup_lng"] = p_lng
+    except (GeocodingError, Exception) as exc:
+        logger.warning("Geocoding pickup failed: %s", exc)
+
+    try:
+        d_lat, d_lng = geocode_location(payload.destination)
+        trip_data["destination_lat"] = d_lat
+        trip_data["destination_lng"] = d_lng
+    except (GeocodingError, Exception) as exc:
+        logger.warning("Geocoding destination failed: %s", exc)
+
+    trip = Trip(**trip_data)
     db.add(trip)
     db.commit()
     db.refresh(trip)
@@ -264,3 +289,85 @@ def delete_trip(
     trip = _get_trip_or_404(db, trip_id)
     db.delete(trip)
     db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Route Endpoint – Task 5
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/{trip_id}/route",
+    response_model=RouteResponse,
+    summary="Get route details for a trip",
+    description=(
+        "Returns distance, estimated travel time, route summary, and encoded polyline "
+        "for the trip's pickup → destination using the Google Directions API. "
+        "If coordinates are not yet stored, geocoding is performed on the fly and "
+        "persisted to the trip record."
+    ),
+)
+def get_trip_route(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RouteResponse:
+    trip = _get_trip_or_404(db, trip_id)
+
+    # --- Ensure we have coordinates; geocode on-the-fly if missing ---
+    coords_updated = False
+
+    if trip.pickup_lat is None or trip.pickup_lng is None:
+        try:
+            trip.pickup_lat, trip.pickup_lng = geocode_location(trip.pickup_location)
+            coords_updated = True
+        except (GeocodingError, Exception) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Could not geocode pickup location '{trip.pickup_location}': {exc}",
+            ) from exc
+
+    if trip.destination_lat is None or trip.destination_lng is None:
+        try:
+            trip.destination_lat, trip.destination_lng = geocode_location(trip.destination)
+            coords_updated = True
+        except (GeocodingError, Exception) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Could not geocode destination '{trip.destination}': {exc}",
+            ) from exc
+
+    if coords_updated:
+        db.commit()
+        db.refresh(trip)
+
+    # --- Fetch route from Google Directions API ---
+    try:
+        route = get_route(
+            pickup_lat=trip.pickup_lat,
+            pickup_lng=trip.pickup_lng,
+            destination_lat=trip.destination_lat,
+            destination_lng=trip.destination_lng,
+        )
+    except DirectionsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Directions API error: {exc}",
+        ) from exc
+
+    return RouteResponse(
+        trip_id=trip.id,
+        pickup_location=trip.pickup_location,
+        destination=trip.destination,
+        pickup_lat=trip.pickup_lat,
+        pickup_lng=trip.pickup_lng,
+        destination_lat=trip.destination_lat,
+        destination_lng=trip.destination_lng,
+        distance=route.distance_text,
+        distance_meters=route.distance_meters,
+        estimated_travel_time=route.duration_text,
+        duration_seconds=route.duration_seconds,
+        route_summary=route.summary,
+        polyline=route.polyline,
+        start_address=route.start_address,
+        end_address=route.end_address,
+    )
