@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import api from '../api/axios'
 
-export default function AddTripModal({ vehicles = [], drivers = [], tripToEdit, onClose, onSuccess }) {
+export default function AddTripModal({ vehicles = [], drivers = [], shipments = [], tripToEdit, onClose, onSuccess }) {
   const isEditMode = !!tripToEdit
 
   const toLocalInput = (isoString) => {
@@ -13,15 +13,16 @@ export default function AddTripModal({ vehicles = [], drivers = [], tripToEdit, 
   }
 
   const [form, setForm] = useState({
-    vehicle_id: tripToEdit?.vehicle_id || '',
-    driver_id: tripToEdit?.driver_id || '',
-    origin: tripToEdit?.origin || '',
-    destination: tripToEdit?.destination || '',
-    scheduled_start: toLocalInput(tripToEdit?.scheduled_start),
-    scheduled_end: toLocalInput(tripToEdit?.scheduled_end),
-    status: tripToEdit?.status || 'scheduled',
-    notes: tripToEdit?.notes || '',
-  })
+  shipment_id: tripToEdit?.shipment_id || '',
+  vehicle_id: tripToEdit?.vehicle_id || '',
+  driver_id: tripToEdit?.driver_id || '',
+  origin: tripToEdit?.origin || '',
+  destination: tripToEdit?.destination || '',
+  scheduled_start: toLocalInput(tripToEdit?.scheduled_start),
+  scheduled_end: toLocalInput(tripToEdit?.scheduled_end),
+  status: tripToEdit?.status || 'scheduled',
+  notes: tripToEdit?.notes || '',
+})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -37,6 +38,7 @@ export default function AddTripModal({ vehicles = [], drivers = [], tripToEdit, 
     try {
       const payload = {
         ...form,
+        shipment_id: form.shipment_id ? parseInt(form.shipment_id) : null,
         vehicle_id: parseInt(form.vehicle_id),
         driver_id: parseInt(form.driver_id),
         scheduled_start: new Date(form.scheduled_start).toISOString(),
@@ -72,6 +74,12 @@ export default function AddTripModal({ vehicles = [], drivers = [], tripToEdit, 
         {success && <div className="ff-modal-success">&#9989; Trip {isEditMode ? 'updated' : 'scheduled'} successfully!</div>}
 
         <form onSubmit={handleSubmit} className="ff-modal-form" style={{ opacity: success ? 0.5 : 1, pointerEvents: success ? 'none' : 'auto' }}>
+          <label>Link Shipment (optional)</label>
+          <select name="shipment_id" value={form.shipment_id} onChange={handleChange}>
+            <option value="">-- None --</option>
+            {shipments.map(s => <option key={s.id} value={s.id}>{s.tracking_id} ({s.origin} &rarr; {s.destination})</option>)}
+          </select>
+
           <label>Vehicle</label>
           <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required>
             <option value="">-- Select Vehicle --</option>

@@ -41,6 +41,7 @@ class Vehicle(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     driver = relationship("Driver", back_populates="vehicle")
+    trips = relationship("Trip", back_populates="vehicle")
 
 
 class Driver(Base):
@@ -54,6 +55,7 @@ class Driver(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     vehicle = relationship("Vehicle", back_populates="driver", uselist=False)
+    trips = relationship("Trip", back_populates="driver")
 
 class ShipmentStatus(str, enum.Enum):
     created = "created"
@@ -79,11 +81,13 @@ class Shipment(Base):
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     eta = Column(DateTime, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    trip = relationship("Trip", back_populates="shipment", uselist=False)
 
 class Trip(Base):
     __tablename__ = "trips"
 
     id = Column(Integer, primary_key=True, index=True)
+    shipment_id = Column(Integer, ForeignKey("shipments.id"), nullable=True, unique=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
     origin = Column(String, nullable=False)
@@ -94,5 +98,6 @@ class Trip(Base):
     notes = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    vehicle = relationship("Vehicle")
-    driver = relationship("Driver")
+    shipment = relationship("Shipment", back_populates="trip")
+    vehicle = relationship("Vehicle", back_populates="trips")
+    driver = relationship("Driver", back_populates="trips")

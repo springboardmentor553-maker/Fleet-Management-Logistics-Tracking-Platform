@@ -132,6 +132,7 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 class TripCreate(BaseModel):
+    shipment_id: Optional[int] = None
     vehicle_id: int
     driver_id: int
     origin: str
@@ -144,6 +145,7 @@ class TripCreate(BaseModel):
 
 class TripResponse(BaseModel):
     id: int
+    shipment_id: Optional[int] = None
     vehicle_id: int
     driver_id: int
     origin: str

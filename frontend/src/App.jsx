@@ -98,7 +98,7 @@ function DashboardLayout({
           <Route path="/routes" element={<RoutesPage />} />
           <Route
             path="/trips"
-            element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
+            element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
           <Route path="/profile" element={<Profile />} />
         </Routes>

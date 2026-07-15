@@ -6,7 +6,7 @@ import { getStatusBadgeClass } from '../utils/statusBadge'
 import AddTripModal from '../components/AddTripModal'
 import RowMenu from '../components/RowMenu'
 
-export default function Trips({ trips = [], vehicles = [], drivers = [], loading, search, onTripAdded, onTripDeleted }) {
+export default function Trips({ trips = [], vehicles = [], drivers = [], shipments = [], loading, search, onTripAdded, onTripDeleted }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editingTrip, setEditingTrip] = useState(null)
@@ -104,6 +104,7 @@ export default function Trips({ trips = [], vehicles = [], drivers = [], loading
         <AddTripModal
           vehicles={vehicles}
           drivers={drivers}
+          shipments={shipments}
           onClose={() => setShowModal(false)}
           onSuccess={(trip) => onTripAdded(trip)}
         />
@@ -113,6 +114,7 @@ export default function Trips({ trips = [], vehicles = [], drivers = [], loading
         <AddTripModal
           vehicles={vehicles}
           drivers={drivers}
+          shipments={shipments}
           tripToEdit={editingTrip}
           onClose={() => setEditingTrip(null)}
           onSuccess={(trip, isEdit) => { if (isEdit) onTripAdded(trip, true) }}
