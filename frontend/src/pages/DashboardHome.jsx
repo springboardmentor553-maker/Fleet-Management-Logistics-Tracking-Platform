@@ -1,6 +1,6 @@
 import React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench } from 'lucide-react'
+import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar } from 'lucide-react'
 import WidgetMenu from '../components/WidgetMenu'
 import LiveMap from '../components/LiveMap'
 
@@ -11,17 +11,30 @@ const STATUS_MAPPING = {
   maintenance: { label: 'Maintenance', color: '#dc4444' }
 }
 
-const RECENT_ACTIVITY = [
-  { icon: <Truck size={14} />, bg: 'var(--cyan-bg)', color: 'var(--accent)', text: 'Driver John started trip from Delhi to Mumbai', time: '10 min ago' },
-  { icon: <Package size={14} />, bg: 'var(--green-bg)', color: 'var(--green)', text: 'Shipment SHP-00123 delivered successfully', time: '1 hr ago' },
-  { icon: <Wrench size={14} />, bg: 'var(--amber-bg)', color: 'var(--amber)', text: 'Maintenance due for a fleet vehicle', time: '2 hr ago' },
-]
-
 const UPCOMING_MAINTENANCE = [
   { vehicle: '—', service: 'Oil Change', status: 'due_soon' },
   { vehicle: '—', service: 'Brake Service', status: 'due_soon' },
   { vehicle: '—', service: 'Tire Replacement', status: 'upcoming' },
 ]
+
+const timeAgo = (dateString) => {
+  if (!dateString) return ''
+  const seconds = Math.floor((new Date() - new Date(dateString)) / 1000)
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hr ago`
+  const days = Math.floor(hours / 24)
+  return `${days} day${days > 1 ? 's' : ''} ago`
+}
+
+const shipmentActivityStyle = (status) => {
+  if (status === 'delivered') return { icon: <Package size={14} />, bg: 'var(--green-bg)', color: 'var(--green)' }
+  if (status === 'cancelled') return { icon: <Package size={14} />, bg: 'var(--red-bg)', color: 'var(--red)' }
+  if (status === 'delayed') return { icon: <Package size={14} />, bg: 'var(--amber-bg)', color: 'var(--amber)' }
+  return { icon: <Package size={14} />, bg: 'var(--cyan-bg)', color: 'var(--accent)' }
+}
 
 const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = [], loading, search, onRefresh }) => {
   const activeDrivers = vehicles ? drivers.filter(d => d.status === 'active').length : 0
@@ -74,6 +87,46 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
     const today = new Date()
     return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
   }).length
+
+  // Build a real "recent activity" feed from shipments, trips, vehicles, and drivers — sorted by most recent
+  const shipmentActivities = (shipments || []).map(s => ({
+    ...shipmentActivityStyle(s.status),
+    text: `Shipment ${s.tracking_id} — ${s.origin} to ${s.destination} (${s.status.replace('_', ' ')})`,
+    time: timeAgo(s.created_at),
+    timestamp: s.created_at,
+  }))
+
+  const tripActivities = (trips || []).map(t => ({
+    icon: <Calendar size={14} />,
+    bg: 'var(--cyan-bg)',
+    color: 'var(--accent)',
+    text: `Trip scheduled: ${t.origin} to ${t.destination} (${t.status})`,
+    time: timeAgo(t.created_at),
+    timestamp: t.created_at,
+  }))
+
+  const vehicleActivities = (vehicles || []).map(v => ({
+    icon: <Truck size={14} />,
+    bg: 'var(--green-bg)',
+    color: 'var(--green)',
+    text: `Vehicle ${v.registration_number} added to fleet`,
+    time: timeAgo(v.created_at),
+    timestamp: v.created_at,
+  }))
+
+  const driverActivities = (drivers || []).map(d => ({
+    icon: <IdCard size={14} />,
+    bg: 'var(--cyan-bg)',
+    color: 'var(--accent)',
+    text: `Driver ${d.name} joined the team`,
+    time: timeAgo(d.created_at),
+    timestamp: d.created_at,
+  }))
+
+  const recentActivities = [...shipmentActivities, ...tripActivities, ...vehicleActivities, ...driverActivities]
+    .filter(a => a.timestamp)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, 5)
 
   return (
     <>
@@ -186,7 +239,10 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
       <div className="ff-bottom-row">
         <div className="ff-widget-card">
           <div className="ff-widget-title"><span>Recent Activities</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
-          {RECENT_ACTIVITY.map((a, i) => (
+          {recentActivities.length === 0 && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No recent activity yet</p>
+          )}
+          {recentActivities.map((a, i) => (
             <div className="ff-activity-item" key={i}>
               <div className="ff-activity-icon" style={{ background: a.bg, color: a.color }}>{a.icon}</div>
               <div className="ff-activity-text">{a.text}</div>

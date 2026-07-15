@@ -60,6 +60,7 @@ class VehicleResponse(BaseModel):
     status: str
     current_lat: Optional[float] = None
     current_lng: Optional[float] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -85,15 +86,18 @@ class DriverResponse(BaseModel):
     license_number: str
     phone: Optional[str]
     status: str
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
 
 class ShipmentCreate(BaseModel):
-    tracking_id: str
+    sender_name: Optional[str] = None
+    receiver_name: Optional[str] = None
     origin: str
     destination: str
+    weight: Optional[float] = None
     status: str = "created"
     vehicle_id: Optional[int] = None
     driver_id: Optional[int] = None
@@ -103,8 +107,11 @@ class ShipmentCreate(BaseModel):
 class ShipmentResponse(BaseModel):
     id: int
     tracking_id: str
+    sender_name: Optional[str] = None
+    receiver_name: Optional[str] = None
     origin: str
     destination: str
+    weight: Optional[float] = None
     status: str
     vehicle_id: Optional[int]
     driver_id: Optional[int]

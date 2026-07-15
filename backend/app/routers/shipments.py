@@ -4,21 +4,27 @@ from app.database import get_db
 from app import models
 from app import schemas
 from app.utils.dependencies import require_role
+import re
 
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
 VALID_STATUSES = ["created", "assigned", "in_transit", "delayed", "delivered", "cancelled"]
 
+def generate_tracking_number(db: Session) -> str:
+    existing = db.query(models.Shipment.tracking_id).filter(models.Shipment.tracking_id.like("FLT%")).all()
+    max_number = 100000
+    for (tid,) in existing:
+        match = re.match(r"FLT(\d+)", tid)
+        if match:
+            num = int(match.group(1))
+            if num > max_number:
+                max_number = num
+    return f"FLT{max_number + 1}"
 
 @router.post("/", response_model=schemas.ShipmentResponse)
-def create_shipment(shipment: schemas.ShipmentCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
-    existing = db.query(models.Shipment).filter(
-        models.Shipment.tracking_id == shipment.tracking_id
-    ).first()
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tracking ID already exists")
-
-    new_shipment = models.Shipment(**shipment.dict())
+def create_shipment(shipment: schemas.ShipmentCreate, db: Session = Depends(get_db)):
+    tracking_number = generate_tracking_number(db)
+    new_shipment = models.Shipment(tracking_id=tracking_number, **shipment.dict())
     db.add(new_shipment)
     db.commit()
     db.refresh(new_shipment)

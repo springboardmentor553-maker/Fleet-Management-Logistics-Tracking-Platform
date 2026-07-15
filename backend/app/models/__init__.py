@@ -38,6 +38,7 @@ class Vehicle(Base):
     assigned_driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     current_lat = Column(Float, nullable=True)
     current_lng = Column(Float, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     driver = relationship("Driver", back_populates="vehicle")
 
@@ -50,8 +51,17 @@ class Driver(Base):
     license_number = Column(String, unique=True, nullable=False)
     phone = Column(String)
     status = Column(String, default="active")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     vehicle = relationship("Vehicle", back_populates="driver", uselist=False)
+
+class ShipmentStatus(str, enum.Enum):
+    created = "created"
+    assigned = "assigned"
+    in_transit = "in_transit"
+    delayed = "delayed"
+    delivered = "delivered"
+    cancelled = "cancelled"
 
 
 class Shipment(Base):
@@ -59,9 +69,12 @@ class Shipment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tracking_id = Column(String, unique=True, nullable=False)
+    sender_name = Column(String, nullable=True)
+    receiver_name = Column(String, nullable=True)
     origin = Column(String, nullable=False)
     destination = Column(String, nullable=False)
-    status = Column(String, default="created")  # created, assigned, in_transit, delayed, delivered, cancelled
+    weight = Column(Float, nullable=True)
+    status = Column(Enum(ShipmentStatus), default=ShipmentStatus.created)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     eta = Column(DateTime, nullable=True)
