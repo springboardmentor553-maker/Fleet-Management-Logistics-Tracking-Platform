@@ -25,3 +25,5 @@ class Shipment(Base):
 
     route = relationship("TripRoute", back_populates="shipment", uselist=False, cascade="all, delete-orphan")
     tracking_pings = relationship("TrackingPing", back_populates="shipment", cascade="all, delete-orphan")
+    # A Shipment belongs to one Trip.
+    trip = relationship("Trip", back_populates="shipment", uselist=False, cascade="all, delete-orphan")

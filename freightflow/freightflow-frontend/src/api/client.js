@@ -30,23 +30,5 @@ client.interceptors.response.use(
 );
 
 export function extractErrorMessage(error) {
-  const detail = error?.response?.data?.detail;
-
-  // FastAPI validation errors (422) return `detail` as an array of objects
-  // like { type, loc, msg, input, ctx } instead of a plain string. Rendering
-  // that array directly crashes React ("Objects are not valid as a React
-  // child"), so turn it into a readable string first.
-  if (Array.isArray(detail)) {
-    return detail
-      .map((d) => {
-        const field = Array.isArray(d?.loc) ? d.loc[d.loc.length - 1] : null;
-        return field ? `${field}: ${d.msg}` : d?.msg;
-      })
-      .filter(Boolean)
-      .join("; ") || "Something went wrong. Please try again.";
-  }
-
-  if (typeof detail === "string") return detail;
-
-  return "Something went wrong. Please try again.";
+  return error?.response?.data?.detail || "Something went wrong. Please try again.";
 }

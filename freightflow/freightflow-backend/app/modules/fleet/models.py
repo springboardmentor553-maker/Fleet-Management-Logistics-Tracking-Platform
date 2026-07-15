@@ -19,3 +19,5 @@ class Vehicle(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     maintenance_logs = relationship("MaintenanceLog", back_populates="vehicle", cascade="all, delete-orphan")
+    # A Vehicle can have many Trips over time.
+    trips = relationship("Trip", back_populates="vehicle")

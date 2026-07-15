@@ -27,6 +27,13 @@ class ShipmentStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+class TripStatus(str, enum.Enum):
+    SCHEDULED = "scheduled"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 class MaintenanceType(str, enum.Enum):
     ROUTINE_SERVICE = "routine_service"
     REPAIR = "repair"

@@ -1,69 +1,46 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from logging.config import fileConfig
 
+from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+from app.core.settings import get_settings
 from app.db.base import Base
-from app.db.session import get_db
-from app.main import app
 
-# Import every module's models so Base.metadata is fully populated before create_all
-from app.modules.accounts import models as _accounts_models  # noqa: F401
-from app.modules.drivers import models as _drivers_models  # noqa: F401
-from app.modules.fleet import models as _fleet_models  # noqa: F401
-from app.modules.maintenance import models as _maintenance_models  # noqa: F401
-from app.modules.notifications import models as _notifications_models  # noqa: F401
-from app.modules.routes_ops import models as _routes_models  # noqa: F401
-from app.modules.shipments import models as _shipments_models  # noqa: F401
-from app.modules.tracking import models as _tracking_models  # noqa: F401
+# Import every module's models so Base.metadata is fully populated
+from app.modules.accounts import models as accounts_models  # noqa: F401
+from app.modules.drivers import models as drivers_models  # noqa: F401
+from app.modules.fleet import models as fleet_models  # noqa: F401
+from app.modules.maintenance import models as maintenance_models  # noqa: F401
+from app.modules.notifications import models as notifications_models  # noqa: F401
+from app.modules.routes_ops import models as routes_models  # noqa: F401
+from app.modules.shipments import models as shipments_models  # noqa: F401
+from app.modules.tracking import models as tracking_models  # noqa: F401
 
+config = context.config
+config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
-@pytest.fixture()
-def db_session():
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
 
 
-@pytest.fixture()
-def client(db_session):
-    def _override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
-
-    app.dependency_overrides[get_db] = _override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+def run_migrations_offline() -> None:
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True)
+    with context.begin_transaction():
+        context.run_migrations()
 
 
-def login_as_admin(client, db_session):
-    from app.core.security import hash_password
-    from app.common.enums import AccountRole
-    from app.modules.accounts.models import Account
+def run_migrations_online() -> None:
+    connectable = engine_from_config(config.get_section(config.config_ini_section, {}), prefix="sqlalchemy.", poolclass=pool.NullPool)
+    with connectable.connect() as connection:
+        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+        with context.begin_transaction():
+            context.run_migrations()
 
-    admin = Account(
-        full_name="Test Admin",
-        email="admin@test.local",
-        hashed_password=hash_password("AdminPass123!"),
-        role=AccountRole.ADMIN,
-    )
-    db_session.add(admin)
-    db_session.commit()
 
-    response = client.post("/api/v1/auth/login", json={"email": "admin@test.local", "password": "AdminPass123!"})
-    assert response.status_code == 200
-    return response.json()["access_token"]
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

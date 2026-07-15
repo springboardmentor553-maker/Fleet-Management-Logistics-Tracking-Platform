@@ -17,3 +17,5 @@ class Driver(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     account = relationship("Account", back_populates="driver_profile")
+    # A Driver can have many Trips over time.
+    trips = relationship("Trip", back_populates="driver")

@@ -8,14 +8,7 @@ from app.common.enums import AccountRole
 from app.db.session import SessionLocal
 from app.modules.accounts.models import Account
 
-# Importing app.main (rather than just the accounts models) pulls in every
-# module's routers, and with them every ORM model. SQLAlchemy relationships
-# declared as string references (e.g. relationship("Driver", ...)) can only
-# be resolved once the referenced class has actually been imported somewhere
-# -- otherwise mapper configuration fails with "failed to locate a name".
-import app.main  # noqa: F401
-
-ADMIN_EMAIL = "admin@freightflow.dev"
+ADMIN_EMAIL = "admin@freightflow.local"
 ADMIN_PASSWORD = "ChangeMe123!"
 ADMIN_NAME = "FreightFlow Admin"
 

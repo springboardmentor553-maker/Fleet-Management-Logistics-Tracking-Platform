@@ -2,7 +2,7 @@ from tests.conftest import login_as_admin
 
 
 def test_login_rejects_unknown_email(client, db_session):
-    response = client.post("/api/v1/auth/login", json={"email": "nobody@test.local", "password": "whatever"})
+    response = client.post("/api/v1/auth/login", json={"email": "nobody@example.com", "password": "whatever"})
     assert response.status_code == 401
 
 
@@ -27,19 +27,19 @@ def test_non_admin_cannot_create_accounts(client, db_session):
 
     dispatcher = Account(
         full_name="Dispatch One",
-        email="dispatch@test.local",
+        email="dispatch@example.com",
         hashed_password=hash_password("Dispatch123!"),
         role=AccountRole.DISPATCHER,
     )
     db_session.add(dispatcher)
     db_session.commit()
 
-    login = client.post("/api/v1/auth/login", json={"email": "dispatch@test.local", "password": "Dispatch123!"})
+    login = client.post("/api/v1/auth/login", json={"email": "dispatch@example.com", "password": "Dispatch123!"})
     token = login.json()["access_token"]
 
     response = client.post(
         "/api/v1/accounts",
-        json={"full_name": "New Person", "email": "new@test.local", "password": "Whatever123!", "role": "driver"},
+        json={"full_name": "New Person", "email": "new@example.com", "password": "Whatever123!", "role": "driver"},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 403

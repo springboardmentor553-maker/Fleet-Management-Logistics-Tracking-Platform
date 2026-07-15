@@ -1,3 +1,4 @@
+
 from tests.conftest import login_as_admin
 
 
@@ -14,7 +15,7 @@ def _bootstrap_vehicle_and_driver(client, token):
 
     driver_account = client.post(
         "/api/v1/accounts",
-        json={"full_name": "Driver One", "email": "driver1@test.local", "password": "DriverPass123!", "role": "driver"},
+        json={"full_name": "Driver One", "email": "driver1@example.com", "password": "DriverPass123!", "role": "driver"},
         headers=_auth_headers(token),
     ).json()
 

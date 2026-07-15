@@ -48,33 +48,33 @@ export default function DashboardPage() {
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-available" />
           </div>
           <div className="flex flex-wrap divide-x divide-border">
-            <BoardStat label="Active Vehicles" value={summary?.fleet?.active_vehicles ?? 0} />
-            <BoardStat label="Drivers On Trip" value={summary?.drivers?.on_trip_drivers ?? 0} />
-            <BoardStat label="In Transit" value={summary?.shipments?.in_transit ?? 0} />
-            <BoardStat label="Pending Dispatch" value={summary?.shipments?.pending ?? 0} />
+            <BoardStat label="Active Vehicles" value={summary?.fleet.active_vehicles ?? 0} />
+            <BoardStat label="Drivers On Trip" value={summary?.drivers.on_trip_drivers ?? 0} />
+            <BoardStat label="In Transit" value={summary?.shipments.in_transit ?? 0} />
+            <BoardStat label="Pending Dispatch" value={summary?.shipments.pending ?? 0} />
             <BoardStat label="In Shop" value={summary?.open_maintenance_jobs ?? 0} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card title="Fleet">
-            <MiniStat label="Total vehicles" value={summary?.fleet?.total_vehicles ?? "—"} />
-            <MiniStat label="Active" value={summary?.fleet?.active_vehicles ?? "—"} tone="text-status-available" />
-            <MiniStat label="In shop" value={summary?.fleet?.in_shop_vehicles ?? "—"} tone="text-signal" />
+            <MiniStat label="Total vehicles" value={summary?.fleet.total_vehicles ?? "—"} />
+            <MiniStat label="Active" value={summary?.fleet.active_vehicles ?? "—"} tone="text-status-available" />
+            <MiniStat label="In shop" value={summary?.fleet.in_shop_vehicles ?? "—"} tone="text-signal" />
           </Card>
 
           <Card title="Drivers">
-            <MiniStat label="Total drivers" value={summary?.drivers?.total_drivers ?? "—"} />
-            <MiniStat label="Available" value={summary?.drivers?.available_drivers ?? "—"} tone="text-status-available" />
-            <MiniStat label="On trip" value={summary?.drivers?.on_trip_drivers ?? "—"} tone="text-status-transit" />
+            <MiniStat label="Total drivers" value={summary?.drivers.total_drivers ?? "—"} />
+            <MiniStat label="Available" value={summary?.drivers.available_drivers ?? "—"} tone="text-status-available" />
+            <MiniStat label="On trip" value={summary?.drivers.on_trip_drivers ?? "—"} tone="text-status-transit" />
           </Card>
 
           <Card title="Shipments">
-            <MiniStat label="Total" value={summary?.shipments?.total_shipments ?? "—"} />
-            <MiniStat label="Pending" value={summary?.shipments?.pending ?? "—"} tone="text-signal" />
-            <MiniStat label="In transit" value={summary?.shipments?.in_transit ?? "—"} tone="text-status-transit" />
-            <MiniStat label="Delivered" value={summary?.shipments?.delivered ?? "—"} tone="text-status-available" />
-            <MiniStat label="Cancelled" value={summary?.shipments?.cancelled ?? "—"} tone="text-status-alert" />
+            <MiniStat label="Total" value={summary?.shipments.total_shipments ?? "—"} />
+            <MiniStat label="Pending" value={summary?.shipments.pending ?? "—"} tone="text-signal" />
+            <MiniStat label="In transit" value={summary?.shipments.in_transit ?? "—"} tone="text-status-transit" />
+            <MiniStat label="Delivered" value={summary?.shipments.delivered ?? "—"} tone="text-status-available" />
+            <MiniStat label="Cancelled" value={summary?.shipments.cancelled ?? "—"} tone="text-status-alert" />
           </Card>
         </div>
       </div>
