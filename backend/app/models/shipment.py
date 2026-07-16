@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from backend.app.database import Base
@@ -16,3 +17,5 @@ class Shipment(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"))
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    trip = relationship("Trip", back_populates="shipment", uselist=False)

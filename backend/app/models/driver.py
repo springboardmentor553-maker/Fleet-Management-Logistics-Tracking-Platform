@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from backend.app.database import Base
@@ -13,3 +14,5 @@ class Driver(Base):
     phone = Column(String, nullable=False)
     status = Column(String, default="Available")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    trips = relationship("Trip", back_populates="driver")

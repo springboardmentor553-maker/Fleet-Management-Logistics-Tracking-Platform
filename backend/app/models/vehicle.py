@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from backend.app.database import Base
@@ -13,4 +14,5 @@ class Vehicle(Base):
     capacity = Column(Float, nullable=False)
     status = Column(String, default="Available")
     created_at = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default="Available")
+
+    trips = relationship("Trip", back_populates="vehicle")
