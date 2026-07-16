@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+import { GoogleMap, useJsApiLoader, MarkerF, PolylineF } from '@react-google-maps/api'
 import { Route as RouteIcon, MapPin, Clock, Fuel, IndianRupee, Navigation, Zap, ArrowRightLeft } from 'lucide-react'
 import { getCityCoords, geocodeCity } from '../utils/cityCoordinates'
-import { getRouteOptions } from '../utils/routing'
+import { getGoogleRouteOptions } from '../utils/googleRouting'
 
 // Rough estimate assumptions — used only to approximate fuel cost, not real-time data
 const AVG_FUEL_PRICE_PER_LITRE = 100
@@ -18,7 +18,8 @@ const ROUTE_TYPES = [
 function resolveRouteForType(routeOptions, type) {
   if (!routeOptions) return null
   if (type === 'shortest' || type === 'fuel_efficient') return routeOptions.shortest
-  return routeOptions.fastest
+  if (type === 'traffic_avoidance') return routeOptions.trafficAvoidance
+  return routeOptions.fastest // uses real-time traffic data
 }
 
 export default function RoutesPage() {
@@ -31,42 +32,52 @@ export default function RoutesPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  })
+
   const handleGenerate = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    setRouteOptions(null)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
+  setRouteOptions(null)
 
-    try {
-      let o = getCityCoords(origin)
-      let d = getCityCoords(destination)
-      if (!o) o = await geocodeCity(origin)
-      if (!d) d = await geocodeCity(destination)
-
-      if (!o || !d) {
-        setError(`Could not find location for "${!o ? origin : destination}"`)
-        setLoading(false)
-        return
-      }
-
-      setOriginCoords(o)
-      setDestCoords(d)
-
-      const options = await getRouteOptions(o, d)
-      if (!options) {
-        setError('Could not calculate a route between these locations')
-        setLoading(false)
-        return
-      }
-
-      setRouteOptions(options)
-      setRouteType('fastest')
-    } catch (err) {
-      setError('Something went wrong while generating the route')
-    } finally {
-      setLoading(false)
-    }
+  if (!isLoaded) {
+    setError('Map is still loading, please try again in a moment')
+    setLoading(false)
+    return
   }
+
+  try {
+    let o = getCityCoords(origin)
+    let d = getCityCoords(destination)
+    if (!o) o = await geocodeCity(origin)
+    if (!d) d = await geocodeCity(destination)
+
+    if (!o || !d) {
+      setError(`Could not find location for "${!o ? origin : destination}"`)
+      setLoading(false)
+      return
+    }
+
+    setOriginCoords(o)
+    setDestCoords(d)
+
+    const options = await getGoogleRouteOptions(o, d)
+    if (!options) {
+      setError('Could not calculate a route between these locations')
+      setLoading(false)
+      return
+    }
+
+    setRouteOptions(options)
+    setRouteType('fastest')
+  } catch (err) {
+    setError('Something went wrong while generating the route')
+  } finally {
+    setLoading(false)
+  }
+}
 
   const activeRoute = resolveRouteForType(routeOptions, routeType)
   const estimatedFuelCost = activeRoute
@@ -74,8 +85,8 @@ export default function RoutesPage() {
     : null
 
   const center = originCoords && destCoords
-    ? [(originCoords.lat + destCoords.lat) / 2, (originCoords.lng + destCoords.lng) / 2]
-    : [22.9734, 78.6569]
+    ? { lat: (originCoords.lat + destCoords.lat) / 2, lng: (originCoords.lng + destCoords.lng) / 2 }
+    : { lat: 22.9734, lng: 78.6569 }
 
   return (
     <div className="ff-section">
@@ -138,15 +149,27 @@ export default function RoutesPage() {
 
         {/* Right: Map */}
         <div className="ff-tracking-map" style={{ minHeight: 320 }}>
-          <MapContainer center={center} zoom={5} style={{ height: '100%', width: '100%', borderRadius: '10px' }} scrollWheelZoom={false}>
-            <TileLayer
-              attribution='&copy; MapTiler &copy; OpenStreetMap contributors'
-              url={`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${import.meta.env.VITE_MAPTILER_KEY}`}
-            />
-            {originCoords && <Marker position={[originCoords.lat, originCoords.lng]}><Popup><strong>{origin}</strong></Popup></Marker>}
-            {destCoords && <Marker position={[destCoords.lat, destCoords.lng]}><Popup><strong>{destination}</strong></Popup></Marker>}
-            {activeRoute && <Polyline positions={activeRoute.coordinates} pathOptions={{ color: '#aa3bff', weight: 4 }} />}
-          </MapContainer>
+          {!isLoaded ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 13, color: 'var(--text-muted)' }}>
+              Loading map...
+            </div>
+          ) : (
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '100%', borderRadius: '10px' }}
+              center={center}
+              zoom={originCoords && destCoords ? 6 : 4.5}
+              options={{ disableDefaultUI: true, zoomControl: true }}
+            >
+              {originCoords && <MarkerF position={originCoords} label="A" />}
+              {destCoords && <MarkerF position={destCoords} label="B" />}
+              {activeRoute && (
+                <PolylineF
+                  path={activeRoute.coordinates}
+                  options={{ strokeColor: '#aa3bff', strokeWeight: 4 }}
+                />
+              )}
+            </GoogleMap>
+          )}
         </div>
       </div>
 
@@ -176,8 +199,8 @@ export default function RoutesPage() {
           )}
 
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, fontStyle: 'italic' }}>
-            Fuel Efficient and Traffic Avoidance are approximated using the shortest/fastest routes available,
-            since real-time traffic and fuel-consumption data require a paid API.
+            Fastest Route and Traffic Avoidance now use real-time traffic conditions from Google Maps.
+            Fuel Efficient is approximated from the shortest-distance route, since fuel-consumption data requires vehicle-specific inputs.
           </p>
         </>
       )}

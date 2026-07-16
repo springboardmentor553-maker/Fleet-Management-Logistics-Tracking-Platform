@@ -1,6 +1,9 @@
 # Virtual Environment
 venv/
 
+# Reset password
+backend\.env
+
 # Python
 __pycache__/
 *.pyc

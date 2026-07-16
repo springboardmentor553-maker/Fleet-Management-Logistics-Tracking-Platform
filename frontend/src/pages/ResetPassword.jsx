@@ -1,43 +1,52 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Truck, Lock, Mail, User } from "lucide-react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { Truck, Lock } from "lucide-react";
 import api from "../api/axios";
 
-export default function Register() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "driver",
-  });
+export default function ResetPassword() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const navigate = useNavigate();
+
+  const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await api.post("/auth/register", form);
+      await api.post("/auth/reset-password", { token, new_password: newPassword });
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 1200);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      setError(err.response?.data?.detail || "Registration failed. Try again.");
+      setError(err.response?.data?.detail || "Reset failed. Link may be expired.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!token) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.banner}>RESET PASSWORD</div>
+          <div style={{ padding: 32, textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "#374151" }}>
+              Invalid reset link. <Link to="/forgot-password" style={styles.link}>Request a new one</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.banner}>REGISTER</div>
+        <div style={styles.banner}>RESET PASSWORD</div>
         <div style={styles.body}>
           <div style={styles.formSide}>
             <div style={styles.logoRow}>
@@ -48,46 +57,25 @@ export default function Register() {
               </div>
             </div>
 
+            <h3 style={{ margin: "0 0 4px", color: "#111827" }}>Set a new password</h3>
+            <p style={{ fontSize: 12.5, color: "#6b7280", marginBottom: 20 }}>
+              Choose a strong password for your account
+            </p>
+
             <form onSubmit={handleSubmit}>
               {error && <div style={styles.errorBox}>{error}</div>}
-              {success && <div style={styles.successBox}>Account created! Redirecting to login...</div>}
+              {success && <div style={styles.successBox}>Password reset! Redirecting to login...</div>}
 
-              <label style={styles.label}>Full Name</label>
-              <div style={styles.inputGroup}>
-                <User size={15} style={{ color: "#9ca3af" }} />
-                <input name="name" type="text" placeholder="John Doe" value={form.name}
-                  onChange={handleChange} style={styles.input} required />
-              </div>
-
-              <label style={styles.label}>Email</label>
-              <div style={styles.inputGroup}>
-                <Mail size={15} style={{ color: "#9ca3af" }} />
-                <input name="email" type="email" placeholder="you@fleetflow.com" value={form.email}
-                  onChange={handleChange} style={styles.input} required />
-              </div>
-
-              <label style={styles.label}>Password</label>
+              <label style={styles.label}>New Password</label>
               <div style={styles.inputGroup}>
                 <Lock size={15} style={{ color: "#9ca3af" }} />
-                <input name="password" type="password" placeholder="••••••••" value={form.password}
-                  onChange={handleChange} style={styles.input} required />
+                <input type="password" placeholder="••••••••" value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)} style={styles.input} required minLength={6} />
               </div>
 
-              <label style={styles.label}>Role</label>
-              <select name="role" value={form.role} onChange={handleChange} style={styles.select}>
-                <option value="driver">Driver</option>
-                <option value="dispatcher">Dispatcher</option>
-                <option value="fleet_manager">Fleet Manager</option>
-                <option value="admin">Admin</option>
-              </select>
-
               <button type="submit" disabled={loading} style={styles.button}>
-                {loading ? "Creating account..." : "Register"}
+                {loading ? "Resetting..." : "Reset Password"}
               </button>
-
-              <p style={styles.registerText}>
-                Already have an account? <Link to="/login" style={styles.link}>Login</Link>
-              </p>
             </form>
           </div>
 
@@ -122,14 +110,12 @@ const styles = {
   logoIcon: { width: 38, height: 38, borderRadius: 10, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" },
   logoText: { fontWeight: 700, fontSize: 17, color: "#111827" },
   logoSub: { fontSize: 11, color: "#6b7280" },
-  errorBox: { background: "#fee2e2", color: "#dc2626", fontSize: 13, padding: "8px 10px", borderRadius: 6, marginBottom: 14 },
-  successBox: { background: "#dcfce7", color: "#16a34a", fontSize: 13, padding: "8px 10px", borderRadius: 6, marginBottom: 14 },
+  errorBox: { background: "#fee2e2", color: "#dc2626", fontSize: 12.5, padding: "8px 10px", borderRadius: 6, marginBottom: 14 },
+  successBox: { background: "#dcfce7", color: "#16a34a", fontSize: 12.5, padding: "8px 10px", borderRadius: 6, marginBottom: 14 },
   label: { fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5, display: "block" },
-  inputGroup: { display: "flex", alignItems: "center", gap: 8, border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 12px", marginBottom: 14, background: "#fafafa" },
+  inputGroup: { display: "flex", alignItems: "center", gap: 8, border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 12px", marginBottom: 18, background: "#fafafa" },
   input: { border: "none", outline: "none", background: "transparent", width: "100%", fontSize: 14, color: "#111827" },
-  select: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fafafa", color: "#111827", fontSize: 14, marginBottom: 18, outline: "none" },
   button: { width: "100%", padding: "11px 0", background: "linear-gradient(90deg, #2563eb, #7c3aed)", color: "#fff", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  registerText: { fontSize: 12.5, textAlign: "center", marginTop: 16, color: "#6b7280" },
   link: { color: "#2563eb", fontSize: 12.5, textDecoration: "none", fontWeight: 500 },
   imageSide: { flex: "1 1 260px", position: "relative", background: "linear-gradient(180deg, #fbbf6a 0%, #f97794 40%, #6b46c1 100%)", minHeight: 260 },
   imageOverlay: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.05)" },

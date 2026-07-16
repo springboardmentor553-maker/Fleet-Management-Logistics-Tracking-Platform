@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.8",
     "axios": "^1.18.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.23.0",
