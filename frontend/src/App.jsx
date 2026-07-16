@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom'
 import { Truck, Menu, Search, Sun, Moon, Bell } from 'lucide-react'
 import './App.css'
 import ProfileDropdown from './components/ProfileDropdown'
+import NotificationDropdown from './components/NotificationDropdown'
+import Notifications from './pages/Notifications'
 import Sidebar from './components/Sidebar'
 import DashboardHome from './pages/DashboardHome'
 import Shipments from './pages/Shipments'
@@ -58,10 +60,7 @@ function DashboardLayout({
             <div className="ff-icon-btn" onClick={() => setDarkMode(!darkMode)} title="Toggle dark mode">
               {darkMode ? <Sun size={16} /> : <Moon size={16} />}
             </div>
-            <div className="ff-icon-btn" title="Notifications">
-              <Bell size={16} />
-              <span className="ff-notif-dot">5</span>
-            </div>
+            <NotificationDropdown shipments={shipments} trips={trips} />
             <ProfileDropdown />
           </div>
         </div>
@@ -102,7 +101,7 @@ function DashboardLayout({
             path="/trips"
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications shipments={shipments} trips={trips} />} />
         </Routes>
 
       </main>

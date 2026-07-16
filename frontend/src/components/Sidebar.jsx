@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { icon: <Wrench size={16} />, label: 'Maintenance', path: '/maintenance' },
   { icon: <BarChart3 size={16} />, label: 'Analytics', path: '/analytics' },
   { icon: <FileText size={16} />, label: 'Reports', path: '/reports' },
-  { icon: <Bell size={16} />, label: 'Notifications', path: '/notifications', badge: 5 },
+  { icon: <Bell size={16} />, label: 'Notifications', path: '/notifications' },
   { icon: <Settings size={16} />, label: 'Settings', path: '/settings' },
 ]
 
