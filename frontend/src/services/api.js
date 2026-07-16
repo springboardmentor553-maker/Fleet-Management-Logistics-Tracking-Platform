@@ -100,6 +100,38 @@ export const shipmentService = {
   },
 }
 
+export const tripService = {
+  getAll() {
+    return api.get('/trips/')
+  },
+  getById(id) {
+    return api.get(`/trips/${id}`)
+  },
+  create(payload) {
+    return api.post('/trips/', payload)
+  },
+  update(id, payload) {
+    return api.put(`/trips/${id}`, payload)
+  },
+  remove(id) {
+    return api.delete(`/trips/${id}`)
+  },
+}
+
+export const userService = {
+  getAll() {
+    return api.get('/users/')
+  },
+  update(id, payload) {
+    return api.put(`/users/${id}`, payload)
+  },
+  remove(id) {
+    return api.delete(`/users/${id}`)
+  },
+}
+
+
+
 export function setAuthToken(token) {
   if (token) {
     localStorage.setItem('fleetflow_token', token)

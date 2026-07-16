@@ -78,8 +78,17 @@ export default function Login() {
               email: decoded.sub,
               role: decoded.role,
             })
+            const userRole = decoded.role
+            if (userRole === 'Admin' || userRole === 'Fleet Manager') {
+              navigate('/dashboard', { replace: true })
+            } else if (userRole === 'Dispatcher') {
+              navigate('/shipments', { replace: true })
+            } else if (userRole === 'Driver') {
+              navigate('/trips', { replace: true })
+            } else {
+              navigate('/dashboard', { replace: true })
+            }
           }
-          navigate('/dashboard', { replace: true })
         } else {
           throw new Error('Access token not returned from server.')
         }

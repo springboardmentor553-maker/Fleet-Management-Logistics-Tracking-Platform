@@ -5,13 +5,17 @@ import { Search, Bell, ChevronDown, LogOut, User } from 'lucide-react'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
+  '/users': 'User Accounts',
   '/drivers': 'Drivers',
   '/vehicles': 'Vehicles',
   '/shipments': 'Shipments',
+  '/trips': 'Trips & Assignments',
   '/maintenance': 'Maintenance',
   '/reports': 'Reports',
   '/profile': 'Profile',
+  '/403': 'Access Denied',
 }
+
 
 function getUserDetails() {
   try {

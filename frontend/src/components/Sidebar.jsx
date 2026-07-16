@@ -8,17 +8,21 @@ import {
   Wrench, 
   BarChart3, 
   User, 
-  LogOut 
+  LogOut,
+  Shield,
+  Compass
 } from "lucide-react";
 
 const navigationItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/drivers", label: "Drivers", icon: Users },
-  { to: "/vehicles", label: "Vehicles", icon: Truck },
-  { to: "/shipments", label: "Shipments", icon: Package },
-  { to: "/maintenance", label: "Maintenance", icon: Wrench },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Fleet Manager"] },
+  { to: "/users", label: "Users", icon: Shield, roles: ["Admin"] },
+  { to: "/drivers", label: "Drivers", icon: Users, roles: ["Admin", "Fleet Manager"] },
+  { to: "/vehicles", label: "Vehicles", icon: Truck, roles: ["Admin", "Fleet Manager"] },
+  { to: "/shipments", label: "Shipments", icon: Package, roles: ["Admin", "Dispatcher"] },
+  { to: "/trips", label: "Trips", icon: Compass, roles: ["Admin", "Dispatcher", "Driver"] },
+  { to: "/maintenance", label: "Maintenance", icon: Wrench, roles: ["Admin", "Fleet Manager"] },
+  { to: "/reports", label: "Reports", icon: BarChart3, roles: ["Admin", "Fleet Manager"] },
+  { to: "/profile", label: "Profile", icon: User, roles: ["Admin", "Fleet Manager", "Dispatcher", "Driver"] },
 ];
 
 export default function Sidebar() {
@@ -40,6 +44,8 @@ export default function Sidebar() {
     }
   }
 
+  const visibleItems = navigationItems.filter(item => item.roles.includes(role));
+
   return (
     <div className="sidebar" aria-label="Primary navigation">
       {/* Brand Header */}
@@ -58,7 +64,7 @@ export default function Sidebar() {
       {/* Navigation List */}
       <nav className="sidebar__nav">
         <ul className="sidebar__list">
-          {navigationItems.map((item) => {
+          {visibleItems.map((item) => {
             const IconComponent = item.icon;
             return (
               <li key={item.to} className="sidebar__item">
@@ -91,3 +97,4 @@ export default function Sidebar() {
     </div>
   );
 }
+
