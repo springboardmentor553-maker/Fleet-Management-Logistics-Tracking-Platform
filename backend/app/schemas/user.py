@@ -30,3 +30,10 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+# Used for updating user information
+class UserUpdate(BaseModel):
+    name: str
+    email: EmailStr
+    role: str

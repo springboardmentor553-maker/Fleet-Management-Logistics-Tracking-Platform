@@ -7,9 +7,10 @@ from app.database import Base
 
 
 class TripStatus(str, enum.Enum):
-    PENDING = "Pending"
+    CREATED = "Created"
+    ASSIGNED = "Assigned"
     IN_TRANSIT = "In Transit"
-    COMPLETED = "Completed"
+    DELIVERED = "Delivered"
     CANCELLED = "Cancelled"
 
 
@@ -24,7 +25,7 @@ class Trip(Base):
     destination = Column(String(255), nullable=False)
     scheduled_start_time = Column(DateTime, nullable=False)
     scheduled_end_time = Column(DateTime, nullable=False)
-    trip_status = Column(SQLEnum(TripStatus), default=TripStatus.PENDING, nullable=False)
+    trip_status = Column(SQLEnum(TripStatus), default=TripStatus.CREATED, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

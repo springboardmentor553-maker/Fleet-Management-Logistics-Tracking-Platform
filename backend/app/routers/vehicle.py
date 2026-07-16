@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate, VehicleResponse
+from app.utils.security import has_role
 from app.services.vehicle_service import (
     create_vehicle,
     get_all_vehicles,
@@ -28,25 +29,25 @@ def get_db():
 
 
 @router.post("/", response_model=VehicleResponse)
-def add_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db)):
+def add_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db), current_user = Depends(has_role(["Admin", "Fleet Manager"]))):
     return create_vehicle(vehicle, db)
 
 
 @router.get("/", response_model=List[VehicleResponse])
-def fetch_all_vehicles(db: Session = Depends(get_db)):
+def fetch_all_vehicles(db: Session = Depends(get_db), current_user = Depends(has_role(["Admin", "Fleet Manager", "Dispatcher"]))):
     return get_all_vehicles(db)
 
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
-def fetch_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
+def fetch_vehicle(vehicle_id: int, db: Session = Depends(get_db), current_user = Depends(has_role(["Admin", "Fleet Manager", "Dispatcher"]))):
     return get_vehicle(vehicle_id, db)
 
 
 @router.put("/{vehicle_id}", response_model=VehicleResponse)
-def edit_vehicle(vehicle_id: int, vehicle: VehicleUpdate, db: Session = Depends(get_db)):
+def edit_vehicle(vehicle_id: int, vehicle: VehicleUpdate, db: Session = Depends(get_db), current_user = Depends(has_role(["Admin", "Fleet Manager"]))):
     return update_vehicle(vehicle_id, vehicle, db)
 
 
 @router.delete("/{vehicle_id}")
-def remove_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
-    return delete_vehicle(vehicle_id, db)
+def remove_vehicle(vehicle_id: int, db: Session = Depends(get_db), current_user = Depends(has_role(["Admin", "Fleet Manager"]))):
+    return delete_vehicle(vehicle_id, db)

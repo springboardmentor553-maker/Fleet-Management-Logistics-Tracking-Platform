@@ -7,6 +7,7 @@ from app.database import SessionLocal
 from app.models.shipment import Shipment, ShipmentStatus
 from app.models.vehicle import Vehicle
 from app.models.driver import Driver
+from app.utils.security import has_role
 from app.schemas.shipment import (
     ShipmentCreate,
     ShipmentUpdate,
@@ -30,7 +31,8 @@ def get_db():
 @router.post("/", response_model=ShipmentResponse, status_code=status.HTTP_201_CREATED)
 def add_shipment(
     shipment: ShipmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher"]))
 ):
     if shipment.assigned_vehicle_id is not None:
         vehicle = db.query(Vehicle).filter(Vehicle.id == shipment.assigned_vehicle_id).first()
@@ -74,7 +76,8 @@ def add_shipment(
 
 @router.get("/", response_model=List[ShipmentResponse])
 def fetch_all_shipments(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher", "Fleet Manager"]))
 ):
     return db.query(Shipment).all()
 
@@ -82,7 +85,8 @@ def fetch_all_shipments(
 @router.get("/{id}", response_model=ShipmentResponse)
 def fetch_shipment(
     id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher", "Fleet Manager"]))
 ):
     db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
@@ -94,7 +98,8 @@ def fetch_shipment(
 def edit_shipment(
     id: int,
     shipment: ShipmentUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher"]))
 ):
     db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
@@ -128,7 +133,8 @@ def edit_shipment(
 @router.delete("/{id}")
 def remove_shipment(
     id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher"]))
 ):
     db_shipment = db.query(Shipment).filter(Shipment.id == id).first()
     if not db_shipment:
