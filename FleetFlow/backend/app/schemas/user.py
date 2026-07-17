@@ -1,10 +1,12 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
+
 class UserBase(BaseModel):
     username: str
     email: EmailStr
     role: str = "Driver"
+
 
 class UserCreate(UserBase):
     password: str
@@ -17,3 +19,7 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
