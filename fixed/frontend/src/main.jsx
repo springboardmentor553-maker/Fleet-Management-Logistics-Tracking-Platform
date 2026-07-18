@@ -45,14 +45,31 @@ const resources = [
     title: "Shipments",
     endpoint: "/shipments/",
     fields: [
-      ["tracking_number", "Tracking"],
-      ["customer_name", "Customer"],
-      ["source", "Source"],
-      ["destination", "Destination"],
+      ["tracking_number", "Tracking No."],
+      ["sender_name", "Sender"],
+      ["receiver_name", "Receiver"],
+      ["pickup_location", "Pickup"],
+      ["delivery_location", "Delivery"],
       ["status", "Status"],
-      ["vehicle_id", "Vehicle ID"],
+      ["weight", "Weight"],
+      ["assigned_vehicle_id", "Vehicle ID"],
+      ["assigned_driver_id", "Driver ID"],
+    ],
+    readOnlyFields: ["tracking_number"],
+  },
+  {
+    key: "trips",
+    title: "Trips",
+    endpoint: "/trips/",
+    fields: [
+      ["shipment_id", "Shipment ID"],
       ["driver_id", "Driver ID"],
-      ["route_id", "Route ID"],
+      ["vehicle_id", "Vehicle ID"],
+      ["pickup_location", "Pickup"],
+      ["destination", "Destination"],
+      ["scheduled_start_time", "Start Time"],
+      ["scheduled_end_time", "End Time"],
+      ["status", "Status"],
     ],
   },
   {
@@ -286,7 +303,9 @@ function App() {
           <form className="entry-panel" onSubmit={(event) => submitResource(event, active)}>
             <h3>New {active.title.slice(0, -1) || active.title}</h3>
             <div className="field-grid">
-              {active.fields.map(([field, label]) => (
+              {active.fields
+                .filter(([field]) => !active.readOnlyFields?.includes(field))
+                .map(([field, label]) => (
                 <label key={field}>
                   <span>{label}</span>
                   <input
