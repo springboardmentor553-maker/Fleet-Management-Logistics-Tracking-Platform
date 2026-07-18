@@ -8,7 +8,7 @@ import re
 
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
-VALID_STATUSES = ["created", "assigned", "in_transit", "delayed", "delivered", "cancelled"]
+VALID_STATUSES = ["created", "assigned", "picked_up", "in_transit", "out_for_delivery", "delayed", "delivered", "cancelled"]
 
 def generate_tracking_number(db: Session) -> str:
     existing = db.query(models.Shipment.tracking_id).filter(models.Shipment.tracking_id.like("FLT%")).all()
@@ -68,3 +68,24 @@ def delete_shipment(shipment_id: int, db: Session = Depends(get_db), current_use
     db.delete(shipment)
     db.commit()
     return {"message": "Shipment deleted successfully"}
+
+@router.get("/{tracking_number}/status", response_model=schemas.ShipmentTrackingResponse)
+def get_shipment_status(tracking_number: str, db: Session = Depends(get_db)):
+    shipment = db.query(models.Shipment).filter(models.Shipment.tracking_id == tracking_number).first()
+    if not shipment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+
+    driver = db.query(models.Driver).filter(models.Driver.id == shipment.driver_id).first() if shipment.driver_id else None
+    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == shipment.vehicle_id).first() if shipment.vehicle_id else None
+
+    status_value = shipment.status.value if hasattr(shipment.status, "value") else shipment.status
+
+    return {
+        "tracking_number": shipment.tracking_id,
+        "status": status_value,
+        "driver_name": driver.name if driver else None,
+        "vehicle_registration": vehicle.registration_number if vehicle else None,
+        "pickup_location": shipment.origin,
+        "destination": shipment.destination,
+        "eta": shipment.eta.strftime("%d %b %Y, %I:%M %p") if shipment.eta else None,
+    }

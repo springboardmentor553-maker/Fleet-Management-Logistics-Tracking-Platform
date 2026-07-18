@@ -94,7 +94,9 @@ export default function AddShipmentModal({ vehicles = [], drivers = [], onClose,
           <select name="status" value={form.status} onChange={handleChange}>
             <option value="created">Created</option>
             <option value="assigned">Assigned</option>
+            <option value="picked_up">Picked Up</option>
             <option value="in_transit">In Transit</option>
+            <option value="out_for_delivery">Out for Delivery</option>
             <option value="delayed">Delayed</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>

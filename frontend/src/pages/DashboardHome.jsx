@@ -57,6 +57,8 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
 
   // Safe tracking computation arrays for live shipment status matrix elements
   const totalShipmentsCount = shipments ? shipments.length : 0
+  const activeDeliveryStatuses = ['assigned', 'picked_up', 'in_transit', 'out_for_delivery']
+  const activeDeliveriesCount = (shipments || []).filter(s => activeDeliveryStatuses.includes(s.status)).length
   const initialShipmentCounts = { delivered: 0, in_transit: 0, delayed: 0, cancelled: 0 }
   const computedShipmentCounts = (shipments || []).reduce((acc, s) => {
     const status = s.status || 'in_transit'

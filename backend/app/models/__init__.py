@@ -61,7 +61,9 @@ class Driver(Base):
 class ShipmentStatus(str, enum.Enum):
     created = "created"
     assigned = "assigned"
+    picked_up = "picked_up"
     in_transit = "in_transit"
+    out_for_delivery = "out_for_delivery"
     delayed = "delayed"
     delivered = "delivered"
     cancelled = "cancelled"

@@ -200,3 +200,18 @@ class CompanySettingsResponse(BaseModel):
 
 class CompanySettingsUpdate(BaseModel):
     company_name: str
+
+class TripETAResponse(BaseModel):
+    trip_id: int
+    distance_km: float
+    duration_min: float
+    estimated_arrival: str
+
+class ShipmentTrackingResponse(BaseModel):
+    tracking_number: str
+    status: str
+    driver_name: Optional[str] = None
+    vehicle_registration: Optional[str] = None
+    pickup_location: str
+    destination: str
+    eta: Optional[str] = None

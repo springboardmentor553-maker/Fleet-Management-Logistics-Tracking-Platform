@@ -1584,3 +1584,30 @@ body {
 .ff-switch input:checked + .ff-switch-slider::before {
   transform: translateX(18px);
 }
+
+.ff-status-select {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  text-transform: capitalize;
+  color-scheme: light;
+  background-color: #fff;
+  color: #111827;
+}
+
+.ff-status-select option {
+  background: #ffffff;
+  color: #111827;
+  font-weight: 500;
+  padding: 10px;
+}
+
+.ff-status-select option:checked,
+.ff-status-select option:hover {
+  background: var(--accent-bg, #f0e6ff);
+  color: var(--accent, #aa3bff);
+}

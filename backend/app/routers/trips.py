@@ -6,6 +6,7 @@ from app import schemas
 from app.utils.dependencies import require_role
 from app.services.geocoding import geocode_location
 from app.services.routing import get_route
+from app.services.eta_service import calculate_eta
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
@@ -174,4 +175,40 @@ def get_trip_route(trip_id: int, db: Session = Depends(get_db)):
         "distance_km": route["distance_km"],
         "duration_min": route["duration_min"],
         "route_summary": route["route_summary"],
+    }
+
+@router.get("/{trip_id}/eta", response_model=schemas.TripETAResponse)
+def get_trip_eta(trip_id: int, db: Session = Depends(get_db)):
+    trip = db.query(models.Trip).filter(models.Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
+
+    if trip.pickup_lat is None or trip.pickup_lng is None:
+        pickup_coords = geocode_location(trip.origin)
+        if not pickup_coords:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not geocode pickup location: {trip.origin}")
+        trip.pickup_lat = pickup_coords["lat"]
+        trip.pickup_lng = pickup_coords["lng"]
+
+    if trip.destination_lat is None or trip.destination_lng is None:
+        dest_coords = geocode_location(trip.destination)
+        if not dest_coords:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not geocode destination: {trip.destination}")
+        trip.destination_lat = dest_coords["lat"]
+        trip.destination_lng = dest_coords["lng"]
+
+    db.commit()
+    db.refresh(trip)
+
+    route = get_route(trip.pickup_lat, trip.pickup_lng, trip.destination_lat, trip.destination_lng)
+    if not route:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not calculate route between these locations")
+
+    eta = calculate_eta(route["duration_min"], start_time=trip.scheduled_start)
+
+    return {
+        "trip_id": trip.id,
+        "distance_km": route["distance_km"],
+        "duration_min": route["duration_min"],
+        "estimated_arrival": eta["eta_readable"],
     }
