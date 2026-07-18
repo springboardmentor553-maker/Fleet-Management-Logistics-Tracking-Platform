@@ -9,6 +9,7 @@ from app.routers import (
     reports,
     routes,
     shipments,
+    trips,
     users,
     vehicles,
 )
@@ -44,6 +45,7 @@ app.include_router(vehicles.router, prefix="/vehicles", tags=["Vehicles"])
 app.include_router(drivers.router, prefix="/drivers", tags=["Drivers"])
 app.include_router(routes.router, prefix="/routes", tags=["Routes"])
 app.include_router(shipments.router, prefix="/shipments", tags=["Shipments"])
+app.include_router(trips.router, prefix="/trips", tags=["Trips"])
 app.include_router(maintenance.router, prefix="/maintenance", tags=["Maintenance"])
 app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
