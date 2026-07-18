@@ -5,6 +5,7 @@ import './App.css'
 import ProfileDropdown from './components/ProfileDropdown'
 import NotificationDropdown from './components/NotificationDropdown'
 import Notifications from './pages/Notifications'
+import Settings from './pages/Settings'
 import Sidebar from './components/Sidebar'
 import DashboardHome from './pages/DashboardHome'
 import Shipments from './pages/Shipments'
@@ -20,6 +21,7 @@ import DriverDetail from './pages/DriverDetail'
 import Profile from './pages/Profile'
 import RoutesPage from './pages/Routes'
 import Trips from './pages/Trips'
+import UsersManagement from './pages/UsersManagement'
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, loading,
@@ -102,6 +104,9 @@ function DashboardLayout({
             element={<Trips trips={trips} vehicles={vehicles} drivers={drivers} shipments={shipments} loading={loading} search={search} onTripAdded={onTripAdded} onTripDeleted={onTripDeleted} />}
           />
           <Route path="/notifications" element={<Notifications shipments={shipments} trips={trips} />} />
+          <Route path="/settings" element={<Settings darkMode={darkMode} setDarkMode={setDarkMode} />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/users" element={<UsersManagement />} />
         </Routes>
 
       </main>

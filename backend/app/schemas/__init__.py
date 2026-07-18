@@ -31,9 +31,10 @@ class UserResponse(BaseModel):
     role: UserRole
     created_at: datetime
     photo_url: Optional[str] = None
+    notification_frequency: Optional[str] = "instant"
 
     class Config:
-        from_attributes = True  # allows conversion from SQLAlchemy model
+        from_attributes = True
 
 
 class Token(BaseModel):
@@ -170,3 +171,32 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
+
+class TripRouteResponse(BaseModel):
+    pickup_location: str
+    destination: str
+    distance_km: float
+    duration_min: float
+    route_summary: str
+
+class UpdateNotificationFrequencyRequest(BaseModel):
+    frequency: str  # instant, daily, off
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
+class UpdateUserRoleRequest(BaseModel):
+    role: UserRole
+
+
+class CompanySettingsResponse(BaseModel):
+    company_name: str
+    logo_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class CompanySettingsUpdate(BaseModel):
+    company_name: str

@@ -24,6 +24,7 @@ class User(Base):
     reset_token = Column(String, nullable=True)
     reset_token_expires = Column(DateTime, nullable=True)
     photo_url = Column(String, nullable=True)
+    notification_frequency = Column(String, default="instant")  # instant, daily, off
 
 
 class Vehicle(Base):
@@ -92,6 +93,10 @@ class Trip(Base):
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
     origin = Column(String, nullable=False)
     destination = Column(String, nullable=False)
+    pickup_lat = Column(Float, nullable=True)
+    pickup_lng = Column(Float, nullable=True)
+    destination_lat = Column(Float, nullable=True)
+    destination_lng = Column(Float, nullable=True)
     scheduled_start = Column(DateTime, nullable=False)
     scheduled_end = Column(DateTime, nullable=True)
     status = Column(String, default="scheduled")  # scheduled, ongoing, completed, cancelled
@@ -101,3 +106,10 @@ class Trip(Base):
     shipment = relationship("Shipment", back_populates="trip")
     vehicle = relationship("Vehicle", back_populates="trips")
     driver = relationship("Driver", back_populates="trips")
+
+class CompanySettings(Base):
+    __tablename__ = "company_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_name = Column(String, default="FleetFlow")
+    logo_url = Column(String, nullable=True)

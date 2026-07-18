@@ -12,24 +12,42 @@ const timeAgo = (dateString) => {
   return `${days} day${days > 1 ? 's' : ''} ago`
 }
 
+const DEFAULT_PREFERENCES = { showShipments: true, showTrips: true }
+
+export function getNotificationPreferences() {
+  const raw = localStorage.getItem('notification_preferences')
+  if (!raw) return DEFAULT_PREFERENCES
+  try {
+    return { ...DEFAULT_PREFERENCES, ...JSON.parse(raw) }
+  } catch {
+    return DEFAULT_PREFERENCES
+  }
+}
+
+export function setNotificationPreferences(prefs) {
+  localStorage.setItem('notification_preferences', JSON.stringify(prefs))
+}
+
 export function buildNotifications(shipments = [], trips = []) {
-  const shipmentNotifs = shipments.map(s => ({
+  const prefs = getNotificationPreferences()
+
+  const shipmentNotifs = prefs.showShipments ? shipments.map(s => ({
     id: `shipment-${s.id}`,
     type: 'shipment',
     title: `Shipment ${s.tracking_id}`,
     message: `${s.origin} to ${s.destination} — ${s.status.replace('_', ' ')}`,
     timestamp: s.created_at,
     time: timeAgo(s.created_at),
-  }))
+  })) : []
 
-  const tripNotifs = trips.map(t => ({
+  const tripNotifs = prefs.showTrips ? trips.map(t => ({
     id: `trip-${t.id}`,
     type: 'trip',
     title: `Trip scheduled`,
     message: `${t.origin} to ${t.destination} — ${t.status}`,
     timestamp: t.created_at,
     time: timeAgo(t.created_at),
-  }))
+  })) : []
 
   return [...shipmentNotifs, ...tripNotifs]
     .filter(n => n.timestamp)

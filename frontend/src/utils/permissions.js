@@ -8,3 +8,8 @@ export function canEdit() {
   if (!user) return false
   return ['admin', 'fleet_manager'].includes(user.role)
 }
+
+export function isAdmin() {
+  const user = getCurrentUser()
+  return user?.role === 'admin'
+}

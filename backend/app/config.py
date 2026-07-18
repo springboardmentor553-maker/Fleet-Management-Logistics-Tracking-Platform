@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = "your-email@gmail.com"
     SMTP_PASSWORD: str = "your-16-char-app-password"
     FRONTEND_URL: str = "http://localhost:5173"
+    GOOGLE_MAPS_API_KEY: str = "your-google-maps-api-key"
 
     class Config:
         env_file = ".env"

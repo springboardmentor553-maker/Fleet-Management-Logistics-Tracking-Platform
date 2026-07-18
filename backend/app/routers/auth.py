@@ -118,3 +118,22 @@ def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(
     db.commit()
 
     return {"message": "Password reset successful. You can now login."}
+
+@router.put("/notification-frequency", response_model=schemas.UserResponse)
+def update_notification_frequency(payload: schemas.UpdateNotificationFrequencyRequest, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if payload.frequency not in ["instant", "daily", "off"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid frequency")
+    current_user.notification_frequency = payload.frequency
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me")
+def delete_account(payload: schemas.DeleteAccountRequest, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not verify_password(payload.password, current_user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is incorrect")
+
+    db.delete(current_user)
+    db.commit()
+    return {"message": "Account deleted successfully"}
