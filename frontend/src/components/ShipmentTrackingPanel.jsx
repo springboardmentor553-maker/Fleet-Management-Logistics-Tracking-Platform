@@ -56,6 +56,17 @@ export default function ShipmentTrackingPanel({ shipment, vehicle, driver, onClo
     remainingKm = haversineDistance({ lat: vehicle.current_lat, lng: vehicle.current_lng }, destCoords)
   }
 
+  // Auto-calculated ETA: derive an average speed from the route (distance ÷ duration),
+  // then apply it to whatever distance is actually left (from the vehicle's current
+  // position if known, otherwise the full route) to estimate a live arrival time.
+  let calculatedEta = null
+  if (route && route.distanceKm > 0 && route.durationMin > 0) {
+    const avgSpeedKmH = route.distanceKm / (route.durationMin / 60)
+    const distanceLeftKm = hasVehicleLocation && remainingKm !== null ? remainingKm : route.distanceKm
+    const remainingMin = (distanceLeftKm / avgSpeedKmH) * 60
+    calculatedEta = new Date(Date.now() + remainingMin * 60000)
+  }
+
   return (
     <div className="ff-section" style={{ marginTop: 16 }}>
       <div className="ff-section-header">
@@ -101,6 +112,16 @@ export default function ShipmentTrackingPanel({ shipment, vehicle, driver, onClo
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>ETA (set by dispatcher)</div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>
                 {shipment.eta ? new Date(shipment.eta).toLocaleString() : 'Not set'}
+              </div>
+            </div>
+          </div>
+
+          <div className="ff-tracking-detail-row">
+            <Clock size={13} />
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Calculated ETA (auto, based on route speed)</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                {calculatedEta ? calculatedEta.toLocaleString() : 'Calculating...'}
               </div>
             </div>
           </div>
