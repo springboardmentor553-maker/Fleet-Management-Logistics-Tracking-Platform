@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.schemas.common import MessageResponse
 
 from app.dependencies import (
     get_db,
@@ -64,6 +65,7 @@ def get_all_vehicles(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
+            "admin",
             "fleet manager",
             "dispatcher"
         )
@@ -82,6 +84,7 @@ def get_vehicle(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
+            "admin",
             "fleet manager",
             "dispatcher",
             "driver"
@@ -112,6 +115,7 @@ def update_vehicle(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
+            "admin",
             "fleet manager"
         )
     )
@@ -141,7 +145,7 @@ def update_vehicle(
 # Delete Vehicle
 # Admin Only
 # -----------------------------
-@router.delete("/{vehicle_id}")
+@router.delete("/{vehicle_id}", response_model=MessageResponse)
 def delete_vehicle(
     vehicle_id: int,
     db: Session = Depends(get_db),
@@ -174,6 +178,7 @@ def fleet_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
+            "admin",
             "fleet manager"
         )
     )
