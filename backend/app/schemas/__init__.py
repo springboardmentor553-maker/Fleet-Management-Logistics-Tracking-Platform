@@ -71,6 +71,8 @@ class DriverCreate(BaseModel):
     license_number: str
     phone: Optional[str] = None
     status: str = "active"
+    experience_years: Optional[int] = None
+    attendance_percentage: Optional[float] = None
 
     @field_validator('phone')
     @classmethod
@@ -87,6 +89,8 @@ class DriverResponse(BaseModel):
     license_number: str
     phone: Optional[str]
     status: str
+    experience_years: Optional[int] = None
+    attendance_percentage: Optional[float] = None
     created_at: Optional[datetime] = None
 
     class Config:

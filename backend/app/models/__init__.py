@@ -53,6 +53,8 @@ class Driver(Base):
     license_number = Column(String, unique=True, nullable=False)
     phone = Column(String)
     status = Column(String, default="active")
+    experience_years = Column(Integer, nullable=True)
+    attendance_percentage = Column(Float, nullable=True, default=100.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     vehicle = relationship("Vehicle", back_populates="driver", uselist=False)

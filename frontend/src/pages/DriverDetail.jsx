@@ -1,5 +1,36 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, IdCard, Truck, Package, User } from 'lucide-react'
+import { ArrowLeft, Phone, IdCard, Truck, Package, User, Calendar, CheckCircle2, Star } from 'lucide-react'
+
+// Same calculation used on the Drivers list page — kept in sync so the number
+// shown here always matches what's shown in the table.
+function calculateRating(driverId, shipments) {
+  const relevant = (shipments || []).filter(s => s.driver_id === driverId && s.status !== 'cancelled')
+  if (relevant.length === 0) return null
+  const delivered = relevant.filter(s => s.status === 'delivered').length
+  return Math.round((delivered / relevant.length) * 5 * 10) / 10
+}
+
+function StarRating({ rating }) {
+  if (rating === null || rating === undefined) {
+    return <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>No data yet</span>
+  }
+  const rounded = Math.round(rating)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 1 }}>
+        {[1, 2, 3, 4, 5].map(i => (
+          <Star
+            key={i}
+            size={14}
+            fill={i <= rounded ? '#f5a623' : 'none'}
+            color={i <= rounded ? '#f5a623' : 'var(--border)'}
+          />
+        ))}
+      </div>
+      <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', fontWeight: 600 }}>{rating}</span>
+    </div>
+  )
+}
 
 export default function DriverDetail({ drivers = [], vehicles = [], shipments = [] }) {
   const { id } = useParams()
@@ -37,6 +68,7 @@ const assignedVehicle = mostRecentShipmentWithVehicle
 
   const deliveredCount = driverShipments.filter(s => s.status === 'delivered').length
   const inTransitCount = driverShipments.filter(s => s.status === 'in_transit').length
+  const rating = calculateRating(driver.id, shipments)
 
   return (
     <div className="ff-section">
@@ -57,9 +89,13 @@ const assignedVehicle = mostRecentShipmentWithVehicle
             {initials(driver.name)}
           </div>
           <h3 style={{ textAlign: 'center', margin: '12px 0 4px' }}>{driver.name}</h3>
-          <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 16 }}>
+          <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10 }}>
             <span className={`ff-badge status-${driver.status}`}>{driver.status}</span>
           </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <StarRating rating={rating} />
+          </div>
 
           <div className="ff-profile-detail-row">
             <IdCard size={14} />
@@ -72,6 +108,14 @@ const assignedVehicle = mostRecentShipmentWithVehicle
           <div className="ff-profile-detail-row">
             <Truck size={14} />
             <span>{assignedVehicle ? assignedVehicle.registration_number : 'No vehicle assigned'}</span>
+          </div>
+          <div className="ff-profile-detail-row">
+            <Calendar size={14} />
+            <span>{driver.experience_years != null ? `${driver.experience_years} years experience` : 'Experience not recorded'}</span>
+          </div>
+          <div className="ff-profile-detail-row">
+            <CheckCircle2 size={14} />
+            <span>{driver.attendance_percentage != null ? `${driver.attendance_percentage}% attendance` : 'Attendance not recorded'}</span>
           </div>
         </div>
 

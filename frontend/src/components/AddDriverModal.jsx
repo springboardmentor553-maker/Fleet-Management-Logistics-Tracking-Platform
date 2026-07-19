@@ -10,6 +10,8 @@ export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
     license_number: '',
     phone: '',
     status: 'active',
+    experience_years: '',
+    attendance_percentage: '',
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -22,6 +24,8 @@ export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
         license_number: driverToEdit.license_number || '',
         phone: driverToEdit.phone || '',
         status: driverToEdit.status || 'active',
+        experience_years: driverToEdit.experience_years ?? '',
+        attendance_percentage: driverToEdit.attendance_percentage ?? '',
       })
     }
   }, [driverToEdit])
@@ -41,11 +45,17 @@ export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
     setError('')
     setLoading(true)
     try {
+      const payload = {
+        ...form,
+        experience_years: form.experience_years !== '' ? parseInt(form.experience_years, 10) : null,
+        attendance_percentage: form.attendance_percentage !== '' ? parseFloat(form.attendance_percentage) : null,
+      }
+
       let res
       if (isEditMode) {
-        res = await api.put(`/drivers/${driverToEdit.id}`, form)
+        res = await api.put(`/drivers/${driverToEdit.id}`, payload)
       } else {
-        res = await api.post('/drivers/', form)
+        res = await api.post('/drivers/', payload)
       }
       onSuccess(res.data, isEditMode)
       setSuccess(true)
@@ -92,6 +102,29 @@ export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+
+          <label>Experience (years)</label>
+          <input
+            name="experience_years"
+            type="number"
+            min="0"
+            max="60"
+            placeholder="e.g. 5"
+            value={form.experience_years}
+            onChange={handleChange}
+          />
+
+          <label>Attendance (%)</label>
+          <input
+            name="attendance_percentage"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            placeholder="e.g. 95"
+            value={form.attendance_percentage}
+            onChange={handleChange}
+          />
 
           <button type="submit" className="ff-btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
             {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Driver' : 'Add Driver')}

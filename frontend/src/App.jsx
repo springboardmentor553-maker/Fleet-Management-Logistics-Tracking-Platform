@@ -22,7 +22,6 @@ import Profile from './pages/Profile'
 import RoutesPage from './pages/Routes'
 import Trips from './pages/Trips'
 import UsersManagement from './pages/UsersManagement'
-import 'leaflet/dist/leaflet.css'
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, loading,
@@ -93,7 +92,7 @@ function DashboardLayout({
           />
           <Route
             path="/drivers"
-            element={<Drivers drivers={drivers} loading={loading} search={search} onDriverAdded={onDriverAdded} onDriverDeleted={onDriverDeleted} />}
+            element={<Drivers drivers={drivers} shipments={shipments} trips={trips} loading={loading} search={search} onDriverAdded={onDriverAdded} onDriverDeleted={onDriverDeleted} />}
           />
           <Route
             path="/drivers/:id"
