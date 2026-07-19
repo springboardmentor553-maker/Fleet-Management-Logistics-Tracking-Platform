@@ -33,6 +33,12 @@ body {
   --red: #dc4444;
   --red-bg: #fdeaea;
   --cyan-bg: #e6f4ff;
+  --teal: #0d9488;
+  --teal-bg: #e3f6f4;
+  --indigo: #4f46e5;
+  --indigo-bg: #ecebfd;
+  --pink: #db2777;
+  --pink-bg: #fce7f1;
 
   display: flex;
   min-height: 100vh;
@@ -60,6 +66,9 @@ body {
   --violet-bg: rgba(109, 84, 232, 0.18);
   --red-bg: rgba(220, 68, 68, 0.15);
   --cyan-bg: rgba(47, 111, 237, 0.15);
+  --teal-bg: rgba(13, 148, 136, 0.18);
+  --indigo-bg: rgba(79, 70, 229, 0.18);
+  --pink-bg: rgba(219, 39, 119, 0.18);
 }
 
 /* Desktop Hidden Mobile Controls */
@@ -596,14 +605,29 @@ body {
 }
 .ff-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-.ff-badge.status-available, .ff-badge.status-active, .ff-badge.status-delivered { background: var(--green-bg); color: var(--green); }
-.ff-badge.status-available::before, .ff-badge.status-active::before, .ff-badge.status-delivered::before { background: var(--green); }
+.ff-badge.status-available, .ff-badge.status-active, .ff-badge.status-delivered, .ff-badge.status-completed { background: var(--green-bg); color: var(--green); }
+.ff-badge.status-available::before, .ff-badge.status-active::before, .ff-badge.status-delivered::before, .ff-badge.status-completed::before { background: var(--green); }
 
-.ff-badge.status-maintenance, .ff-badge.status-inactive, .ff-badge.status-due_soon { background: var(--amber-bg); color: var(--amber); }
-.ff-badge.status-maintenance::before, .ff-badge.status-inactive::before, .ff-badge.status-due_soon::before { background: var(--amber); }
+.ff-badge.status-maintenance, .ff-badge.status-inactive, .ff-badge.status-due_soon, .ff-badge.status-delayed { background: var(--amber-bg); color: var(--amber); }
+.ff-badge.status-maintenance::before, .ff-badge.status-inactive::before, .ff-badge.status-due_soon::before, .ff-badge.status-delayed::before { background: var(--amber); }
 
-.ff-badge.status-in_use, .ff-badge.status-upcoming { background: var(--violet-bg); color: var(--violet); }
-.ff-badge.status-in_use::before, .ff-badge.status-upcoming::before { background: var(--violet); }
+.ff-badge.status-in_use, .ff-badge.status-upcoming, .ff-badge.status-in_transit, .ff-badge.status-ongoing { background: var(--violet-bg); color: var(--violet); }
+.ff-badge.status-in_use::before, .ff-badge.status-upcoming::before, .ff-badge.status-in_transit::before, .ff-badge.status-ongoing::before { background: var(--violet); }
+
+.ff-badge.status-created { background: var(--teal-bg); color: var(--teal); }
+.ff-badge.status-created::before { background: var(--teal); }
+
+.ff-badge.status-assigned, .ff-badge.status-scheduled { background: var(--cyan-bg); color: var(--accent); }
+.ff-badge.status-assigned::before, .ff-badge.status-scheduled::before { background: var(--accent); }
+
+.ff-badge.status-picked_up { background: var(--indigo-bg); color: var(--indigo); }
+.ff-badge.status-picked_up::before { background: var(--indigo); }
+
+.ff-badge.status-out_for_delivery { background: var(--pink-bg); color: var(--pink); }
+.ff-badge.status-out_for_delivery::before { background: var(--pink); }
+
+.ff-badge.status-cancelled { background: var(--red-bg); color: var(--red); }
+.ff-badge.status-cancelled::before { background: var(--red); }
 
 .ff-driver-cell { 
   display: flex; 
@@ -1067,17 +1091,29 @@ body {
   text-transform: capitalize;
 }
 
-.ff-custom-select.status-pill.status-created .ff-custom-select-trigger,
+.ff-custom-select.status-pill.status-created .ff-custom-select-trigger {
+  background-color: var(--teal-bg);
+  color: var(--teal);
+}
+
 .ff-custom-select.status-pill.status-assigned .ff-custom-select-trigger {
   background-color: var(--cyan-bg);
   color: var(--accent);
 }
 
-.ff-custom-select.status-pill.status-picked_up .ff-custom-select-trigger,
-.ff-custom-select.status-pill.status-in_transit .ff-custom-select-trigger,
-.ff-custom-select.status-pill.status-out_for_delivery .ff-custom-select-trigger {
+.ff-custom-select.status-pill.status-picked_up .ff-custom-select-trigger {
+  background-color: var(--indigo-bg);
+  color: var(--indigo);
+}
+
+.ff-custom-select.status-pill.status-in_transit .ff-custom-select-trigger {
   background-color: var(--violet-bg);
   color: var(--violet);
+}
+
+.ff-custom-select.status-pill.status-out_for_delivery .ff-custom-select-trigger {
+  background-color: var(--pink-bg);
+  color: var(--pink);
 }
 
 .ff-custom-select.status-pill.status-delivered .ff-custom-select-trigger {
