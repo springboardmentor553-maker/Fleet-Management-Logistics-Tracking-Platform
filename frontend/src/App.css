@@ -581,16 +581,20 @@ body {
 .ff-badge { 
   display: inline-flex; 
   align-items: center; 
+  justify-content: center;
   gap: 6px; 
-  padding: 4px 12px; 
+  min-width: 96px;
+  padding: 5px 14px; 
   border-radius: 20px; 
   font-size: 11.5px; 
   font-weight: 600; 
   line-height: 1.4;
   white-space: nowrap;
   flex-shrink: 0;
+  text-transform: capitalize;
+  letter-spacing: 0.1px;
 }
-.ff-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.ff-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
 .ff-badge.status-available, .ff-badge.status-active, .ff-badge.status-delivered { background: var(--green-bg); color: var(--green); }
 .ff-badge.status-available::before, .ff-badge.status-active::before, .ff-badge.status-delivered::before { background: var(--green); }
@@ -1594,20 +1598,54 @@ body {
   cursor: pointer;
   outline: none;
   text-transform: capitalize;
-  color-scheme: light;
-  background-color: #fff;
-  color: #111827;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .ff-status-select option {
-  background: #ffffff;
-  color: #111827;
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-weight: 500;
   padding: 10px;
 }
 
 .ff-status-select option:checked,
 .ff-status-select option:hover {
-  background: var(--accent-bg, #f0e6ff);
-  color: var(--accent, #aa3bff);
+  background: var(--cyan-bg);
+  color: var(--accent);
+}
+
+/* Color-code the dropdown pill itself by status, matching the read-only badge palette,
+   and using theme variables so it looks correct in both light and dark mode */
+.ff-status-select.status-created,
+.ff-status-select.status-assigned {
+  background-color: var(--cyan-bg);
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.ff-status-select.status-picked_up,
+.ff-status-select.status-in_transit,
+.ff-status-select.status-out_for_delivery {
+  background-color: var(--violet-bg);
+  color: var(--violet);
+  border-color: transparent;
+}
+
+.ff-status-select.status-delivered {
+  background-color: var(--green-bg);
+  color: var(--green);
+  border-color: transparent;
+}
+
+.ff-status-select.status-delayed {
+  background-color: var(--amber-bg);
+  color: var(--amber);
+  border-color: transparent;
+}
+
+.ff-status-select.status-cancelled {
+  background-color: var(--red-bg);
+  color: var(--red);
+  border-color: transparent;
 }

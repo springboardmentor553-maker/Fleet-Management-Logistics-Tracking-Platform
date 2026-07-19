@@ -1,6 +1,6 @@
 import React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar } from 'lucide-react'
+import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar, Send, CheckCircle2, AlertTriangle } from 'lucide-react'
 import WidgetMenu from '../components/WidgetMenu'
 import LiveMap from '../components/LiveMap'
 
@@ -81,6 +81,15 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
     return { ...item, pct }
   })
 
+  // Extra context metrics for the shipment summary card trend lines
+  const shipmentsAddedToday = (shipments || []).filter(s => {
+    if (!s.created_at) return false
+    const d = new Date(s.created_at)
+    const today = new Date()
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
+  }).length
+  const deliveryRate = totalShipmentsCount > 0 ? Math.round((computedShipmentCounts.delivered / totalShipmentsCount) * 100) : 0
+
   // Real trip counts, derived from the Trip Scheduling data
   const totalTripsCount = trips.length
   const tripsToday = trips.filter(t => {
@@ -152,7 +161,8 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
           <div className="ff-stat-icon-box orange"><Package size={20} fill="currentColor" fillOpacity={0.1} /></div>
           <div className="ff-stat-text">
             <span className="ff-stat-label">Active Shipments</span>
-            <span className="ff-stat-value">{loading ? '—' : totalShipmentsCount}</span>
+            <span className="ff-stat-value">{loading ? '—' : activeDeliveriesCount}</span>
+            <span className="ff-stat-trend">{loading ? '' : `of ${totalShipmentsCount} total`}</span>
           </div>
         </div>
         <div className="ff-stat-card">
@@ -161,6 +171,40 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
             <span className="ff-stat-label">Today's Trips</span>
             <span className="ff-stat-value">{loading ? '—' : tripsToday}</span>
             <span className="ff-stat-trend">{loading ? '' : `${totalTripsCount} total trips`}</span>
+          </div>
+        </div>
+
+        {/* Shipment summary cards — Milestone 2, Task 5: Dashboard Enhancements */}
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box orange"><Package size={20} fill="currentColor" fillOpacity={0.1} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Total Shipments</span>
+            <span className="ff-stat-value">{loading ? '—' : totalShipmentsCount}</span>
+            <span className="ff-stat-trend">{loading ? '' : `${shipmentsAddedToday} added today`}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box blue"><Send size={20} fill="currentColor" fillOpacity={0.1} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Active Deliveries</span>
+            <span className="ff-stat-value">{loading ? '—' : activeDeliveriesCount}</span>
+            <span className="ff-stat-trend">{loading ? '' : `${computedShipmentCounts.delayed} delayed`}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box green"><CheckCircle2 size={20} fill="currentColor" fillOpacity={0.1} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Delivered Shipments</span>
+            <span className="ff-stat-value">{loading ? '—' : computedShipmentCounts.delivered}</span>
+            <span className="ff-stat-trend">{loading ? '' : `${deliveryRate}% success rate`}</span>
+          </div>
+        </div>
+        <div className="ff-stat-card">
+          <div className="ff-stat-icon-box dark-blue"><AlertTriangle size={20} fill="currentColor" fillOpacity={0.1} /></div>
+          <div className="ff-stat-text">
+            <span className="ff-stat-label">Delayed Shipments</span>
+            <span className="ff-stat-value">{loading ? '—' : computedShipmentCounts.delayed}</span>
+            <span className="ff-stat-trend">{loading ? '' : computedShipmentCounts.delayed > 0 ? 'Needs attention' : 'All on schedule'}</span>
           </div>
         </div>
       </div>
