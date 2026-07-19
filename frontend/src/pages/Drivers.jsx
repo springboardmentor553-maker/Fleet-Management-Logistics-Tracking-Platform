@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { IdCard, Plus, Phone, User, Users, Navigation, Star, Moon, Calendar, CheckCircle2 } from 'lucide-react'
 import AddDriverModal from '../components/AddDriverModal'
 import RowMenu from '../components/RowMenu'
+import CustomSelect from '../components/CustomSelect'
 import api from '../api/axios'
 import { canEdit } from '../utils/permissions'
 
@@ -143,11 +144,15 @@ const Drivers = ({ drivers = [], shipments = [], trips = [], loading, search, on
       </div>
 
       <div className="ff-filter-bar">
-        <select className="ff-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: 'All Status' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ]}
+        />
         <span className="ff-count-pill">{filteredDrivers.length} shown</span>
       </div>
 

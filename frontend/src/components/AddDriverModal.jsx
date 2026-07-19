@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import api from '../api/axios'
+import CustomSelect from './CustomSelect'
 
 export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
   const isEditMode = !!driverToEdit
@@ -98,10 +99,14 @@ export default function AddDriverModal({ driverToEdit, onClose, onSuccess }) {
           />
 
           <label>Status</label>
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <CustomSelect
+            value={form.status}
+            onChange={(val) => setForm({ ...form, status: val })}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ]}
+          />
 
           <label>Experience (years)</label>
           <input

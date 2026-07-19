@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Truck, Plus } from 'lucide-react'
 import AddVehicleModal from '../components/AddVehicleModal'
 import RowMenu from '../components/RowMenu'
+import CustomSelect from '../components/CustomSelect'
 import api from '../api/axios'
 import { canEdit } from '../utils/permissions'
 
@@ -50,16 +51,24 @@ const Fleet = ({ vehicles = [], loading, search, onVehicleAdded, onVehicleDelete
       </div>
 
       <div className="ff-filter-bar">
-        <select className="ff-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="available">Available</option>
-          <option value="in_use">In Use</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
-        <select className="ff-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-          <option value="all">All Types</option>
-          {vehicleTypes.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: 'All Status' },
+            { value: 'available', label: 'Available' },
+            { value: 'in_use', label: 'In Use' },
+            { value: 'maintenance', label: 'Maintenance' },
+          ]}
+        />
+        <CustomSelect
+          value={typeFilter}
+          onChange={setTypeFilter}
+          options={[
+            { value: 'all', label: 'All Types' },
+            ...vehicleTypes.map(t => ({ value: t, label: t })),
+          ]}
+        />
         <span className="ff-count-pill">{filteredVehicles.length} shown</span>
       </div>
 

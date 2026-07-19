@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, MapPin } from 'lucide-react'
 import api from '../api/axios'
 import { geocodeCity } from '../utils/cityCoordinates'
+import CustomSelect from './CustomSelect'
 
 export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
   const isEditMode = !!vehicleToEdit
@@ -114,11 +115,15 @@ export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
           <input name="fuel_type" placeholder="Diesel, Petrol, CNG" value={form.fuel_type} onChange={handleChange} />
 
           <label>Status</label>
-            <select name="status" value={form.status} onChange={handleChange}>
-              <option value="available">Available</option>
-              <option value="in_use">In Use</option>
-              <option value="maintenance">Maintenance</option>
-            </select>
+            <CustomSelect
+              value={form.status}
+              onChange={(val) => setForm({ ...form, status: val })}
+              options={[
+                { value: 'available', label: 'Available' },
+                { value: 'in_use', label: 'In Use' },
+                { value: 'maintenance', label: 'Maintenance' },
+              ]}
+            />
 
             <label>Find Location (optional)</label>
             <div style={{ display: 'flex', gap: 6 }}>

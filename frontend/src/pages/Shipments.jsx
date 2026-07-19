@@ -4,10 +4,22 @@ import { canEdit } from '../utils/permissions'
 import { getStatusBadgeClass } from '../utils/statusBadge'
 import AddShipmentModal from '../components/AddShipmentModal'
 import ShipmentTrackingPanel from '../components/ShipmentTrackingPanel'
+import CustomSelect from '../components/CustomSelect'
 import api from '../api/axios'
 
 const TABS = ['All', 'Created', 'Assigned', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delayed', 'Delivered', 'Cancelled']
 const tabToStatus = (tab) => tab.toLowerCase().replace(/\s+/g, '_')
+
+const STATUS_OPTIONS = [
+  { value: 'created', label: 'Created' },
+  { value: 'assigned', label: 'Assigned' },
+  { value: 'picked_up', label: 'Picked Up' },
+  { value: 'in_transit', label: 'In Transit' },
+  { value: 'out_for_delivery', label: 'Out for Delivery' },
+  { value: 'delayed', label: 'Delayed' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
 const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, search, onShipmentAdded, onStatusUpdate }) => {
   const [activeTab, setActiveTab] = useState('All')
@@ -81,20 +93,12 @@ const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, searc
                   <td data-label="Driver">{driver?.name || '—'}</td>
                   <td data-label="Status">
                     {canEdit() ? (
-                      <select
-                        className={`ff-status-select status-${s.status.toLowerCase().replace(/\s+/g, '_')}`}
+                      <CustomSelect
                         value={s.status}
-                        onChange={(e) => handleStatusChange(s.id, e.target.value)}
-                      >
-                        <option value="created">Created</option>
-                        <option value="assigned">Assigned</option>
-                        <option value="picked_up">Picked Up</option>
-                        <option value="in_transit">In Transit</option>
-                        <option value="out_for_delivery">Out for Delivery</option>
-                        <option value="delayed">Delayed</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                        onChange={(newStatus) => handleStatusChange(s.id, newStatus)}
+                        options={STATUS_OPTIONS}
+                        statusPill
+                      />
                     ) : (
                       <span className={`ff-badge status-${getStatusBadgeClass(s.status)}`}>
                         {s.status.replace(/_/g, ' ')}

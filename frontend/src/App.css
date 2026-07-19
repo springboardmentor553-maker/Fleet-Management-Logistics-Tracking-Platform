@@ -915,14 +915,184 @@ body {
 }
 
 .ff-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 32px 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--bg-card);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%239aa2b5' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ff-select:hover {
+  border-color: var(--accent);
+}
+
+.ff-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--cyan-bg);
+}
+
+.ff-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+/* ===== Custom Select (replaces native <select> for full design control) ===== */
+.ff-custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.ff-custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background-color: var(--bg-card);
   color: var(--text-primary);
   font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  outline: none;
+  min-width: 140px;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ff-custom-select-trigger:hover {
+  border-color: var(--accent);
+}
+
+.ff-custom-select.open .ff-custom-select-trigger {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--cyan-bg);
+}
+
+.ff-custom-select-chevron {
+  transition: transform 0.15s ease;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ff-custom-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.ff-custom-select-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  z-index: 200;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.ff-custom-select-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ff-custom-select-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.ff-custom-select-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ff-custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.1s ease;
+}
+
+.ff-custom-select-option:hover {
+  background: var(--cyan-bg);
+  color: var(--accent);
+}
+
+.ff-custom-select-option.selected {
+  background: var(--cyan-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.ff-custom-select-option svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Status-pill variant — used for the shipment status dropdown, colored by status */
+.ff-custom-select.status-pill .ff-custom-select-trigger {
+  border-radius: 20px;
+  min-width: 130px;
+  padding: 5px 10px 5px 14px;
+  font-weight: 600;
+  border-color: transparent;
+  text-transform: capitalize;
+}
+
+.ff-custom-select.status-pill.status-created .ff-custom-select-trigger,
+.ff-custom-select.status-pill.status-assigned .ff-custom-select-trigger {
+  background-color: var(--cyan-bg);
+  color: var(--accent);
+}
+
+.ff-custom-select.status-pill.status-picked_up .ff-custom-select-trigger,
+.ff-custom-select.status-pill.status-in_transit .ff-custom-select-trigger,
+.ff-custom-select.status-pill.status-out_for_delivery .ff-custom-select-trigger {
+  background-color: var(--violet-bg);
+  color: var(--violet);
+}
+
+.ff-custom-select.status-pill.status-delivered .ff-custom-select-trigger {
+  background-color: var(--green-bg);
+  color: var(--green);
+}
+
+.ff-custom-select.status-pill.status-delayed .ff-custom-select-trigger {
+  background-color: var(--amber-bg);
+  color: var(--amber);
+}
+
+.ff-custom-select.status-pill.status-cancelled .ff-custom-select-trigger {
+  background-color: var(--red-bg);
+  color: var(--red);
 }
 
 /* ===== Tabs (Shipments page) ===== */
@@ -1118,6 +1288,30 @@ body {
   color: var(--text-primary);
   font-size: 13px;
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ff-modal-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%239aa2b5' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.ff-modal-form select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.ff-modal-form input:focus,
+.ff-modal-form select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--cyan-bg);
 }
 
 .ff-modal-form input[type="datetime-local"] {

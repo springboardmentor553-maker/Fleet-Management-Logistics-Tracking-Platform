@@ -5,6 +5,7 @@ import { canEdit } from '../utils/permissions'
 import { getStatusBadgeClass } from '../utils/statusBadge'
 import AddTripModal from '../components/AddTripModal'
 import RowMenu from '../components/RowMenu'
+import CustomSelect from '../components/CustomSelect'
 
 export default function Trips({ trips = [], vehicles = [], drivers = [], shipments = [], loading, search, onTripAdded, onTripDeleted }) {
   const [statusFilter, setStatusFilter] = useState('all')
@@ -54,13 +55,17 @@ export default function Trips({ trips = [], vehicles = [], drivers = [], shipmen
       </div>
 
       <div className="ff-filter-bar">
-        <select className="ff-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="ongoing">Ongoing</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: 'All Status' },
+            { value: 'scheduled', label: 'Scheduled' },
+            { value: 'ongoing', label: 'Ongoing' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'cancelled', label: 'Cancelled' },
+          ]}
+        />
         <span className="ff-count-pill">{filteredTrips.length} shown</span>
       </div>
 
