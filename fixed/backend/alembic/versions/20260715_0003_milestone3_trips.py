@@ -45,9 +45,8 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    op.create_index(op.f("ix_trips_id"), "trips", ["id"])
+  
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_trips_id"), table_name="trips")
     op.drop_table("trips")
