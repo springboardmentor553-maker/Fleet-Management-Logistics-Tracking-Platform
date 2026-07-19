@@ -44,6 +44,33 @@ def get_shipment(shipment_id: int, db: Session = Depends(get_db)):
     return shipment
 
 
+@router.put("/{shipment_id}", response_model=schemas.ShipmentResponse)
+def update_shipment(shipment_id: int, updated: schemas.ShipmentCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+    shipment = db.query(models.Shipment).filter(models.Shipment.id == shipment_id).first()
+    if not shipment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+
+    if updated.status not in VALID_STATUSES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Status must be one of {VALID_STATUSES}")
+
+    if updated.vehicle_id is not None:
+        vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == updated.vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
+
+    if updated.driver_id is not None:
+        driver = db.query(models.Driver).filter(models.Driver.id == updated.driver_id).first()
+        if not driver:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
+
+    for key, value in updated.dict().items():
+        setattr(shipment, key, value)
+
+    db.commit()
+    db.refresh(shipment)
+    return shipment
+
+
 @router.put("/{shipment_id}/status", response_model=schemas.ShipmentResponse)
 def update_shipment_status(shipment_id: int, update: schemas.ShipmentStatusUpdate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     shipment = db.query(models.Shipment).filter(models.Shipment.id == shipment_id).first()
