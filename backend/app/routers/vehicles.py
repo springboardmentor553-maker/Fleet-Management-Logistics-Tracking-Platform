@@ -69,6 +69,22 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
 
+    # FK-safe delete: check for linked shipments and trips before deleting,
+    # so a linked record raises a clean 400 instead of crashing with a DB error.
+    linked_shipment = db.query(models.Shipment).filter(models.Shipment.vehicle_id == vehicle_id).first()
+    if linked_shipment:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete vehicle — it is linked to shipment {linked_shipment.tracking_id}. Unassign or delete that shipment first."
+        )
+
+    linked_trip = db.query(models.Trip).filter(models.Trip.vehicle_id == vehicle_id).first()
+    if linked_trip:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete vehicle — it is linked to trip #{linked_trip.id} ({linked_trip.origin} to {linked_trip.destination}). Delete or reassign that trip first."
+        )
+
     db.delete(vehicle)
     db.commit()
     return {"message": "Vehicle deleted successfully"}

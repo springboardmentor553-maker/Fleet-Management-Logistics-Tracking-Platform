@@ -28,7 +28,10 @@ const Fleet = ({ vehicles = [], loading, search, onVehicleAdded, onVehicleDelete
       await api.delete(`/vehicles/${vehicleId}`)
       onVehicleDeleted(vehicleId)
     } catch (err) {
-      alert('Failed to delete vehicle')
+      // Show the backend's actual reason (e.g. "linked to shipment FLT100002")
+      // instead of a generic message, so the user knows what to fix.
+      const reason = err.response?.data?.detail || 'Failed to delete vehicle'
+      alert(reason)
     }
   }
 
