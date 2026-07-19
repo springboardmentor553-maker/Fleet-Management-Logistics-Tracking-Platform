@@ -213,7 +213,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
       <div className="ff-widget-row">
         {/* Fleet Utilization Ring Breakdown */}
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Fleet Status</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
+          <div className="ff-widget-title"><span>Fleet Status</span><WidgetMenu viewAllPath="/fleet" /></div>
           {totalVehicles > 0 ? (
             <div className="ff-donut-wrap">
               <div style={{ width: '120px', height: '120px', flexShrink: 0, position: 'relative' }}>
@@ -244,7 +244,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
 
         {/* Shipment Log Gauges */}
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Shipment Status</span><WidgetMenu viewAllPath="/shipments" onRefresh={onRefresh} /></div>
+          <div className="ff-widget-title"><span>Shipment Status</span><WidgetMenu viewAllPath="/shipments" /></div>
           <div className="ff-gauge-container">
             {liveShipmentStatusData.map(s => {
               const gaugeData = [{ value: s.count }, { value: totalShipmentsCount > 0 ? totalShipmentsCount - s.count : 100 }];
@@ -274,7 +274,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
 
         {/* Live Vehicle Tracking Map */}
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onRefresh={onRefresh} /></div>
+          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" /></div>
           <div style={{ height: '220px' }}>
             <LiveMap vehicles={vehicles} />
           </div>
@@ -284,7 +284,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
       {/* Auxiliary Operation Logs & Preventive Maintenance Layout */}
       <div className="ff-bottom-row">
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Recent Activities</span><span className="ff-widget-more"><MoreVertical size={15} /></span></div>
+          <div className="ff-widget-title"><span>Recent Activities</span><WidgetMenu viewAllPath="/notifications" /></div>
           {recentActivities.length === 0 && (
             <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No recent activity yet</p>
           )}
