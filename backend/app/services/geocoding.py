@@ -1,23 +1,27 @@
 import requests
-from app.config import settings
+
+# Nominatim (OpenStreetMap's free geocoding service) requires a descriptive
+# User-Agent and asks that you don't send more than ~1 request/second.
+HEADERS = {"User-Agent": "FleetFlow/1.0 (fleet management app)"}
 
 
 def geocode_location(location_name: str):
     """
     Accepts a location name (e.g. "Delhi") and returns its latitude and longitude
-    using the Google Geocoding API. Returns None if the location can't be found.
+    using OpenStreetMap's Nominatim API (free, no API key or billing needed).
+    Returns None if the location can't be found.
     """
-    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    url = "https://nominatim.openstreetmap.org/search"
     params = {
-        "address": location_name,
-        "key": settings.GOOGLE_MAPS_API_KEY,
+        "q": location_name,
+        "format": "json",
+        "limit": 1,
     }
 
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, headers=HEADERS, timeout=10)
     data = response.json()
 
-    if data.get("status") != "OK" or not data.get("results"):
+    if not data:
         return None
 
-    location = data["results"][0]["geometry"]["location"]
-    return {"lat": location["lat"], "lng": location["lng"]}
+    return {"lat": float(data[0]["lat"]), "lng": float(data[0]["lon"])}

@@ -22,6 +22,7 @@ import Profile from './pages/Profile'
 import RoutesPage from './pages/Routes'
 import Trips from './pages/Trips'
 import UsersManagement from './pages/UsersManagement'
+import 'leaflet/dist/leaflet.css'
 
 function DashboardLayout({
   vehicles, drivers, shipments, trips, loading,

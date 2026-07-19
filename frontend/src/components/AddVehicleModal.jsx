@@ -1,112 +1,73 @@
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
-import api from '../api/axios'
+import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMap } from 'react-leaflet'
+import { useEffect } from 'react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
-export default function AddVehicleModal({ vehicleToEdit, onClose, onSuccess }) {
-  const isEditMode = !!vehicleToEdit
-
-  const [form, setForm] = useState({
-  registration_number: '',
-  vehicle_type: '',
-  capacity: '',
-  fuel_type: '',
-  status: 'available',
-  current_lat: '',
-  current_lng: '',
+// Leaflet's default marker icons reference image paths that don't resolve
+// correctly through Vite's bundler — point them at a CDN instead.
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
 
+// Auto-zooms/pans the map so the whole route is visible
+function FitBounds({ positions }) {
+  const map = useMap()
   useEffect(() => {
-  if (vehicleToEdit) {
-    setForm({
-      registration_number: vehicleToEdit.registration_number || '',
-      vehicle_type: vehicleToEdit.vehicle_type || '',
-      capacity: vehicleToEdit.capacity || '',
-      fuel_type: vehicleToEdit.fuel_type || '',
-      status: vehicleToEdit.status || 'available',
-      current_lat: vehicleToEdit.current_lat ?? '',
-      current_lng: vehicleToEdit.current_lng ?? '',
-    })
-  }
-}, [vehicleToEdit])
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const payload = {
-        ...form,
-        capacity: form.capacity ? parseFloat(form.capacity) : null,
-        current_lat: form.current_lat !== '' ? parseFloat(form.current_lat) : null,
-        current_lng: form.current_lng !== '' ? parseFloat(form.current_lng) : null,
-      }
-
-      let res
-      if (isEditMode) {
-        res = await api.put(`/vehicles/${vehicleToEdit.id}`, payload)
-      } else {
-        res = await api.post('/vehicles/', payload)
-      }
-
-      onSuccess(res.data, isEditMode)
-      setSuccess(true)
-      setTimeout(() => onClose(), 1200)
-    } catch (err) {
-      setError(err.response?.data?.detail || `Failed to ${isEditMode ? 'update' : 'add'} vehicle`)
-    } finally {
-      setLoading(false)
+    if (positions && positions.length > 0) {
+      map.fitBounds(positions, { padding: [30, 30] })
     }
-  }
+  }, [positions, map])
+  return null
+}
+
+export default function ShipmentTrackMap({ originCoords, destCoords, routeCoordinates, simulatedPosition, vehicle }) {
+  const hasRealRoute = routeCoordinates && routeCoordinates.length > 1
+  const pathPositions = hasRealRoute
+    ? routeCoordinates.map(([lat, lng]) => [lat, lng])
+    : [[originCoords.lat, originCoords.lng], [destCoords.lat, destCoords.lng]]
+
+  const activePosition = simulatedPosition
+    || (vehicle && vehicle.current_lat != null && vehicle.current_lng != null
+      ? { lat: vehicle.current_lat, lng: vehicle.current_lng }
+      : null)
 
   return (
-    <div className="ff-modal-overlay" onClick={onClose}>
-      <div className="ff-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="ff-modal-header">
-          <h3>{isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}</h3>
-          <X size={18} style={{ cursor: 'pointer' }} onClick={onClose} />
-        </div>
+    <MapContainer
+      center={[originCoords.lat, originCoords.lng]}
+      zoom={6}
+      style={{ width: '100%', height: '100%', borderRadius: '10px' }}
+      zoomControl={true}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
 
-        {error && <div className="ff-modal-error">{error}</div>}
-        {success && <div className="ff-modal-success">✅ Vehicle {isEditMode ? 'updated' : 'added'} successfully!</div>}
+      <FitBounds positions={pathPositions} />
 
-        <form onSubmit={handleSubmit} className="ff-modal-form" style={{ opacity: success ? 0.5 : 1, pointerEvents: success ? 'none' : 'auto' }}>
-          <label>Registration Number</label>
-          <input name="registration_number" value={form.registration_number} onChange={handleChange} required />
+      <Marker position={[originCoords.lat, originCoords.lng]} />
+      <Marker position={[destCoords.lat, destCoords.lng]} />
 
-          <label>Vehicle Type</label>
-          <input name="vehicle_type" placeholder="Truck, Van, etc." value={form.vehicle_type} onChange={handleChange} required />
+      <Polyline
+        positions={pathPositions}
+        pathOptions={{
+          color: '#aa3bff',
+          weight: 4,
+          opacity: hasRealRoute ? 1 : 0.6,
+          dashArray: hasRealRoute ? null : '8 8',
+        }}
+      />
 
-          <label>Capacity (kg)</label>
-          <input name="capacity" type="number" value={form.capacity} onChange={handleChange} />
-
-          <label>Fuel Type</label>
-          <input name="fuel_type" placeholder="Diesel, Petrol, CNG" value={form.fuel_type} onChange={handleChange} />
-
-          <label>Status</label>
-            <select name="status" value={form.status} onChange={handleChange}>
-              <option value="available">Available</option>
-              <option value="in_use">In Use</option>
-              <option value="maintenance">Maintenance</option>
-            </select>
-
-            <label>Current Latitude (optional)</label>
-            <input name="current_lat" type="number" step="any" placeholder="e.g. 28.6139" value={form.current_lat} onChange={handleChange} />
-
-            <label>Current Longitude (optional)</label>
-            <input name="current_lng" type="number" step="any" placeholder="e.g. 77.2090" value={form.current_lng} onChange={handleChange} />
-
-          <button type="submit" className="ff-btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
-            {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Vehicle' : 'Add Vehicle')}
-          </button>
-        </form>
-      </div>
-    </div>
+      {activePosition && (
+        <CircleMarker
+          center={[activePosition.lat, activePosition.lng]}
+          radius={8}
+          pathOptions={{ fillColor: '#aa3bff', fillOpacity: 1, color: '#fff', weight: 2 }}
+        />
+      )}
+    </MapContainer>
   )
 }
