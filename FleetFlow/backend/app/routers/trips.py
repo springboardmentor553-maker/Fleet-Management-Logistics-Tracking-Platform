@@ -340,19 +340,22 @@ def get_trip_route(
         db.commit()
         db.refresh(trip)
 
-    # --- Fetch route from Google Directions API ---
+    # --- Fetch route from OSRM (free, no API key needed) ---
     try:
         route = get_route(
             pickup_lat=trip.pickup_lat,
             pickup_lng=trip.pickup_lng,
             destination_lat=trip.destination_lat,
             destination_lng=trip.destination_lng,
+            pickup_location=trip.pickup_location,
+            destination_location=trip.destination,
         )
     except DirectionsError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Directions API error: {exc}",
+            detail=f"Routing error: {exc}",
         ) from exc
+
 
     return RouteResponse(
         trip_id=trip.id,

@@ -1,17 +1,21 @@
-"""Google Maps Geocoding Service.
+"""Geocoding Service – powered by Nominatim (OpenStreetMap).
 
-Converts a human-readable location string (e.g. "Mumbai, MH") into
-geographic coordinates (latitude, longitude) using the Google Geocoding API.
+Converts a human-readable location string into latitude/longitude.
+No API key or billing required.
 
-API docs: https://developers.google.com/maps/documentation/geocoding
+Usage policy: https://operations.osmfoundation.org/policies/nominatim/
+  - Max 1 request/second (we respect this via the timeout)
+  - Must send a descriptive User-Agent header (set below)
 """
 
 import httpx
 
-from app.config import settings
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 
-
-GEOCODING_URL = "https://maps.googleapis.com/maps/api/geocode/json"
+# Nominatim requires a meaningful User-Agent per their usage policy
+_HEADERS = {
+    "User-Agent": "FleetFlow/1.0 (fleet-management-logistics-app)"
+}
 
 
 class GeocodingError(Exception):
@@ -21,42 +25,40 @@ class GeocodingError(Exception):
 def geocode_location(location: str) -> tuple[float, float]:
     """Return (latitude, longitude) for the given location string.
 
+    Uses Nominatim (OpenStreetMap) — free, no API key needed.
+
     Args:
-        location: Human-readable address or place name.
+        location: Human-readable address or place name,
+                  e.g. "Mumbai, Maharashtra, India"
 
     Returns:
         A (lat, lng) tuple of floats.
 
     Raises:
-        GeocodingError: If the API returns no results or an error status.
+        GeocodingError: If no results are returned.
         httpx.HTTPError: On network-level failures.
     """
-    if not settings.google_maps_api_key:
-        raise GeocodingError(
-            "GOOGLE_MAPS_API_KEY is not configured. "
-            "Set it in your .env file before using geocoding."
-        )
-
     params = {
-        "address": location,
-        "key": settings.google_maps_api_key,
+        "q": location,
+        "format": "json",
+        "limit": 1,
     }
 
-    response = httpx.get(GEOCODING_URL, params=params, timeout=10.0)
+    response = httpx.get(
+        NOMINATIM_URL,
+        params=params,
+        headers=_HEADERS,
+        timeout=30.0,
+    )
     response.raise_for_status()
 
-    data = response.json()
+    results = response.json()
 
-    if data.get("status") != "OK":
+    if not results:
         raise GeocodingError(
-            f"Geocoding failed for '{location}': "
-            f"status={data.get('status')}, "
-            f"error_message={data.get('error_message', 'none')}"
+            f"No geocoding results found for '{location}'. "
+            "Try a more specific location name, e.g. 'Mumbai, Maharashtra, India'."
         )
 
-    results = data.get("results", [])
-    if not results:
-        raise GeocodingError(f"No geocoding results found for '{location}'")
-
-    location_data = results[0]["geometry"]["location"]
-    return location_data["lat"], location_data["lng"]
+    best = results[0]
+    return float(best["lat"]), float(best["lon"])

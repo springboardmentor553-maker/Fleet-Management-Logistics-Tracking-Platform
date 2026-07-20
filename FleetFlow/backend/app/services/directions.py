@@ -1,38 +1,62 @@
-"""Google Maps Directions (Route) Service.
+"""Route Generation Service – powered by OSRM (Open Source Routing Machine).
 
-Given two sets of coordinates, fetches the route details from the
-Google Directions API, including total distance, duration, and the
-encoded polyline for map rendering.
+Given two coordinate pairs, fetches driving route details: distance,
+duration, and encoded polyline.
 
-API docs: https://developers.google.com/maps/documentation/directions
+OSRM demo server: http://router.project-osrm.org
+  - Free to use for testing/development
+  - No API key required
+  - For production, self-host OSRM: https://github.com/Project-OSRM/osrm-backend
+
+Note: OSRM coordinate order is (longitude, latitude) — opposite of Google Maps.
 """
 
 from dataclasses import dataclass
 
 import httpx
 
-from app.config import settings
+# Demo server – works for testing. For production, deploy your own OSRM instance.
+OSRM_BASE_URL = "http://router.project-osrm.org/route/v1/driving"
 
-
-DIRECTIONS_URL = "https://maps.googleapis.com/maps/api/directions/json"
+_HEADERS = {
+    "User-Agent": "FleetFlow/1.0 (fleet-management-logistics-app)"
+}
 
 
 class DirectionsError(Exception):
-    """Raised when the Directions API returns an error or no routes."""
+    """Raised when route generation fails or returns no routes."""
 
 
 @dataclass
 class RouteInfo:
     """Structured result returned by get_route()."""
 
-    distance_text: str          # e.g. "1,234 km"
-    distance_meters: int        # raw meters for programmatic use
-    duration_text: str          # e.g. "14 hours 32 mins"
-    duration_seconds: int       # raw seconds for programmatic use
-    summary: str                # e.g. "NH48" – primary road used
-    polyline: str | None        # encoded polyline string (for map rendering)
-    start_address: str          # resolved address of the origin
-    end_address: str            # resolved address of the destination
+    distance_text: str       # Human-readable, e.g. "1,415.3 km"
+    distance_meters: int     # Raw metres for programmatic use
+    duration_text: str       # Human-readable, e.g. "14 hrs 32 mins"
+    duration_seconds: int    # Raw seconds for programmatic use
+    summary: str             # Empty string for OSRM (no road summary in demo API)
+    polyline: str | None     # Encoded polyline string (for map rendering)
+    start_address: str       # Same as pickup_location (OSRM doesn't resolve addresses)
+    end_address: str         # Same as destination
+
+
+def _format_distance(meters: float) -> str:
+    """Convert metres to a human-readable distance string."""
+    km = meters / 1000
+    if km >= 1:
+        return f"{km:,.1f} km"
+    return f"{int(meters)} m"
+
+
+def _format_duration(seconds: float) -> str:
+    """Convert seconds to a human-readable duration string."""
+    total = int(seconds)
+    hours, remainder = divmod(total, 3600)
+    minutes = remainder // 60
+    if hours > 0:
+        return f"{hours} hr {minutes} min"
+    return f"{minutes} min"
 
 
 def get_route(
@@ -40,68 +64,63 @@ def get_route(
     pickup_lng: float,
     destination_lat: float,
     destination_lng: float,
+    pickup_location: str = "",
+    destination_location: str = "",
 ) -> RouteInfo:
-    """Fetch route information between two coordinate pairs.
+    """Fetch driving route information between two coordinate pairs via OSRM.
 
     Args:
         pickup_lat: Latitude of the pickup point.
         pickup_lng: Longitude of the pickup point.
         destination_lat: Latitude of the destination.
         destination_lng: Longitude of the destination.
+        pickup_location: Optional label for start_address in the response.
+        destination_location: Optional label for end_address in the response.
 
     Returns:
-        A RouteInfo dataclass with distance, duration, summary, and polyline.
+        A RouteInfo dataclass with distance, duration, and polyline.
 
     Raises:
-        DirectionsError: If the API returns no routes or an error status.
+        DirectionsError: If OSRM returns no routes or an error code.
         httpx.HTTPError: On network-level failures.
     """
-    if not settings.google_maps_api_key:
-        raise DirectionsError(
-            "GOOGLE_MAPS_API_KEY is not configured. "
-            "Set it in your .env file before using route generation."
-        )
+    # OSRM format: {lng},{lat};{lng},{lat}
+    coords = f"{pickup_lng},{pickup_lat};{destination_lng},{destination_lat}"
+    url = f"{OSRM_BASE_URL}/{coords}"
 
     params = {
-        "origin": f"{pickup_lat},{pickup_lng}",
-        "destination": f"{destination_lat},{destination_lng}",
-        "key": settings.google_maps_api_key,
-        # Driving mode is the default; change to "walking" or "transit" if needed
-        "mode": "driving",
+        "overview": "full",       # return full polyline
+        "geometries": "polyline", # encoded polyline format (Google-compatible)
+        "steps": "false",
     }
 
-    response = httpx.get(DIRECTIONS_URL, params=params, timeout=15.0)
+    response = httpx.get(url, params=params, headers=_HEADERS, timeout=15.0)
     response.raise_for_status()
 
     data = response.json()
 
-    if data.get("status") != "OK":
+    if data.get("code") != "Ok":
         raise DirectionsError(
-            f"Directions API error: status={data.get('status')}, "
-            f"error_message={data.get('error_message', 'none')}"
+            f"OSRM error: code={data.get('code')}, "
+            f"message={data.get('message', 'unknown error')}"
         )
 
     routes = data.get("routes", [])
     if not routes:
-        raise DirectionsError("No routes returned by the Directions API")
+        raise DirectionsError("OSRM returned no routes for the given coordinates.")
 
     route = routes[0]
-    leg = route["legs"][0]  # We send origin→destination directly, so one leg
-
-    # Extract distance and duration from the first leg
-    distance = leg["distance"]
-    duration = leg["duration"]
-
-    # The encoded polyline covers the entire route
-    polyline = route.get("overview_polyline", {}).get("points")
+    distance_m = route["distance"]   # metres (float)
+    duration_s = route["duration"]   # seconds (float)
+    polyline = route.get("geometry") # encoded polyline string
 
     return RouteInfo(
-        distance_text=distance["text"],
-        distance_meters=distance["value"],
-        duration_text=duration["text"],
-        duration_seconds=duration["value"],
-        summary=route.get("summary", ""),
+        distance_text=_format_distance(distance_m),
+        distance_meters=int(distance_m),
+        duration_text=_format_duration(duration_s),
+        duration_seconds=int(duration_s),
+        summary="",  # OSRM demo doesn't return road names in the route summary
         polyline=polyline,
-        start_address=leg.get("start_address", ""),
-        end_address=leg.get("end_address", ""),
+        start_address=pickup_location or f"{pickup_lat},{pickup_lng}",
+        end_address=destination_location or f"{destination_lat},{destination_lng}",
     )
