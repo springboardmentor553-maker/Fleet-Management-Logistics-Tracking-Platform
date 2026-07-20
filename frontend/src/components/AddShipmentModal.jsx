@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import api from '../api/axios'
+import CustomSelect from './CustomSelect'
 
 export default function AddShipmentModal({ vehicles = [], drivers = [], onClose, onSuccess }) {
   const [form, setForm] = useState({
-  sender_name: '',
-  receiver_name: '',
-  origin: '',
-  destination: '',
-  weight: '',
-  status: 'created',
-  vehicle_id: '',
-  driver_id: '',
-  eta: '',
-})
+    sender_name: '',
+    receiver_name: '',
+    origin: '',
+    destination: '',
+    weight: '',
+    status: 'created',
+    vehicle_id: '',
+    driver_id: '',
+    eta: '',
+  })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -75,33 +76,43 @@ export default function AddShipmentModal({ vehicles = [], drivers = [], onClose,
           <input name="weight" type="number" step="any" placeholder="e.g. 25" value={form.weight} onChange={handleChange} />
 
           <label>Assign Vehicle</label>
-          <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange}>
-            <option value="">-- None --</option>
-            {vehicles.map(v => (
-              <option key={v.id} value={v.id}>{v.registration_number}</option>
-            ))}
-          </select>
+          <CustomSelect
+            value={form.vehicle_id}
+            onChange={(val) => setForm({ ...form, vehicle_id: val })}
+            placeholder="-- None --"
+            options={[
+              { value: '', label: '-- None --' },
+              ...vehicles.map(v => ({ value: v.id, label: v.registration_number })),
+            ]}
+          />
 
           <label>Assign Driver</label>
-          <select name="driver_id" value={form.driver_id} onChange={handleChange}>
-            <option value="">-- None --</option>
-            {drivers.map(d => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
+          <CustomSelect
+            value={form.driver_id}
+            onChange={(val) => setForm({ ...form, driver_id: val })}
+            placeholder="-- None --"
+            options={[
+              { value: '', label: '-- None --' },
+              ...drivers.map(d => ({ value: d.id, label: d.name })),
+            ]}
+          />
 
           <label>Status</label>
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="created">Created</option>
-            <option value="assigned">Assigned</option>
-            <option value="picked_up">Picked Up</option>
-            <option value="in_transit">In Transit</option>
-            <option value="out_for_delivery">Out for Delivery</option>
-            <option value="delayed">Delayed</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          
+          <CustomSelect
+            value={form.status}
+            onChange={(val) => setForm({ ...form, status: val })}
+            options={[
+              { value: 'created', label: 'Created' },
+              { value: 'assigned', label: 'Assigned' },
+              { value: 'picked_up', label: 'Picked Up' },
+              { value: 'in_transit', label: 'In Transit' },
+              { value: 'out_for_delivery', label: 'Out for Delivery' },
+              { value: 'delayed', label: 'Delayed' },
+              { value: 'delivered', label: 'Delivered' },
+              { value: 'cancelled', label: 'Cancelled' },
+            ]}
+          />
+
           <label>Estimated Arrival (ETA)</label>
           <input name="eta" type="datetime-local" value={form.eta} onChange={handleChange} />
 

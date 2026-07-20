@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Users as UsersIcon } from 'lucide-react'
 import api from '../api/axios'
 import { getCurrentUser } from '../utils/permissions'
+import CustomSelect from '../components/CustomSelect'
 
 const ROLES = ['admin', 'fleet_manager', 'driver', 'dispatcher']
+const ROLE_OPTIONS = ROLES.map(r => ({ value: r, label: r }))
 
 export default function UsersManagement() {
   const [users, setUsers] = useState([])
@@ -52,9 +54,11 @@ export default function UsersManagement() {
                   {u.id === currentUser?.id ? (
                     <span className="ff-badge status-in_use">{u.role} (you)</span>
                   ) : (
-                    <select className="ff-select" value={u.role} onChange={(e) => handleRoleChange(u.id, e.target.value)}>
-                      {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                    <CustomSelect
+                      value={u.role}
+                      onChange={(newRole) => handleRoleChange(u.id, newRole)}
+                      options={ROLE_OPTIONS}
+                    />
                   )}
                 </td>
               </tr>

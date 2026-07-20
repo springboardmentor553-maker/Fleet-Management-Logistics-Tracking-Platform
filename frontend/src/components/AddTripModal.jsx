@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import api from '../api/axios'
+import CustomSelect from './CustomSelect'
 
 export default function AddTripModal({ vehicles = [], drivers = [], shipments = [], tripToEdit, onClose, onSuccess }) {
   const isEditMode = !!tripToEdit
@@ -13,16 +14,16 @@ export default function AddTripModal({ vehicles = [], drivers = [], shipments = 
   }
 
   const [form, setForm] = useState({
-  shipment_id: tripToEdit?.shipment_id || '',
-  vehicle_id: tripToEdit?.vehicle_id || '',
-  driver_id: tripToEdit?.driver_id || '',
-  origin: tripToEdit?.origin || '',
-  destination: tripToEdit?.destination || '',
-  scheduled_start: toLocalInput(tripToEdit?.scheduled_start),
-  scheduled_end: toLocalInput(tripToEdit?.scheduled_end),
-  status: tripToEdit?.status || 'scheduled',
-  notes: tripToEdit?.notes || '',
-})
+    shipment_id: tripToEdit?.shipment_id || '',
+    vehicle_id: tripToEdit?.vehicle_id || '',
+    driver_id: tripToEdit?.driver_id || '',
+    origin: tripToEdit?.origin || '',
+    destination: tripToEdit?.destination || '',
+    scheduled_start: toLocalInput(tripToEdit?.scheduled_start),
+    scheduled_end: toLocalInput(tripToEdit?.scheduled_end),
+    status: tripToEdit?.status || 'scheduled',
+    notes: tripToEdit?.notes || '',
+  })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -75,22 +76,37 @@ export default function AddTripModal({ vehicles = [], drivers = [], shipments = 
 
         <form onSubmit={handleSubmit} className="ff-modal-form" style={{ opacity: success ? 0.5 : 1, pointerEvents: success ? 'none' : 'auto' }}>
           <label>Link Shipment (optional)</label>
-          <select name="shipment_id" value={form.shipment_id} onChange={handleChange}>
-            <option value="">-- None --</option>
-            {shipments.map(s => <option key={s.id} value={s.id}>{s.tracking_id} ({s.origin} &rarr; {s.destination})</option>)}
-          </select>
+          <CustomSelect
+            value={form.shipment_id}
+            onChange={(val) => setForm({ ...form, shipment_id: val })}
+            placeholder="-- None --"
+            options={[
+              { value: '', label: '-- None --' },
+              ...shipments.map(s => ({ value: s.id, label: `${s.tracking_id} (${s.origin} → ${s.destination})` })),
+            ]}
+          />
 
           <label>Vehicle</label>
-          <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required>
-            <option value="">-- Select Vehicle --</option>
-            {vehicles.map(v => <option key={v.id} value={v.id}>{v.registration_number}</option>)}
-          </select>
+          <CustomSelect
+            value={form.vehicle_id}
+            onChange={(val) => setForm({ ...form, vehicle_id: val })}
+            placeholder="-- Select Vehicle --"
+            options={[
+              { value: '', label: '-- Select Vehicle --' },
+              ...vehicles.map(v => ({ value: v.id, label: v.registration_number })),
+            ]}
+          />
 
           <label>Driver</label>
-          <select name="driver_id" value={form.driver_id} onChange={handleChange} required>
-            <option value="">-- Select Driver --</option>
-            {drivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
+          <CustomSelect
+            value={form.driver_id}
+            onChange={(val) => setForm({ ...form, driver_id: val })}
+            placeholder="-- Select Driver --"
+            options={[
+              { value: '', label: '-- Select Driver --' },
+              ...drivers.map(d => ({ value: d.id, label: d.name })),
+            ]}
+          />
 
           <label>Origin</label>
           <input name="origin" placeholder="Delhi" value={form.origin} onChange={handleChange} required />
@@ -105,12 +121,16 @@ export default function AddTripModal({ vehicles = [], drivers = [], shipments = 
           <input name="scheduled_end" type="datetime-local" value={form.scheduled_end} onChange={handleChange} />
 
           <label>Status</label>
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="scheduled">Scheduled</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <CustomSelect
+            value={form.status}
+            onChange={(val) => setForm({ ...form, status: val })}
+            options={[
+              { value: 'scheduled', label: 'Scheduled' },
+              { value: 'ongoing', label: 'Ongoing' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'cancelled', label: 'Cancelled' },
+            ]}
+          />
 
           <label>Notes (optional)</label>
           <input name="notes" placeholder="Any special instructions" value={form.notes} onChange={handleChange} />
