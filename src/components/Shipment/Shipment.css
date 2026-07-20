@@ -1,0 +1,322 @@
+/* ===================================================
+   Shipment Management Page
+=================================================== */
+
+.shipment-page{
+    width:100%;
+    padding:30px;
+}
+
+/* ===================================================
+   Header
+=================================================== */
+
+.shipment-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.shipment-header h1{
+    font-size:34px;
+    font-weight:700;
+    color:#1f2937;
+}
+
+.shipment-header p{
+    margin-top:8px;
+    color:#6b7280;
+    font-size:15px;
+}
+
+/* ===================================================
+   Search Box
+=================================================== */
+
+.search-container{
+    margin-bottom:25px;
+}
+
+.search-input{
+    width:350px;
+    height:45px;
+    padding:0 15px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
+    transition:.3s;
+}
+
+.search-input:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ===================================================
+   Shipment Form Card
+=================================================== */
+
+.shipment-form-card{
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+
+.shipment-form-card h2{
+    margin-bottom:20px;
+    color:#1f2937;
+    font-size:24px;
+}
+
+.shipment-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    margin-bottom:8px;
+    font-weight:600;
+    color:#374151;
+}
+
+.form-group input,
+.form-group select{
+    height:45px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    padding:0 15px;
+    font-size:15px;
+    transition:.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ===================================================
+   Button
+=================================================== */
+
+.button-group{
+    display:flex;
+    align-items:flex-end;
+}
+
+.save-btn{
+    width:100%;
+    height:45px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.save-btn:hover{
+    background:#1d4ed8;
+    transform:translateY(-2px);
+}
+
+/* ===================================================
+   Table Card
+=================================================== */
+
+.table-card{
+    background:#fff;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.table-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.table-header h2{
+    font-size:24px;
+    color:#1f2937;
+}
+
+/* ===================================================
+   Table
+=================================================== */
+
+.table-responsive{
+    overflow-x:auto;
+}
+
+.shipment-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.shipment-table thead{
+    background:#2563eb;
+}
+
+.shipment-table th{
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:15px;
+}
+
+.shipment-table td{
+    padding:15px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:center;
+}
+
+.shipment-table tbody tr:hover{
+    background:#f8fafc;
+}
+
+/* ===================================================
+   Status
+=================================================== */
+
+.status{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:25px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.created{
+    background:#DBEAFE;
+    color:#2563EB;
+}
+
+.transit{
+    background:#FEF3C7;
+    color:#D97706;
+}
+
+.delivered{
+    background:#DCFCE7;
+    color:#15803D;
+}
+
+/* ===================================================
+   Action Buttons
+=================================================== */
+
+.action-buttons{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+.edit-btn{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:8px;
+    background:#3B82F6;
+    color:white;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.edit-btn:hover{
+    background:#2563EB;
+    transform:scale(1.05);
+}
+
+.delete-btn{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:8px;
+    background:#EF4444;
+    color:white;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.delete-btn:hover{
+    background:#DC2626;
+    transform:scale(1.05);
+}
+
+/* ===================================================
+   Empty Table
+=================================================== */
+
+.no-data{
+    padding:25px;
+    color:#9CA3AF;
+    font-size:16px;
+}
+
+/* ===================================================
+   Responsive
+=================================================== */
+
+@media(max-width:1200px){
+
+.shipment-form{
+    grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:768px){
+
+.shipment-page{
+    padding:20px;
+}
+
+.shipment-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+}
+
+.shipment-header h1{
+    font-size:28px;
+}
+
+.shipment-form{
+    grid-template-columns:1fr;
+}
+
+.search-input{
+    width:100%;
+}
+
+.table-card{
+    padding:15px;
+}
+
+.shipment-table th,
+.shipment-table td{
+    padding:10px;
+    font-size:14px;
+}
+
+.action-buttons{
+    flex-direction:column;
+}
+
+}
