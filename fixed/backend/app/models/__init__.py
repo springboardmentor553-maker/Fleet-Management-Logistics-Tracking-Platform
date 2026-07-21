@@ -118,6 +118,10 @@ class Trip(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     pickup_location = Column(String, nullable=False)
     destination = Column(String, nullable=False)
+    pickup_latitude = Column(Float, nullable=True)
+    pickup_longitude = Column(Float, nullable=True)
+    destination_latitude = Column(Float, nullable=True)
+    destination_longitude = Column(Float, nullable=True)
     scheduled_start_time = Column(DateTime(timezone=True), nullable=True)
     scheduled_end_time = Column(DateTime(timezone=True), nullable=True)
     status = Column(

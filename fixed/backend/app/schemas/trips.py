@@ -10,6 +10,10 @@ class TripBase(ORMModel):
     vehicle_id: int
     pickup_location: str
     destination: str
+    pickup_latitude: float | None = None
+    pickup_longitude: float | None = None
+    destination_latitude: float | None = None
+    destination_longitude: float | None = None
     scheduled_start_time: datetime | None = None
     scheduled_end_time: datetime | None = None
 
@@ -24,6 +28,10 @@ class TripUpdate(ORMModel):
     vehicle_id: int | None = None
     pickup_location: str | None = None
     destination: str | None = None
+    pickup_latitude: float | None = None
+    pickup_longitude: float | None = None
+    destination_latitude: float | None = None
+    destination_longitude: float | None = None
     scheduled_start_time: datetime | None = None
     scheduled_end_time: datetime | None = None
     status: TripStatus | None = None

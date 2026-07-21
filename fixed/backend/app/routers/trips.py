@@ -4,9 +4,16 @@ from sqlalchemy.orm import Session
 from app import models
 from app.database import get_db
 from app.routers.crud import commit_or_409
+from app.schemas.routes_geo import TripRouteRead
 from app.schemas.trips import TripCreate, TripRead, TripUpdate
+from app.services.directions import get_route
+from app.services.geocoding import geocode_location
 
 router = APIRouter()
+
+# Task 5 spec asks for the literal path GET /trip/{trip_id}/route (singular),
+# so this is registered separately, without the /trips prefix. See main.py.
+route_router = APIRouter()
 
 
 def get_or_404(db: Session, model, item_id: int, label: str):
@@ -115,3 +122,52 @@ def delete_trip(item_id: int, db: Session = Depends(get_db)):
     db.delete(trip)
     commit_or_409(db)
     return None
+
+
+def _resolve_coordinates(trip: models.Trip, db: Session) -> None:
+    """If a trip is missing coordinates, geocode its pickup/destination
+    location names and store the result on the trip."""
+    changed = False
+    if trip.pickup_latitude is None or trip.pickup_longitude is None:
+        result = geocode_location(trip.pickup_location)
+        trip.pickup_latitude = result.latitude
+        trip.pickup_longitude = result.longitude
+        changed = True
+    if trip.destination_latitude is None or trip.destination_longitude is None:
+        result = geocode_location(trip.destination)
+        trip.destination_latitude = result.latitude
+        trip.destination_longitude = result.longitude
+        changed = True
+    if changed:
+        commit_or_409(db)
+        db.refresh(trip)
+
+
+@route_router.get("/trip/{trip_id}/route", response_model=TripRouteRead)
+def get_trip_route(trip_id: int, db: Session = Depends(get_db)):
+    """Task 5: returns pickup location, destination, distance, estimated
+    travel time, and route summary for a trip, using the Google Directions
+    API. Geocodes pickup/destination on the fly if coordinates aren't
+    already stored on the trip."""
+    trip = get_or_404(db, models.Trip, trip_id, "Trip")
+
+    _resolve_coordinates(trip, db)
+
+    route = get_route(
+        pickup_lat=trip.pickup_latitude,
+        pickup_lng=trip.pickup_longitude,
+        destination_lat=trip.destination_latitude,
+        destination_lng=trip.destination_longitude,
+    )
+
+    return TripRouteRead(
+        trip_id=trip.id,
+        pickup_location=trip.pickup_location,
+        destination=trip.destination,
+        distance_text=route.distance_text,
+        distance_meters=route.distance_meters,
+        estimated_travel_time=route.duration_text,
+        duration_seconds=route.duration_seconds,
+        route_summary=route.summary,
+        polyline=route.polyline,
+    )
