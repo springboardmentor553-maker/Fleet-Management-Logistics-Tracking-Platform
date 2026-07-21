@@ -4,6 +4,8 @@ Tracking numbers are auto-generated in the format FLT100001, FLT100002, …
 The sequence is derived from the current maximum shipment id stored in the DB.
 """
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -113,6 +115,8 @@ def update_shipment(
     payload: ShipmentUpdate,
     db: Session = Depends(get_db),
 ) -> ShipmentRead:
+    from app.routers.ws_tracking import broadcast_shipment_status  # avoid circular import
+
     shipment = _get_shipment_or_404(db, shipment_id)
     updates = payload.model_dump(exclude_unset=True)
 
@@ -121,6 +125,17 @@ def update_shipment(
 
     db.commit()
     db.refresh(shipment)
+
+    # ── Task 4: push status change to all WebSocket clients watching the trip ──
+    if "status" in updates and shipment.trip is not None:
+        asyncio.ensure_future(
+            broadcast_shipment_status(
+                trip_id=shipment.trip.id,
+                tracking_number=shipment.tracking_number,
+                new_status=shipment.status.value,
+            )
+        )
+
     return ShipmentRead.model_validate(shipment)
 
 

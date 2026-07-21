@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FleetFlow — WebSocket Live Tracker</title>
+  <style>
+    :root {
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --border:  #2d3047;
+      --accent:  #4f8ef7;
+      --green:   #22c55e;
+      --yellow:  #eab308;
+      --red:     #ef4444;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+      margin-bottom: 28px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    label { font-size: .8rem; color: var(--muted); display: block; margin-bottom: 4px; }
+
+    input, select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: .9rem;
+      outline: none;
+      width: 130px;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    button {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+
+    .btn-connect    { background: var(--green);  color: #fff; }
+    .btn-disconnect { background: var(--red);    color: #fff; }
+    .btn-status     { background: var(--accent); color: #fff; }
+
+    /* ── Two-panel layout ── */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 720px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title { font-size: 1rem; font-weight: 600; }
+
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .status-dot.connected    { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.connecting   { background: var(--yellow); }
+    .status-dot.disconnected { background: var(--red); }
+
+    /* ── Stats bar ── */
+    .stats {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      flex: 1;
+      padding: 10px 14px;
+      border-right: 1px solid var(--border);
+      font-size: .78rem;
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-label { color: var(--muted); margin-bottom: 2px; }
+    .stat-value { font-weight: 700; font-size: 1rem; color: var(--accent); }
+
+    /* ── Message log ── */
+    .log {
+      height: 380px;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-entry {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: .78rem;
+      border-left: 3px solid var(--border);
+      background: rgba(255,255,255,.03);
+      word-break: break-all;
+      animation: fadeIn .2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+    .log-entry.snapshot      { border-left-color: var(--accent);  }
+    .log-entry.location      { border-left-color: var(--green);   }
+    .log-entry.status_update { border-left-color: var(--yellow);  }
+    .log-entry.error         { border-left-color: var(--red);     }
+    .log-entry.pong          { border-left-color: var(--muted);   }
+    .log-entry.client_joined { border-left-color: #a855f7;        }
+    .log-entry.client_left   { border-left-color: #f97316;        }
+    .log-entry.system        { border-left-color: var(--muted); opacity: .6; }
+
+    .log-time  { color: var(--muted); margin-right: 6px; }
+    .log-event { font-weight: 700; text-transform: uppercase; font-size: .7rem; margin-right: 6px; }
+
+    /* ── Bottom controls ── */
+    .panel-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .ping-label { font-size: .78rem; color: var(--muted); flex: 1; }
+
+    /* ── Status update form ── */
+    .status-form {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+    }
+
+    .status-form h2 { font-size: 1rem; margin-bottom: 14px; color: var(--accent); }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .form-row input, .form-row select { width: 160px; }
+    .form-row input[type=text] { width: 220px; }
+
+    .response-box {
+      margin-top: 12px;
+      font-size: .78rem;
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+      padding: 8px 12px;
+      border-radius: 8px;
+      min-height: 34px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🚛 FleetFlow — Real-Time WebSocket Tracker</h1>
+<p class="subtitle">Task 5 — Open two browser tabs, connect both to the same Trip ID, then update a shipment status to see instant updates on both.</p>
+
+<!-- ── Global Controls ── -->
+<div class="controls">
+  <div>
+    <label>Trip ID</label>
+    <input type="number" id="tripId" value="2" min="1" />
+  </div>
+  <div>
+    <label>Backend URL</label>
+    <input type="text" id="backendUrl" value="ws://localhost:8000" style="width:220px;" />
+  </div>
+  <button class="btn-connect"    onclick="connectBoth()">⚡ Connect Both Windows</button>
+  <button class="btn-disconnect" onclick="disconnectBoth()">✖ Disconnect Both</button>
+</div>
+
+<!-- ── Two WebSocket panels ── -->
+<div class="panels">
+  <div class="panel" id="panel-A">
+    <div class="panel-header">
+      <div class="status-dot disconnected" id="dot-A"></div>
+      <div class="panel-title">Browser Window A</div>
+      <span id="label-A" style="font-size:.78rem;color:var(--muted);margin-left:auto;">disconnected</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Lat</div><div class="stat-value" id="lat-A">—</div></div>
+      <div class="stat"><div class="stat-label">Lng</div><div class="stat-value" id="lng-A">—</div></div>
+      <div class="stat"><div class="stat-label">Status</div><div class="stat-value" id="status-A">—</div></div>
+      <div class="stat"><div class="stat-label">Clients</div><div class="stat-value" id="clients-A">—</div></div>
+    </div>
+    <div class="log" id="log-A"></div>
+    <div class="panel-footer">
+      <span class="ping-label">Send a ping to test the connection:</span>
+      <button class="btn-status" onclick="ping('A')">🏓 Ping</button>
+      <button class="btn-connect" onclick="connect('A')">Connect</button>
+      <button class="btn-disconnect" onclick="disconnect('A')">Disconnect</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-B">
+    <div class="panel-header">
+      <div class="status-dot disconnected" id="dot-B"></div>
+      <div class="panel-title">Browser Window B</div>
+      <span id="label-B" style="font-size:.78rem;color:var(--muted);margin-left:auto;">disconnected</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Lat</div><div class="stat-value" id="lat-B">—</div></div>
+      <div class="stat"><div class="stat-label">Lng</div><div class="stat-value" id="lng-B">—</div></div>
+      <div class="stat"><div class="stat-label">Status</div><div class="stat-value" id="status-B">—</div></div>
+      <div class="stat"><div class="stat-label">Clients</div><div class="stat-value" id="clients-B">—</div></div>
+    </div>
+    <div class="log" id="log-B"></div>
+    <div class="panel-footer">
+      <span class="ping-label">Send a ping to test the connection:</span>
+      <button class="btn-status" onclick="ping('B')">🏓 Ping</button>
+      <button class="btn-connect" onclick="connect('B')">Connect</button>
+      <button class="btn-disconnect" onclick="disconnect('B')">Disconnect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Task 4: Trigger a shipment status update via REST ── -->
+<div class="status-form">
+  <h2>📦 Task 4 — Trigger Shipment Status Update (broadcasts to both windows instantly)</h2>
+  <div class="form-row">
+    <div>
+      <label>JWT Token (paste from login)</label>
+      <input type="text" id="jwtToken" placeholder="eyJhbGci..." style="width:300px;" />
+    </div>
+    <div>
+      <label>Shipment ID</label>
+      <input type="number" id="shipmentId" value="2" min="1" />
+    </div>
+    <div>
+      <label>New Status</label>
+      <select id="newStatus">
+        <option>CREATED</option>
+        <option>ASSIGNED</option>
+        <option>PICKED_UP</option>
+        <option selected>IN_TRANSIT</option>
+        <option>OUT_FOR_DELIVERY</option>
+        <option>DELIVERED</option>
+        <option>DELAYED</option>
+        <option>CANCELLED</option>
+      </select>
+    </div>
+    <button class="btn-status" onclick="updateStatus()">🚀 Update Status</button>
+  </div>
+  <div class="response-box" id="restResponse">REST response will appear here…</div>
+</div>
+
+<script>
+  const sockets = { A: null, B: null };
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  function ts() {
+    return new Date().toLocaleTimeString();
+  }
+
+  function addLog(panel, event, message, data) {
+    const log  = document.getElementById(`log-${panel}`);
+    const div  = document.createElement('div');
+    const cls  = event.replace('location_update','location').replace(' ','_');
+    div.className = `log-entry ${cls}`;
+    div.innerHTML  = `<span class="log-time">${ts()}</span>`
+                   + `<span class="log-event">${event}</span>${message}`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setDot(panel, state) {
+    const dot   = document.getElementById(`dot-${panel}`);
+    const label = document.getElementById(`label-${panel}`);
+    dot.className = `status-dot ${state}`;
+    label.textContent = state;
+  }
+
+  function updateStats(panel, data) {
+    if (data.lat   !== undefined) document.getElementById(`lat-${panel}`).textContent    = data.lat?.toFixed(5) ?? '—';
+    if (data.lng   !== undefined) document.getElementById(`lng-${panel}`).textContent    = data.lng?.toFixed(5) ?? '—';
+    if (data.status !== undefined || data.shipment_status !== undefined) {
+      document.getElementById(`status-${panel}`).textContent = data.status ?? data.shipment_status ?? '—';
+    }
+    if (data.clients_watching !== undefined) {
+      document.getElementById(`clients-${panel}`).textContent = data.clients_watching;
+    }
+  }
+
+  // ── Connection lifecycle ─────────────────────────────────────────────────
+
+  function connect(panel) {
+    if (sockets[panel]) {
+      sockets[panel].close();
+      sockets[panel] = null;
+    }
+
+    const tripId     = document.getElementById('tripId').value;
+    const backendUrl = document.getElementById('backendUrl').value;
+    const url        = `${backendUrl}/ws/tracking/${tripId}`;
+
+    setDot(panel, 'connecting');
+    addLog(panel, 'system', `Connecting to ${url}…`);
+
+    const ws = new WebSocket(url);
+    sockets[panel] = ws;
+
+    ws.onopen = () => {
+      setDot(panel, 'connected');
+      addLog(panel, 'system', 'Connection established ✅');
+    };
+
+    ws.onmessage = (evt) => {
+      const data = JSON.parse(evt.data);
+      const event = data.event || 'message';
+
+      let msg = '';
+      switch (event) {
+        case 'snapshot':
+          msg = `Trip #${data.trip_id} | ${data.pickup_location} → ${data.destination} | Status: <b>${data.status}</b>`;
+          updateStats(panel, { ...data, status: data.shipment_status });
+          break;
+        case 'location_update':
+          msg = `📍 lat=<b>${data.lat}</b> lng=<b>${data.lng}</b>`;
+          updateStats(panel, data);
+          break;
+        case 'status_update':
+          msg = `📦 ${data.tracking_number} → <b style="color:var(--yellow)">${data.status}</b>`;
+          updateStats(panel, { status: data.status });
+          break;
+        case 'client_joined':
+          msg = `👋 ${data.clients_watching} client(s) now watching`;
+          updateStats(panel, data);
+          break;
+        case 'client_left':
+          msg = `👋 client disconnected, ${data.clients_watching} remaining`;
+          updateStats(panel, data);
+          break;
+        case 'pong':
+          msg = `← echo: ${data.received}`;
+          break;
+        case 'error':
+          msg = `<span style="color:var(--red)">${data.detail}</span>`;
+          break;
+        default:
+          msg = JSON.stringify(data);
+      }
+      addLog(panel, event, msg, data);
+    };
+
+    ws.onerror = (e) => {
+      addLog(panel, 'error', 'WebSocket error — check console');
+      setDot(panel, 'disconnected');
+    };
+
+    ws.onclose = (e) => {
+      setDot(panel, 'disconnected');
+      addLog(panel, 'system', `Disconnected (code ${e.code})`);
+      sockets[panel] = null;
+    };
+  }
+
+  function disconnect(panel) {
+    if (sockets[panel]) {
+      sockets[panel].close();
+      sockets[panel] = null;
+    }
+    setDot(panel, 'disconnected');
+  }
+
+  function connectBoth() { connect('A'); setTimeout(() => connect('B'), 300); }
+  function disconnectBoth() { disconnect('A'); disconnect('B'); }
+
+  function ping(panel) {
+    if (sockets[panel]?.readyState === WebSocket.OPEN) {
+      sockets[panel].send(`ping from Window ${panel} at ${ts()}`);
+    } else {
+      addLog(panel, 'error', 'Not connected');
+    }
+  }
+
+  // ── Task 4 — REST status update ──────────────────────────────────────────
+
+  async function updateStatus() {
+    const token      = document.getElementById('jwtToken').value.trim();
+    const shipmentId = document.getElementById('shipmentId').value;
+    const newStatus  = document.getElementById('newStatus').value;
+    const box        = document.getElementById('restResponse');
+
+    if (!token) { box.textContent = '⚠️ Paste a JWT token first (log in via /auth/login)'; return; }
+
+    box.textContent = 'Sending…';
+    try {
+      const res = await fetch(`http://localhost:8000/shipments/${shipmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      box.innerHTML = res.ok
+        ? `✅ <b>${data.tracking_number}</b> status updated to <b style="color:var(--yellow)">${data.status}</b>`
+        : `❌ ${JSON.stringify(data)}`;
+    } catch (err) {
+      box.textContent = `❌ ${err.message}`;
+    }
+  }
+</script>
+</body>
+</html>
