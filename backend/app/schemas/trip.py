@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel
 from app.models.trip import TripStatus
 
@@ -37,5 +38,12 @@ class TripResponse(BaseModel):
     trip_status: TripStatus
     created_at: datetime
 
+    # Geocoded coordinates — nullable for backward compatibility
+    pickup_latitude: Optional[float] = None
+    pickup_longitude: Optional[float] = None
+    destination_latitude: Optional[float] = None
+    destination_longitude: Optional[float] = None
+
     class Config:
         from_attributes = True
+
