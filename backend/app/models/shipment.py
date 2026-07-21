@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 
@@ -20,4 +21,11 @@ class Shipment(Base):
     status = Column(
         String,
         default="Pending"
+    )
+
+    # One Shipment -> One Trip
+    trip = relationship(
+        "Trip",
+        back_populates="shipment",
+        uselist=False
     )

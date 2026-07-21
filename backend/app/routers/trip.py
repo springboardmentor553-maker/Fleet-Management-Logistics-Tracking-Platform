@@ -1,3 +1,5 @@
+from turtle import distance
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -6,6 +8,8 @@ from app.models.trip import Trip
 from app.schemas.trip import TripCreate, TripUpdate
 import math
 from app.utils.route_optimizer import optimize_route
+from app.services.route_service import get_route
+from app.services.eta_service import calculate_eta
 
 router = APIRouter(
     prefix="/trips",
@@ -143,14 +147,19 @@ def calculate_eta(
         )
 
         # Assume average speed = 40 km/h
-        eta_hours = distance / 40
+        average_speed = 40  # km/h
+
+        duration_minutes = (distance / average_speed) * 60
+
+        eta = calculate_eta(duration_minutes)
 
         return {
             "trip_id": trip.id,
-            "estimated_distance": round(distance, 2),
-            "estimated_eta_hours": round(eta_hours, 2)
-        }
-
+            "estimated_distance_km": round(distance, 2),
+            "estimated_duration_minutes": round(duration_minutes, 2),
+            "estimated_arrival_time": eta["estimated_arrival_time"],
+            "remaining_minutes": eta["remaining_minutes"]
+}
     except Exception:
         raise HTTPException(
             status_code=400,
@@ -197,3 +206,48 @@ def get_optimized_route(
         trip.end_location,
         traffic
     )
+@router.get("/{trip_id}/route")
+def get_trip_route(
+    trip_id: int,
+    db: Session = Depends(get_db)
+):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if not trip:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found"
+        )
+
+    try:
+        pickup_lat = float(trip.current_latitude)
+        pickup_lon = float(trip.current_longitude)
+        destination_lat = float(trip.destination_latitude)
+        destination_lon = float(trip.destination_longitude)
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=400,
+            detail="Trip coordinates are missing or invalid"
+        )
+
+    route = get_route(
+        pickup_lat,
+        pickup_lon,
+        destination_lat,
+        destination_lon
+    )
+
+    if route is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Route could not be generated"
+        )
+
+    return {
+        "pickup_location": trip.start_location,
+        "destination": trip.end_location,
+        "distance": f"{route['distance_km']} km",
+        "estimated_travel_time": f"{route['duration_minutes']} minutes",
+        "route_summary": "Route generated successfully",
+        "polyline": route["polyline"]
+    }

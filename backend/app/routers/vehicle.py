@@ -5,24 +5,33 @@ from app.database import get_db
 from app.models.vehicle import Vehicle
 from app.schemas.vehicle import VehicleCreate, VehicleResponse
 
-router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
+router = APIRouter(
+    prefix="/vehicles",
+    tags=["Vehicles"]
+)
 
 
+# Create Vehicle
 @router.post("/", response_model=VehicleResponse)
-def create_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db)):
-
+def create_vehicle(
+    vehicle: VehicleCreate,
+    db: Session = Depends(get_db)
+):
     existing = db.query(Vehicle).filter(
         Vehicle.vehicle_number == vehicle.vehicle_number
     ).first()
 
     if existing:
-        raise HTTPException(status_code=400, detail="Vehicle already exists")
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle already exists"
+        )
 
     new_vehicle = Vehicle(
         vehicle_number=vehicle.vehicle_number,
         vehicle_type=vehicle.vehicle_type,
         capacity=vehicle.capacity,
-        status=vehicle.status,
+        status=vehicle.status
     )
 
     db.add(new_vehicle)
@@ -31,14 +40,21 @@ def create_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db)):
 
     return new_vehicle
 
+
+# Get All Vehicles
 @router.get("/", response_model=list[VehicleResponse])
-def get_all_vehicles(db: Session = Depends(get_db)):
-    vehicles = db.query(Vehicle).all()
-    return vehicles
+def get_all_vehicles(
+    db: Session = Depends(get_db)
+):
+    return db.query(Vehicle).all()
 
+
+# Get Vehicle By ID
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
-def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
-
+def get_vehicle(
+    vehicle_id: int,
+    db: Session = Depends(get_db)
+):
     vehicle = db.query(Vehicle).filter(
         Vehicle.id == vehicle_id
     ).first()
@@ -50,13 +66,15 @@ def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
         )
 
     return vehicle
+
+
+# Update Vehicle
 @router.put("/{vehicle_id}", response_model=VehicleResponse)
 def update_vehicle(
     vehicle_id: int,
     updated_vehicle: VehicleCreate,
     db: Session = Depends(get_db)
 ):
-
     vehicle = db.query(Vehicle).filter(
         Vehicle.id == vehicle_id
     ).first()
@@ -76,12 +94,14 @@ def update_vehicle(
     db.refresh(vehicle)
 
     return vehicle
+
+
+# Delete Vehicle
 @router.delete("/{vehicle_id}")
 def delete_vehicle(
     vehicle_id: int,
     db: Session = Depends(get_db)
 ):
-
     vehicle = db.query(Vehicle).filter(
         Vehicle.id == vehicle_id
     ).first()
@@ -93,49 +113,6 @@ def delete_vehicle(
         )
 
     db.delete(vehicle)
-    db.commit()
-
-    return {
-        "message": "Vehicle deleted successfully"
-    }
-from fastapi import HTTPException
-
-@router.put("/{vehicle_id}")
-def update_vehicle(
-    vehicle_id: int,
-    vehicle: VehicleCreate,
-    db: Session = Depends(get_db)
-):
-    db_vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-
-    if not db_vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-
-    db_vehicle.vehicle_number = vehicle.vehicle_number
-    db_vehicle.vehicle_type = vehicle.vehicle_type
-    db_vehicle.capacity = vehicle.capacity
-    db_vehicle.status = vehicle.status
-
-    db.commit()
-    db.refresh(db_vehicle)
-
-    return {
-        "message": "Vehicle updated successfully",
-        "vehicle": db_vehicle
-    }
-from fastapi import HTTPException
-
-@router.delete("/{vehicle_id}")
-def delete_vehicle(
-    vehicle_id: int,
-    db: Session = Depends(get_db)
-):
-    db_vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-
-    if not db_vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-
-    db.delete(db_vehicle)
     db.commit()
 
     return {

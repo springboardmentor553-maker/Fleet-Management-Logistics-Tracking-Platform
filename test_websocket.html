@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+
+<h2>Fleet Tracking WebSocket Test</h2>
+
+<button onclick="connect()">Connect</button>
+<button onclick="sendLocation()">Send Location</button>
+
+<p id="status"></p>
+
+<script>
+let socket;
+
+function connect() {
+    socket = new WebSocket("ws://127.0.0.1:8000/ws/tracking");
+
+    socket.onopen = function () {
+        document.getElementById("status").innerHTML = "Connected";
+    };
+
+    socket.onmessage = function (event) {
+        alert(event.data);
+    };
+
+    socket.onclose = function () {
+        document.getElementById("status").innerHTML = "Disconnected";
+    };
+}
+
+function sendLocation() {
+    socket.send("Vehicle 1 : 12.9141,74.8560");
+}
+</script>
+
+</body>
+</html>

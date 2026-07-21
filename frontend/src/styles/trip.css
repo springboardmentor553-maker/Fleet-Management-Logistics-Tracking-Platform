@@ -1,0 +1,96 @@
+.trip-page {
+    margin-left: 250px;
+    margin-top: 80px;
+    padding: 30px;
+}
+
+.trip-page h2 {
+    margin-bottom: 20px;
+    color: #1f2937;
+}
+
+.trip-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.trip-form input,
+.trip-form select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.trip-form button {
+    grid-column: span 2;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.trip-form button:hover {
+    background: #1d4ed8;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+table th,
+table td {
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    text-align: center;
+}
+
+table th {
+    background: #2563eb;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+.delete-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+}
+
+@media (max-width: 900px) {
+
+    .trip-page {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .trip-form {
+        grid-template-columns: 1fr;
+    }
+
+    .trip-form button {
+        grid-column: span 1;
+    }
+}

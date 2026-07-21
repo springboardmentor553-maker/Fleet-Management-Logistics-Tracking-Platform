@@ -1,0 +1,71 @@
+.vehicle-page{
+    margin-left:240px;
+    margin-top:80px;
+    padding:30px;
+    background:#f5f7fb;
+    min-height:100vh;
+}
+
+.vehicle-page h2{
+    margin-bottom:20px;
+}
+
+.vehicle-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:30px;
+}
+
+.vehicle-form input,
+.vehicle-form select{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:15px;
+}
+
+.vehicle-form button{
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    padding:10px;
+}
+
+.vehicle-form button:hover{
+    background:#1d4ed8;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    box-shadow:0 3px 8px rgba(0,0,0,.1);
+}
+
+th,
+td{
+    padding:12px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+}
+
+.delete-btn{
+    background:#dc2626;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.delete-btn:hover{
+    background:#b91c1c;
+}

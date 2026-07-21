@@ -1,0 +1,157 @@
+.sidebar {
+
+    position: fixed;
+
+    left: 0;
+
+    top: 0;
+
+    width: 240px;
+
+    height: 100vh;
+
+    background: #1e293b;
+
+    color: white;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+
+}
+
+.logo {
+
+    text-align: center;
+
+    padding: 25px;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    border-bottom: 1px solid rgba(255,255,255,.1);
+
+}
+
+.sidebar nav {
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 20px 0;
+
+}
+
+.sidebar nav a {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    color: white;
+
+    text-decoration: none;
+
+    padding: 14px 25px;
+
+    transition: .3s;
+
+    font-size: 16px;
+
+}
+
+.sidebar nav a:hover {
+
+    background: #334155;
+
+}
+
+.sidebar nav a.active {
+
+    background: #2563eb;
+
+}
+
+.icon {
+
+    font-size: 18px;
+
+}
+
+.logout-btn {
+
+    margin: 20px;
+
+    border: none;
+
+    padding: 14px;
+
+    border-radius: 8px;
+
+    background: #ef4444;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+}
+
+.logout-btn:hover {
+
+    background: #dc2626;
+
+}
+
+@media(max-width:768px){
+
+.sidebar{
+
+    width:80px;
+
+}
+
+.logo h2{
+
+    font-size:0;
+
+}
+
+.logo::after{
+
+    content:"🚚";
+
+    font-size:28px;
+
+}
+
+.sidebar nav a span:last-child{
+
+    display:none;
+
+}
+
+.logout-btn span{
+
+    display:none;
+
+}
+
+}

@@ -9,6 +9,9 @@ from app.models import User
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.models.shipment import Shipment
+from app.models.trip import Trip
+from app.models.maintenance import Maintenance
+from app.models.fuel import Fuel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

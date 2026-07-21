@@ -1,0 +1,96 @@
+.shipment-page {
+    margin-left: 250px;
+    margin-top: 80px;
+    padding: 30px;
+}
+
+.shipment-page h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+.shipment-form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.shipment-form input,
+.shipment-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.shipment-form button {
+    grid-column: span 3;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.shipment-form button:hover {
+    background: #1d4ed8;
+}
+
+.tracking-box {
+    background: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+.tracking-box input {
+    padding: 10px;
+    width: 250px;
+    margin-right: 10px;
+}
+
+.tracking-box button {
+    padding: 10px 20px;
+    background: green;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.tracking-result {
+    margin-top: 15px;
+    line-height: 1.8;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+table th,
+table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+table th {
+    background: #2563eb;
+    color: white;
+}
+
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: darkred;
+}
