@@ -1283,3 +1283,18 @@ h4 {
     display: none;
   }
 }
+
+/* Trips split-screen map layout */
+.trips-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1150px) {
+  .trips-layout {
+    grid-template-columns: 1fr;
+  }
+}
+

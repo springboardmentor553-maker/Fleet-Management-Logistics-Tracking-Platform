@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Compass
 } from 'lucide-react'
+import MapView from '../components/MapView'
 
 export default function Trips() {
   const [trips, setTrips] = useState([])
@@ -20,6 +21,7 @@ export default function Trips() {
   const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedTrip, setSelectedTrip] = useState(null)
 
   // User status
   const user = getStoredUser()
@@ -74,7 +76,13 @@ export default function Trips() {
       
       // Load trips
       const tripsRes = await tripService.getAll()
-      setTrips(tripsRes.data || [])
+      const fetchedTrips = tripsRes.data || []
+      setTrips(fetchedTrips)
+      setSelectedTrip((curr) => {
+        if (!curr) return fetchedTrips[0] || null
+        const exists = fetchedTrips.find((t) => t.id === curr.id)
+        return exists || fetchedTrips[0] || null
+      })
 
       // Load selections if the user can manage trips
       if (canModify) {
@@ -252,112 +260,183 @@ export default function Trips() {
         </div>
       )}
 
-      {/* Main Datagrid */}
-      <section className="datagrid-container">
-        <div className="datagrid-header-bar">
-          <div style={{ position: 'relative', maxWidth: '320px', width: '100%' }}>
-            <Search style={{ position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
-            <input
-              type="search"
-              className="navbar__searchInput"
-              style={{ width: '100%', paddingLeft: '36px', height: '38px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
-              placeholder="Search location or status..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
-              }}
-            />
+      {/* Main Datagrid and Map Layout */}
+      <div className="trips-layout">
+        <section className="datagrid-container">
+          <div className="datagrid-header-bar">
+            <div style={{ position: 'relative', maxWidth: '320px', width: '100%' }}>
+              <Search style={{ position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94A3B8' }} />
+              <input
+                type="search"
+                className="navbar__searchInput"
+                style={{ width: '100%', paddingLeft: '36px', height: '38px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
+                placeholder="Search location or status..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setCurrentPage(1)
+                }}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="datagrid-wrapper">
-          <table className="datagrid">
-            <thead>
-              <tr>
-                <th>Trip ID</th>
-                <th>Shipment ID</th>
-                <th>Pickup Location</th>
-                <th>Destination</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Status</th>
-                {canModify && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.length > 0 ? (
-                currentItems.map((trip) => (
-                  <tr key={trip.id}>
-                    <td style={{ fontWeight: 600 }}>#TRP{trip.id}</td>
-                    <td>#SHP{trip.shipment_id}</td>
-                    <td>{trip.pickup_location}</td>
-                    <td>{trip.destination}</td>
-                    <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_start_time).toLocaleString()}</td>
-                    <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_end_time).toLocaleString()}</td>
-                    <td>
-                      <span className={`badge badge--${trip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
-                        {trip.trip_status}
-                      </span>
-                    </td>
-                    {canModify && (
+          <div className="datagrid-wrapper">
+            <table className="datagrid">
+              <thead>
+                <tr>
+                  <th>Trip ID</th>
+                  <th>Shipment ID</th>
+                  <th>Pickup Location</th>
+                  <th>Destination</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.length > 0 ? (
+                  currentItems.map((trip) => (
+                    <tr 
+                      key={trip.id}
+                      onClick={() => setSelectedTrip(trip)}
+                      style={{ 
+                        cursor: 'pointer',
+                        backgroundColor: selectedTrip?.id === trip.id ? 'rgba(37, 99, 235, 0.04)' : '',
+                        borderLeft: selectedTrip?.id === trip.id ? '3px solid var(--primary)' : '3px solid transparent'
+                      }}
+                    >
+                      <td style={{ fontWeight: 600 }}>#TRP{trip.id}</td>
+                      <td>#SHP{trip.shipment_id}</td>
+                      <td>{trip.pickup_location}</td>
+                      <td>{trip.destination}</td>
+                      <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_start_time).toLocaleString()}</td>
+                      <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_end_time).toLocaleString()}</td>
+                      <td>
+                        <span className={`badge badge--${trip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                          {trip.trip_status}
+                        </span>
+                      </td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
                             type="button"
                             className="btn btn--secondary"
-                            style={{ padding: '6px' }}
-                            onClick={() => handleOpenEditModal(trip)}
+                            style={{ padding: '6px', border: selectedTrip?.id === trip.id ? '1px solid var(--primary)' : '1px solid var(--border-color)' }}
+                            title="View on Map"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTrip(trip);
+                            }}
                           >
-                            <Edit2 style={{ width: '14px', height: '14px', color: 'var(--primary)' }} />
+                            <Compass style={{ width: '14px', height: '14px', color: selectedTrip?.id === trip.id ? 'var(--primary)' : 'var(--text-secondary)' }} />
                           </button>
-                          <button
-                            type="button"
-                            className="btn btn--secondary"
-                            style={{ padding: '6px' }}
-                            onClick={() => setDeleteConfirmId(trip.id)}
-                          >
-                            <Trash2 style={{ width: '14px', height: '14px', color: 'var(--danger)' }} />
-                          </button>
+                          {canModify && (
+                            <>
+                              <button
+                                type="button"
+                                className="btn btn--secondary"
+                                style={{ padding: '6px' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditModal(trip);
+                                }}
+                              >
+                                <Edit2 style={{ width: '14px', height: '14px', color: 'var(--primary)' }} />
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--secondary"
+                                style={{ padding: '6px' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirmId(trip.id);
+                                }}
+                              >
+                                <Trash2 style={{ width: '14px', height: '14px', color: 'var(--danger)' }} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
-                    )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8}>
+                      <div className="empty-state">
+                        <Compass className="empty-state__icon" style={{ width: '48px', height: '48px', color: 'var(--text-secondary)' }} />
+                        <p className="empty-state__title">No trips found</p>
+                        <p className="empty-state__desc">Scheduled fleet trips will show up here.</p>
+                      </div>
+                    </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={canModify ? 8 : 7}>
-                    <div className="empty-state">
-                      <Compass className="empty-state__icon" style={{ width: '48px', height: '48px', color: 'var(--text-secondary)' }} />
-                      <p className="empty-state__title">No trips found</p>
-                      <p className="empty-state__desc">Scheduled fleet trips will show up here.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Footer */}
-        {totalPages > 1 && (
-          <div className="datagrid-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--border-color)' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-              Page {currentPage} of {totalPages}
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="btn btn--secondary" style={{ padding: '6px 12px' }} disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
-                <ChevronLeft style={{ width: '16px', height: '16px' }} />
-                <span>Prev</span>
-              </button>
-              <button className="btn btn--secondary" style={{ padding: '6px 12px' }} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
-                <span>Next</span>
-                <ChevronRight style={{ width: '16px', height: '16px' }} />
-              </button>
-            </div>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </section>
+
+          {/* Pagination Footer */}
+          {totalPages > 1 && (
+            <div className="datagrid-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn--secondary" style={{ padding: '6px 12px' }} disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
+                  <ChevronLeft style={{ width: '16px', height: '16px' }} />
+                  <span>Prev</span>
+                </button>
+                <button className="btn btn--secondary" style={{ padding: '6px 12px' }} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
+                  <span>Next</span>
+                  <ChevronRight style={{ width: '16px', height: '16px' }} />
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Selected Trip Map & Telemetry Details Card */}
+        <section className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '480px' }}>
+          <div className="card__header" style={{ margin: 0, paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+            <div>
+              <h3 className="card__title" style={{ fontSize: '15px' }}>
+                {selectedTrip ? `Trip Route: #TRP${selectedTrip.id}` : 'Route Explorer'}
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '2px' }}>
+                {selectedTrip ? `Status: ${selectedTrip.trip_status}` : 'Select a trip from the list to display telemetry route.'}
+              </p>
+            </div>
+            {selectedTrip && (
+              <span className={`badge badge--${selectedTrip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                {selectedTrip.trip_status}
+              </span>
+            )}
+          </div>
+
+          <MapView 
+            pickupAddress={selectedTrip?.pickup_location} 
+            destinationAddress={selectedTrip?.destination} 
+          />
+
+          {selectedTrip && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+              <div>
+                <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Pickup Point</span>
+                <strong>{selectedTrip.pickup_location}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Destination Hub</span>
+                <strong>{selectedTrip.destination}</strong>
+              </div>
+              <div style={{ gridColumn: 'span 2', marginTop: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Cargo Shipment</span>
+                <strong>Shipment #SHP{selectedTrip.shipment_id}</strong>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (

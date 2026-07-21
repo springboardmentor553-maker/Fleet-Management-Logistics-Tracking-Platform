@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-export const API_BASE_URL = 'http://127.0.0.1:8000'
+// Read from .env (VITE_API_BASE_URL=http://127.0.0.1:8000)
+// Vite replaces import.meta.env.* at build time; the fallback ensures the
+// app still works if the variable is accidentally omitted from .env.
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -26,7 +30,17 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error),
+  (error) => {
+    if (error?.response?.status === 401) {
+      // Token expired or invalid — clear stored auth and redirect to login
+      localStorage.removeItem('fleetflow_token')
+      localStorage.removeItem('fleetflow_user')
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  },
 )
 
 export const authService = {
