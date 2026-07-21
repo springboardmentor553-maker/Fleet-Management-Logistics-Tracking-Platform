@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class RouteEstimate(BaseModel):
@@ -14,6 +14,7 @@ class RouteEstimate(BaseModel):
     route_duration_min: Optional[float]
     reposition_duration_min: Optional[float]
     estimated_duration_min: Optional[float]
+    route_geometry: Optional[List[List[float]]]
     traffic_factor: float
     origin_lat: Optional[float] = None
     origin_lng: Optional[float] = None

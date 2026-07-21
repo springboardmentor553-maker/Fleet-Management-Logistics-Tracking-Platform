@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 from app.models.driver import Driver
 from app.models.shipment import Shipment
 from app.models.vehicle import Vehicle
+from app.services import route_service
 
 KNOWN_LOCATIONS = {
     'chennai': (13.0827, 80.2707),
@@ -97,9 +98,22 @@ def choose_best_route(shipment: Shipment, drivers: list[Driver], vehicles: list[
 
 def build_route_estimate(shipment: Shipment, drivers: list[Driver], vehicles: list[Vehicle]) -> dict:
     origin_lat, origin_lng, destination_lat, destination_lng = get_location_for_shipment(shipment)
-    route_distance = haversine_distance(origin_lat, origin_lng, destination_lat, destination_lng)
     traffic = traffic_factor(shipment.origin, shipment.destination)
-    estimated_duration_min = estimate_travel_time(route_distance, traffic)
+    # Try to get real route from routing service (OSRM); fall back to Haversine
+    route_info = None
+    try:
+        route_info = route_service.get_route((origin_lat, origin_lng), (destination_lat, destination_lng))
+    except Exception:
+        route_info = None
+
+    if route_info:
+        route_distance = route_info.get("distance_km", 0.0)
+        estimated_duration_min = route_info.get("duration_min", 0.0)
+        route_geometry = route_info.get("geometry")
+    else:
+        route_distance = haversine_distance(origin_lat, origin_lng, destination_lat, destination_lng)
+        estimated_duration_min = estimate_travel_time(route_distance, traffic)
+        route_geometry = None
     available_drivers = [d for d in drivers if d.is_available]
     available_vehicles = [v for v in vehicles if v.current_status == 'available']
     recommendation = choose_best_route(shipment, available_drivers, available_vehicles)
@@ -117,6 +131,7 @@ def build_route_estimate(shipment: Shipment, drivers: list[Driver], vehicles: li
         'recommended_vehicle_id': recommended_vehicle.id if recommended_vehicle else None,
         'recommended_vehicle_plate': recommended_vehicle.plate_number if recommended_vehicle else None,
         'route_distance_km': round(route_distance, 1),
+        'route_geometry': route_geometry,
         'reposition_distance_km': round(reposition_distance, 1),
         'total_distance_km': round(total_distance, 1),
         'route_duration_min': round(estimated_duration_min, 1),

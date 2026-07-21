@@ -8,6 +8,7 @@ from app.models.vehicle import Vehicle
 from app.models.trip import Trip
 from app.models.user import User
 from app.schemas.shipment import ShipmentCreate, ShipmentAssign, ShipmentResponse
+from app.services.maps import geocode_location
 
 router = APIRouter(prefix="/dispatcher", tags=["Dispatcher"])
 
@@ -55,10 +56,24 @@ def assign_shipment(
     driver.is_available = False
     vehicle.current_status = "in_transit"
 
+    if shipment.origin_lat is None or shipment.origin_lng is None:
+        origin_coords = geocode_location(shipment.origin)
+        shipment.origin_lat = origin_coords["latitude"]
+        shipment.origin_lng = origin_coords["longitude"]
+
+    if shipment.destination_lat is None or shipment.destination_lng is None:
+        destination_coords = geocode_location(shipment.destination)
+        shipment.destination_lat = destination_coords["latitude"]
+        shipment.destination_lng = destination_coords["longitude"]
+
     trip = Trip(
         shipment_id=shipment.id,
         driver_id=driver.id,
         vehicle_id=vehicle.id,
+        pickup_latitude=shipment.origin_lat,
+        pickup_longitude=shipment.origin_lng,
+        destination_latitude=shipment.destination_lat,
+        destination_longitude=shipment.destination_lng,
         status="scheduled",
     )
     db.add(trip)

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.models.trip import Trip
+
 from app.utils.dependencies import get_db
 from app.utils.roles import Role, require_roles
 from app.models.user import User
@@ -18,6 +20,7 @@ from app.services.shipment import (
     update_shipment,
     delete_shipment,
 )
+from app.connection_manager import manager
 
 router = APIRouter(
     prefix="/shipments",
@@ -62,13 +65,20 @@ def add_shipment(
 
 
 @router.put("/{shipment_id}", response_model=ShipmentResponse)
-def update_shipment_route(
+async def update_shipment_route(
     shipment_id: int,
     data: ShipmentUpdate,
     db: Session = Depends(get_db),
     _: User = Depends(_shipment_roles)
 ):
-    return update_shipment(shipment_id, data, db)
+    shipment = update_shipment(shipment_id, data, db)
+
+    if data.status is not None:
+        trip = db.query(Trip).filter(Trip.shipment_id == shipment.id).first()
+        trip_id = trip.id if trip else shipment.id
+        await manager.broadcast_status_update(trip_id, shipment.status, shipment_id=shipment.id)
+
+    return shipment
 
 
 @router.delete("/{shipment_id}", status_code=status.HTTP_204_NO_CONTENT)

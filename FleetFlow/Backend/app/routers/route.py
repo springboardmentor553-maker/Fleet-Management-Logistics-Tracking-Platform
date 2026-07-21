@@ -9,6 +9,9 @@ from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.schemas.route import RouteEstimate
 from app.services.route import build_route_estimate
+from pydantic import BaseModel
+from typing import List
+from app.services import route_service
 
 router = APIRouter(prefix="/route", tags=["Route"])
 
@@ -29,3 +32,25 @@ def get_route_estimate(
     vehicles = db.query(Vehicle).order_by(Vehicle.id).all()
     estimate = build_route_estimate(shipment, drivers, vehicles)
     return estimate
+
+
+class OptimizeRequest(BaseModel):
+    origin_lat: float
+    origin_lng: float
+    stops: List[List[float]]  # list of [lat, lng]
+
+
+@router.post("/optimize")
+def optimize_route(req: OptimizeRequest, _: User = Depends(_route_roles)):
+    start = (req.origin_lat, req.origin_lng)
+    stops = [tuple(s) for s in req.stops]
+    ordered = route_service.optimize_nearest_neighbor(start, stops)
+    # build a full route for visualization (origin -> ordered stops)
+    if ordered:
+        dest = ordered[-1]
+        waypoints = ordered[:-1] if len(ordered) > 1 else None
+        route_info = route_service.get_route(start, dest, waypoints=waypoints)
+    else:
+        route_info = None
+
+    return {"ordered_stops": ordered, "route": route_info}
