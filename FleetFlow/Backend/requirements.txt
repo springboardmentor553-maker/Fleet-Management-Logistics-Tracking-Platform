@@ -9,3 +9,4 @@ passlib
 bcrypt
 python-jose[cryptography]
 alembic
+requests

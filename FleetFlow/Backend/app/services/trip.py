@@ -7,6 +7,7 @@ from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.schemas.trip import TripCreate
+from app.services.maps import geocode_location
 
 
 def get_all_trips(db: Session):
@@ -17,6 +18,18 @@ def get_trip(trip_id: int, db: Session):
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
+
+    if trip.pickup_latitude is None or trip.pickup_longitude is None:
+        pickup_coords = geocode_location(trip.shipment.origin if trip.shipment else '')
+        trip.pickup_latitude = pickup_coords['latitude']
+        trip.pickup_longitude = pickup_coords['longitude']
+
+    if trip.destination_latitude is None or trip.destination_longitude is None:
+        destination_coords = geocode_location(trip.shipment.destination if trip.shipment else '')
+        trip.destination_latitude = destination_coords['latitude']
+        trip.destination_longitude = destination_coords['longitude']
+
+    db.commit()
     return trip
 
 
@@ -35,10 +48,29 @@ def create_trip(data: TripCreate, db: Session):
     if not vehicle:
         raise HTTPException(status_code=400, detail="Vehicle not found")
 
+    pickup_latitude = data.pickup_latitude
+    pickup_longitude = data.pickup_longitude
+    destination_latitude = data.destination_latitude
+    destination_longitude = data.destination_longitude
+
+    if pickup_latitude is None or pickup_longitude is None:
+        origin_coords = geocode_location(shipment.origin)
+        pickup_latitude = origin_coords["latitude"]
+        pickup_longitude = origin_coords["longitude"]
+
+    if destination_latitude is None or destination_longitude is None:
+        destination_coords = geocode_location(shipment.destination)
+        destination_latitude = destination_coords["latitude"]
+        destination_longitude = destination_coords["longitude"]
+
     trip = Trip(
         shipment_id=data.shipment_id,
         driver_id=data.driver_id,
         vehicle_id=data.vehicle_id,
+        pickup_latitude=pickup_latitude,
+        pickup_longitude=pickup_longitude,
+        destination_latitude=destination_latitude,
+        destination_longitude=destination_longitude,
         status="scheduled",
     )
     db.add(trip)

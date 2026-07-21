@@ -9,6 +9,10 @@ class TripCreate(BaseModel):
     shipment_id: int = Field(..., example=1)
     driver_id:   int = Field(..., example=1)
     vehicle_id:  int = Field(..., example=1)
+    pickup_latitude: Optional[float] = Field(default=None, example=13.0827)
+    pickup_longitude: Optional[float] = Field(default=None, example=80.2707)
+    destination_latitude: Optional[float] = Field(default=None, example=12.9716)
+    destination_longitude: Optional[float] = Field(default=None, example=77.5946)
 
 
 class TripStatusUpdate(BaseModel):
@@ -23,6 +27,10 @@ class TripResponse(BaseModel):
     start_time:           Optional[datetime]
     end_time:             Optional[datetime]
     status:               str
+    pickup_latitude:      Optional[float] = None
+    pickup_longitude:     Optional[float] = None
+    destination_latitude: Optional[float] = None
+    destination_longitude: Optional[float] = None
     created_at:           datetime
     shipment_origin:      Optional[str] = None
     shipment_destination: Optional[str] = None

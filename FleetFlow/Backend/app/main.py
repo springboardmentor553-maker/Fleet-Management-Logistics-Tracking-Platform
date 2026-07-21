@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment, trip, gps, route
+from app.connection_manager import manager
+from fastapi import WebSocket, WebSocketDisconnect
 
 app = FastAPI(
     title="FleetFlow API",
@@ -63,3 +65,15 @@ app.openapi = custom_openapi
 @app.get("/", tags=["Health"])
 def home():
     return {"message": "FleetFlow Backend Running Successfully"}
+
+
+@app.websocket("/ws/tracking/{trip_id}")
+async def tracking_socket(websocket: WebSocket, trip_id: int):
+    await manager.connect(websocket, trip_id)
+    await websocket.send_json({"type": "connected", "trip_id": trip_id})
+
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        await manager.disconnect(websocket, trip_id)
