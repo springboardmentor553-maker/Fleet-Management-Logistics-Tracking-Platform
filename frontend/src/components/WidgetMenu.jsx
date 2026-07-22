@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MoreVertical, ExternalLink } from 'lucide-react'
+import { MoreVertical, ExternalLink, Maximize2 } from 'lucide-react'
 
-export default function WidgetMenu({ viewAllPath }) {
+export default function WidgetMenu({ viewAllPath, onExpand }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const navigate = useNavigate()
@@ -22,6 +22,11 @@ export default function WidgetMenu({ viewAllPath }) {
       </span>
       {open && (
         <div className="ff-row-menu" style={{ minWidth: 150 }}>
+          {onExpand && (
+            <div className="ff-row-menu-item" onClick={() => { onExpand(); setOpen(false) }}>
+              <Maximize2 size={13} /> Expand Map
+            </div>
+          )}
           <div className="ff-row-menu-item" onClick={() => { navigate(viewAllPath); setOpen(false) }}>
             <ExternalLink size={13} /> View All
           </div>

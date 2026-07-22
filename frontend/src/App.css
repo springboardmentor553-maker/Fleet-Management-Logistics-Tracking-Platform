@@ -1286,6 +1286,48 @@ body {
   background: var(--accent);
 }
 
+/* ===== Expanded Live Tracking Map (blurred backdrop overlay) ===== */
+.ff-map-expand-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 20, 30, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.ff-map-expand-box {
+  width: min(1100px, 92vw);
+  height: min(720px, 88vh);
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ff-map-expand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ff-map-expand-body {
+  flex: 1;
+  padding: 16px;
+  min-height: 0;
+}
+
 /* ===== Tabs (Shipments page) ===== */
 .ff-tabs {
   display: flex;

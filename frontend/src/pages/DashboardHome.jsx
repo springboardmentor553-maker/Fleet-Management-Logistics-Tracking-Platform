@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar, Send, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Truck, IdCard, Package, Route, MoreVertical, MapPin, Wrench, Calendar, Send, CheckCircle2, AlertTriangle, X } from 'lucide-react'
 import WidgetMenu from '../components/WidgetMenu'
 import LiveMap from '../components/LiveMap'
 
@@ -37,6 +37,7 @@ const shipmentActivityStyle = (status) => {
 }
 
 const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = [], loading, search, onRefresh }) => {
+  const [mapExpanded, setMapExpanded] = useState(false)
   const activeDrivers = vehicles ? drivers.filter(d => d.status === 'active').length : 0
   const totalVehicles = vehicles ? vehicles.length : 0
 
@@ -274,7 +275,7 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
 
         {/* Live Vehicle Tracking Map */}
         <div className="ff-widget-card">
-          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" /></div>
+          <div className="ff-widget-title"><span>Live Vehicle Tracking</span><WidgetMenu viewAllPath="/fleet" onExpand={() => setMapExpanded(true)} /></div>
           <div style={{ height: '220px' }}>
             <LiveMap vehicles={vehicles} />
           </div>
@@ -315,6 +316,19 @@ const DashboardHome = ({ vehicles = [], drivers = [], shipments = [], trips = []
           </table>
         </div>
       </div>
+      {mapExpanded && (
+        <div className="ff-map-expand-overlay" onClick={() => setMapExpanded(false)}>
+          <div className="ff-map-expand-box" onClick={(e) => e.stopPropagation()}>
+            <div className="ff-map-expand-header">
+              <span>Live Vehicle Tracking</span>
+              <X size={20} style={{ cursor: 'pointer' }} onClick={() => setMapExpanded(false)} />
+            </div>
+            <div className="ff-map-expand-body">
+              <LiveMap vehicles={vehicles} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
