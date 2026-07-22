@@ -1,8 +1,13 @@
 from fastapi import FastAPI
-from app.routers import auth, driver, vehicle, shipment, dashboard
+from app.routers import auth, driver, vehicle, shipment, dashboard, trip
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import notification
 from app.routers import settings
+from app.database import Base, engine
+from app import models
+
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="FleetFlow API",
     version="1.0.0"
@@ -12,7 +17,6 @@ origins = [
     "http://127.0.0.1:5173",
     "http://192.168.1.4:5173",
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -27,7 +31,7 @@ app.include_router(shipment.router)
 app.include_router(dashboard.router)
 app.include_router(notification.router)
 app.include_router(settings.router)
-
+app.include_router(trip.router)
 @app.get("/")
 def home():
     return {

@@ -42,6 +42,11 @@ class Shipment(Base):
         ForeignKey("vehicles.id", ondelete="SET NULL"),
         nullable=True
     )
+     trip = relationship(
+        "Trip",
+        back_populates="shipment",
+        uselist=False
+    )
     weight = Column(Float, nullable=True)
     volume = Column(Float, nullable=True)
     estimated_delivery = Column(DateTime(timezone=True), nullable=True)

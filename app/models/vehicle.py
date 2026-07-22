@@ -26,3 +26,8 @@ class Vehicle(Base):
         "Shipment",
         back_populates="vehicle"
     )
+
+    trips = relationship(
+        "Trip",
+        back_populates="vehicle"
+    )
