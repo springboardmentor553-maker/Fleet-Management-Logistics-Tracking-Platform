@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
@@ -57,6 +57,54 @@ const destinationIcon = L.divIcon({
   iconAnchor: [14, 14]
 });
 
+// Animated live vehicle icon — pulsing blue truck dot
+const vehicleIcon = L.divIcon({
+  html: `
+    <div style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+      <div style="
+        position:absolute;
+        width:40px;height:40px;
+        border-radius:50%;
+        background:rgba(37,99,235,0.18);
+        animation:ws-pulse 1.8s ease-out infinite;
+      "></div>
+      <div style="
+        position:absolute;
+        width:26px;height:26px;
+        border-radius:50%;
+        background:rgba(37,99,235,0.28);
+        animation:ws-pulse 1.8s ease-out infinite 0.4s;
+      "></div>
+      <div style="
+        position:relative;
+        width:18px;height:18px;
+        border-radius:50%;
+        background:#2563EB;
+        border:3px solid #fff;
+        box-shadow:0 2px 8px rgba(37,99,235,0.5);
+        display:flex;align-items:center;justify-content:center;
+        font-size:9px;
+      ">🚛</div>
+    </div>`,
+  className: 'vehicle-live-icon',
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+  popupAnchor: [0, -20],
+});
+
+// Inject the pulse keyframes once into the document head
+if (typeof document !== 'undefined' && !document.getElementById('ws-pulse-style')) {
+  const style = document.createElement('style');
+  style.id = 'ws-pulse-style';
+  style.textContent = `
+    @keyframes ws-pulse {
+      0%   { transform: scale(0.6); opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // Map controller to fit bounds or fly to center
 function MapController({ bounds, center, zoom }) {
   const map = useMap();
@@ -70,9 +118,40 @@ function MapController({ bounds, center, zoom }) {
   return null;
 }
 
+// Smoothly pans the map to follow the live vehicle position
+function LiveVehicleTracker({ position }) {
+  const map = useMap();
+  const prevPos = useRef(null);
+
+  useEffect(() => {
+    if (!position) return;
+    // Only pan if position changed meaningfully (avoid pointless redraws)
+    if (
+      prevPos.current &&
+      Math.abs(prevPos.current[0] - position[0]) < 0.00001 &&
+      Math.abs(prevPos.current[1] - position[1]) < 0.00001
+    ) return;
+    prevPos.current = position;
+    map.panTo(position, { animate: true, duration: 1.2 });
+  }, [position, map]);
+
+  return null;
+}
+
 const defaultCenter = [20.5937, 78.9629]; // Center of India (Static reference to prevent infinite loops)
 
-export default function MapView({ pickupAddress, destinationAddress }) {
+/**
+ * MapView component.
+ *
+ * Props
+ * -----
+ * pickupAddress      : string  — human-readable pickup location
+ * destinationAddress : string  — human-readable destination
+ * livePosition       : { lat: number, lng: number } | null
+ *                      Real-time vehicle position from WebSocket.
+ *                      When non-null, a pulsing vehicle marker is shown.
+ */
+export default function MapView({ pickupAddress, destinationAddress, livePosition = null }) {
   const [state, setState] = useState({
     pickup: null,      // { lat, lng, name }
     destination: null, // { lat, lng, name }
@@ -198,6 +277,11 @@ export default function MapView({ pickupAddress, destinationAddress }) {
     return null;
   }, [state.pickup?.lat, state.pickup?.lng, state.destination?.lat, state.destination?.lng]);
 
+  // Live vehicle position as a Leaflet LatLng array
+  const vehiclePosition = livePosition
+    ? [livePosition.lat, livePosition.lng]
+    : null;
+
   return (
     <div className="map-view-container" style={{ position: 'relative', width: '100%', height: '100%', minHeight: '380px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
       
@@ -245,6 +329,22 @@ export default function MapView({ pickupAddress, destinationAddress }) {
                 <span style={{ color: 'var(--text-secondary)' }}>Duration: </span>
                 <span style={{ color: 'var(--text-main)' }}>{state.duration} mins</span>
               </div>
+              {/* Live tracking badge — shown only when WebSocket is streaming */}
+              {vehiclePosition && (
+                <>
+                  <div style={{ width: '1px', height: '14px', backgroundColor: 'var(--border-color)' }}></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      backgroundColor: '#22c55e',
+                      display: 'inline-block',
+                      boxShadow: '0 0 0 2px rgba(34,197,94,0.3)',
+                      animation: 'ws-pulse 1.8s ease-out infinite'
+                    }}></span>
+                    <span style={{ color: '#22c55e', fontWeight: 600, fontSize: '12px' }}>LIVE</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -267,6 +367,9 @@ export default function MapView({ pickupAddress, destinationAddress }) {
           center={defaultCenter}
           zoom={5}
         />
+
+        {/* Smoothly pan the map as the vehicle moves */}
+        {vehiclePosition && <LiveVehicleTracker position={vehiclePosition} />}
 
         {state.pickup && (
           <Marker position={[state.pickup.lat, state.pickup.lng]} icon={pickupIcon}>
@@ -299,6 +402,19 @@ export default function MapView({ pickupAddress, destinationAddress }) {
             weight={4.5}
             opacity={0.85}
           />
+        )}
+
+        {/* Live vehicle marker — appears only when WebSocket is streaming coordinates */}
+        {vehiclePosition && (
+          <Marker position={vehiclePosition} icon={vehicleIcon}>
+            <Popup>
+              <strong>🚛 Vehicle — Live Position</strong>
+              <br />
+              <small style={{ color: 'gray' }}>
+                {vehiclePosition[0].toFixed(5)}, {vehiclePosition[1].toFixed(5)}
+              </small>
+            </Popup>
+          </Marker>
         )}
       </MapContainer>
     </div>

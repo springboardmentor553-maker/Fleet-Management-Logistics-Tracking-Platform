@@ -13,6 +13,7 @@ import {
   Compass
 } from 'lucide-react'
 import MapView from '../components/MapView'
+import { useTripWebSocket } from '../hooks/useTripWebSocket'
 
 export default function Trips() {
   const [trips, setTrips] = useState([])
@@ -22,6 +23,34 @@ export default function Trips() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedTrip, setSelectedTrip] = useState(null)
+
+  // Real-time WebSocket Tracking State
+  const [livePosition, setLivePosition] = useState(null)
+  const [wsState, setWsState] = useState('closed')
+
+  // Reset live position when selected trip changes
+  useEffect(() => {
+    setLivePosition(null)
+  }, [selectedTrip?.id])
+
+  // Wire WebSocket for real-time location & status updates
+  useTripWebSocket(selectedTrip?.id, {
+    onLocation: (data) => {
+      setLivePosition({ lat: data.latitude, lng: data.longitude })
+    },
+    onStatus: (data) => {
+      addToast(`Shipment ${data.tracking_number} status updated to '${data.status}'`, 'success')
+      setTrips((prev) =>
+        prev.map((t) => (t.id === data.trip_id ? { ...t, trip_status: data.status } : t))
+      )
+      setSelectedTrip((prev) =>
+        prev && prev.id === data.trip_id ? { ...prev, trip_status: data.status } : prev
+      )
+    },
+    onStateChange: (state) => {
+      setWsState(state)
+    },
+  })
 
   // User status
   const user = getStoredUser()
@@ -398,7 +427,7 @@ export default function Trips() {
 
         {/* Selected Trip Map & Telemetry Details Card */}
         <section className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '480px' }}>
-          <div className="card__header" style={{ margin: 0, paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="card__header" style={{ margin: 0, paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 className="card__title" style={{ fontSize: '15px' }}>
                 {selectedTrip ? `Trip Route: #TRP${selectedTrip.id}` : 'Route Explorer'}
@@ -408,15 +437,22 @@ export default function Trips() {
               </p>
             </div>
             {selectedTrip && (
-              <span className={`badge badge--${selectedTrip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
-                {selectedTrip.trip_status}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`badge badge--${wsState === 'open' ? 'in-transit' : wsState === 'connecting' ? 'assigned' : 'cancelled'}`} style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: wsState === 'open' ? '#10B981' : wsState === 'connecting' ? '#F59E0B' : '#6B7280' }}></span>
+                  {wsState === 'open' ? 'WS Connected' : wsState === 'connecting' ? 'WS Connecting' : 'WS Offline'}
+                </span>
+                <span className={`badge badge--${selectedTrip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                  {selectedTrip.trip_status}
+                </span>
+              </div>
             )}
           </div>
 
           <MapView 
             pickupAddress={selectedTrip?.pickup_location} 
             destinationAddress={selectedTrip?.destination} 
+            livePosition={livePosition}
           />
 
           {selectedTrip && (
