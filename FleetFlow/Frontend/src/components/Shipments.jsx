@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
-  getShipments, createShipment, updateShipment,
-  deleteShipment, assignShipment, cancelShipment,
+  getShipments, getMyShipments, createShipment, updateShipment,
+  deleteShipment, assignShipment, cancelShipment, markShipmentDelivered,
 } from '../api/shipments'
 import { getRouteEstimate } from '../api/route'
 import { getDrivers }  from '../api/drivers'
@@ -17,7 +17,7 @@ const STATUS_COLORS = {
 const EMPTY_FORM = { origin: '', destination: '', weight_kg: '' }
 const EMPTY_ASSIGN = { driver_id: '', vehicle_id: '' }
 
-export default function Shipments() {
+export default function Shipments({ user, onViewTripMap }) {
   const [shipments, setShipments] = useState([])
   const [drivers,   setDrivers]   = useState([])
   const [vehicles,  setVehicles]  = useState([])
@@ -40,15 +40,40 @@ export default function Shipments() {
   const [assignErr,    setAssignErr]    = useState('')
   const [routeEstimates, setRouteEstimates] = useState({})
 
+  const isDriver = user?.role === 'driver'
+
   function load() {
     setLoading(true)
-    Promise.all([getShipments(), getDrivers(), getVehicles()])
-      .then(([s, d, v]) => { setShipments(s); setDrivers(d); setVehicles(v) })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
+    setError('')
+
+    if (isDriver) {
+      Promise.all([
+        getMyShipments().catch(() => []),
+        getVehicles().catch(() => []),
+      ])
+        .then(([s, v]) => {
+          setShipments(s || [])
+          setVehicles(v || [])
+        })
+        .catch(e => setError(e.message))
+        .finally(() => setLoading(false))
+    } else {
+      Promise.all([
+        getShipments().catch(() => []),
+        getDrivers().catch(() => []),
+        getVehicles().catch(() => []),
+      ])
+        .then(([s, d, v]) => {
+          setShipments(s || [])
+          setDrivers(d || [])
+          setVehicles(v || [])
+        })
+        .catch(e => setError(e.message))
+        .finally(() => setLoading(false))
+    }
   }
 
-  useEffect(load, [])
+  useEffect(load, [isDriver])
 
   useEffect(() => {
     const active = shipments.filter(s => s.status !== 'delivered' && s.status !== 'cancelled')
@@ -58,9 +83,14 @@ export default function Shipments() {
     }
 
     Promise.all(active.map((shipment) =>
-      getRouteEstimate(shipment.id).then((estimate) => [shipment.id, estimate])
+      getRouteEstimate(shipment.id)
+        .then((estimate) => [shipment.id, estimate])
+        .catch(() => [shipment.id, null])
     ))
-    .then((pairs) => setRouteEstimates(Object.fromEntries(pairs)))
+    .then((pairs) => {
+      const validPairs = pairs.filter(([_, est]) => est != null)
+      setRouteEstimates(Object.fromEntries(validPairs))
+    })
     .catch(() => setRouteEstimates({}))
   }, [shipments])
 
@@ -95,6 +125,11 @@ export default function Shipments() {
     try { await cancelShipment(id); load() }
     catch (e) { alert(e.message) }
   }
+  async function handleMarkDelivered(id) {
+    if (!confirm('Mark this shipment as delivered?')) return
+    try { await markShipmentDelivered(id); load() }
+    catch (e) { alert(e.message) }
+  }
 
   // ── Assign helpers ────────────────────────────────
   function openAssign(s) {
@@ -119,8 +154,8 @@ export default function Shipments() {
 
   // ── Filter ────────────────────────────────────────
   const filtered = shipments.filter(s =>
-    s.origin.toLowerCase().includes(search.toLowerCase()) ||
-    s.destination.toLowerCase().includes(search.toLowerCase())
+    (s.origin || '').toLowerCase().includes(search.toLowerCase()) ||
+    (s.destination || '').toLowerCase().includes(search.toLowerCase())
   )
 
   const availableDrivers  = drivers.filter(d => d.is_available)
@@ -130,10 +165,12 @@ export default function Shipments() {
     <div className="page-content">
       <div className="page-header">
         <div>
-          <h2>Shipments</h2>
-          <p>Manage and track all shipments</p>
+          <h2>{isDriver ? 'My Assigned Shipments' : 'Shipments'}</h2>
+          <p>{isDriver ? 'Track and update your assigned deliveries' : 'Manage and track all shipments'}</p>
         </div>
-        <button className="btn-primary" onClick={openCreate}>+ New Shipment</button>
+        {!isDriver && (
+          <button className="btn-primary" onClick={openCreate}>+ New Shipment</button>
+        )}
       </div>
 
       <div className="search-bar">
@@ -144,7 +181,7 @@ export default function Shipments() {
         />
       </div>
 
-      {loading && <div className="status-msg">Loading…</div>}
+      {loading && <div className="status-msg">Loading shipments...</div>}
       {error   && <div className="status-msg error">{error}</div>}
 
       {!loading && (
@@ -155,9 +192,9 @@ export default function Shipments() {
                 <th>#</th>
                 <th>Origin</th>
                 <th>Destination</th>
-                <th>Weight (kg)</th>
+                <th>Weight</th>
                 <th>Status</th>
-                <th>Driver</th>
+                {!isDriver && <th>Driver</th>}
                 <th>Vehicle</th>
                 <th>ETA</th>
                 <th>Actions</th>
@@ -165,14 +202,18 @@ export default function Shipments() {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="empty-row">No shipments found</td></tr>
+                <tr>
+                  <td colSpan={isDriver ? 8 : 9} className="empty-row">
+                    {isDriver ? 'No shipments currently assigned to you.' : 'No shipments found'}
+                  </td>
+                </tr>
               )}
               {filtered.map(s => {
                 const driver  = drivers.find(d => d.id === s.driver_id)
                 const vehicle = vehicles.find(v => v.id === s.vehicle_id)
                 return (
                   <tr key={s.id}>
-                    <td className="id-cell">{s.id}</td>
+                    <td className="id-cell">#{s.id}</td>
                     <td>{s.origin}</td>
                     <td>{s.destination}</td>
                     <td>{s.weight_kg} kg</td>
@@ -181,11 +222,13 @@ export default function Shipments() {
                         {s.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td>
-                      {driver
-                        ? <span className="driver-chip">👤 {driver.name}</span>
-                        : <span className="unassigned">—</span>}
-                    </td>
+                    {!isDriver && (
+                      <td>
+                        {driver
+                          ? <span className="driver-chip">👤 {driver.name}</span>
+                          : <span className="unassigned">—</span>}
+                      </td>
+                    )}
                     <td>
                       {vehicle
                         ? <span className="plate-badge">{vehicle.plate_number}</span>
@@ -198,18 +241,40 @@ export default function Shipments() {
                     </td>
                     <td>
                       <div className="actions">
-                        {s.status === 'pending' && (
+                        {isDriver ? (
                           <>
-                            <button className="btn-assign" onClick={() => openAssign(s)}>Assign</button>
-                            <button className="btn-edit"   onClick={() => openEdit(s)}>Edit</button>
-                            <button className="btn-cancel-trip" onClick={() => handleCancel(s.id)}>Cancel</button>
+                            {s.status === 'in_transit' && (
+                              <>
+                                <button className="btn-assign" onClick={() => handleMarkDelivered(s.id)}>
+                                  ✓ Mark Delivered
+                                </button>
+                                {onViewTripMap && (
+                                  <button className="btn-edit" onClick={() => onViewTripMap(s.id)}>
+                                    🗺️ Map
+                                  </button>
+                                )}
+                              </>
+                            )}
+                            {s.status === 'delivered' && (
+                              <span className="status-badge delivered">Delivered</span>
+                            )}
                           </>
-                        )}
-                        {s.status === 'in_transit' && (
-                          <button className="btn-cancel-trip" onClick={() => handleCancel(s.id)}>Cancel</button>
-                        )}
-                        {(s.status === 'delivered' || s.status === 'cancelled') && (
-                          <button className="btn-delete" onClick={() => handleDelete(s.id)}>Delete</button>
+                        ) : (
+                          <>
+                            {s.status === 'pending' && (
+                              <>
+                                <button className="btn-assign" onClick={() => openAssign(s)}>Assign</button>
+                                <button className="btn-edit"   onClick={() => openEdit(s)}>Edit</button>
+                                <button className="btn-cancel-trip" onClick={() => handleCancel(s.id)}>Cancel</button>
+                              </>
+                            )}
+                            {s.status === 'in_transit' && (
+                              <button className="btn-cancel-trip" onClick={() => handleCancel(s.id)}>Cancel</button>
+                            )}
+                            {(s.status === 'delivered' || s.status === 'cancelled') && (
+                              <button className="btn-delete" onClick={() => handleDelete(s.id)}>Delete</button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>

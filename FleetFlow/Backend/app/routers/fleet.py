@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from app.utils.dependencies import get_db
+from app.utils.dependencies import get_db, get_current_user
 from app.utils.roles import Role, require_roles
 from app.models.user import User
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate, VehicleResponse
@@ -12,12 +12,12 @@ _fleet_or_admin = require_roles(Role.FLEET_MANAGER, Role.ADMIN)
 
 
 @router.get("/", response_model=list[VehicleResponse])
-def list_vehicles(db: Session = Depends(get_db), _: User = Depends(_fleet_or_admin)):
+def list_vehicles(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_all_vehicles(db)
 
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
-def get_vehicle(vehicle_id: int, db: Session = Depends(get_db), _: User = Depends(_fleet_or_admin)):
+def get_vehicle(vehicle_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_vehicle_by_id(vehicle_id, db)
 
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from app.utils.dependencies import get_db
+from app.utils.dependencies import get_db, get_current_user
 from app.utils.roles import Role, require_roles
 from app.models.user import User
 from app.schemas.driver import DriverCreate, DriverUpdate, DriverResponse
@@ -12,12 +12,12 @@ _mgmt = require_roles(Role.ADMIN, Role.FLEET_MANAGER, Role.DISPATCHER)
 
 
 @router.get("/", response_model=list[DriverResponse])
-def list_drivers(db: Session = Depends(get_db), _: User = Depends(_mgmt)):
+def list_drivers(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_all_drivers(db)
 
 
 @router.get("/{driver_id}", response_model=DriverResponse)
-def get_driver(driver_id: int, db: Session = Depends(get_db), _: User = Depends(_mgmt)):
+def get_driver(driver_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_driver_by_id(driver_id, db)
 
 

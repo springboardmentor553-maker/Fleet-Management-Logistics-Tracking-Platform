@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.utils.dependencies import get_db
+from app.utils.dependencies import get_db, get_current_user
 from app.utils.roles import Role, require_roles
 from app.models.user import User
 from app.models.trip import Trip
@@ -16,12 +16,12 @@ _trip_roles = require_roles(Role.ADMIN, Role.FLEET_MANAGER, Role.DISPATCHER)
 
 
 @router.get("/", response_model=list[TripResponse])
-def list_trips(db: Session = Depends(get_db), _: User = Depends(_trip_roles)):
+def list_trips(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_all_trips(db)
 
 
 @router.get("/{trip_id}", response_model=TripResponse)
-def read_trip(trip_id: int, db: Session = Depends(get_db), _: User = Depends(_trip_roles)):
+def read_trip(trip_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     return get_trip(trip_id, db)
 
 
@@ -43,7 +43,7 @@ def remove_trip(trip_id: int, db: Session = Depends(get_db), _: User = Depends(_
 
 
 @router.get("/{trip_id}/route")
-def get_trip_route(trip_id: int, db: Session = Depends(get_db), _: User = Depends(_trip_roles)):
+def get_trip_route(trip_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
