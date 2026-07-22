@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models.trip import Trip
 
-from app.utils.dependencies import get_db
+from app.utils.dependencies import get_db, get_current_user
 from app.utils.roles import Role, require_roles
 from app.models.user import User
 
@@ -37,7 +37,7 @@ _shipment_roles = require_roles(
 @router.get("/", response_model=list[ShipmentResponse])
 def list_shipments(
     db: Session = Depends(get_db),
-    _: User = Depends(_shipment_roles)
+    _: User = Depends(get_current_user)
 ):
     return get_all_shipments(db)
 
@@ -46,7 +46,7 @@ def list_shipments(
 def get_shipment(
     shipment_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(_shipment_roles)
+    _: User = Depends(get_current_user)
 ):
     return get_shipment_by_id(shipment_id, db)
 

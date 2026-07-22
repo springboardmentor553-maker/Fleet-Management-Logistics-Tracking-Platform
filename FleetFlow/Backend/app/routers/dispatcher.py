@@ -66,6 +66,9 @@ def assign_shipment(
         shipment.destination_lat = destination_coords["latitude"]
         shipment.destination_lng = destination_coords["longitude"]
 
+    vehicle.latitude = shipment.origin_lat
+    vehicle.longitude = shipment.origin_lng
+
     trip = Trip(
         shipment_id=shipment.id,
         driver_id=driver.id,

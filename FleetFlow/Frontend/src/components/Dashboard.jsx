@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import StatCard from './StatCard'
+import AdminDashboard from './AdminDashboard'
+import FleetManagerDashboard from './FleetManagerDashboard'
+import DispatcherDashboard from './DispatcherDashboard'
+import DriverDashboard from './DriverDashboard'
 import { getDashboardStats } from '../api/dashboard'
 
 const CARDS = [
@@ -15,7 +19,7 @@ const CARDS = [
   { key: 'cancelled_shipments', label: 'Cancelled', icon: '❌', color: '#ef4444' },
 ]
 
-export default function Dashboard({ onViewLive }) {
+function DefaultDashboard({ onViewLive }) {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -29,28 +33,20 @@ export default function Dashboard({ onViewLive }) {
 
   return (
     <div className="page-content">
-
-      {/* HERO SECTION */}
       <div className="hero-banner">
         <div className="hero-overlay">
           <div className="hero-text">
-
             <span className="hero-badge" />
-
             <h1>FleetFlow</h1>
-
             <h3>Smart Fleet & Logistics Tracking Platform</h3>
-
             <p>
               Monitor vehicles, drivers, shipments and GPS locations in one
               centralized dashboard with real-time tracking and intelligent fleet
               management.
             </p>
-
             <button className="hero-btn" onClick={onViewLive}>
               View Live Fleet
             </button>
-
           </div>
         </div>
       </div>
@@ -78,7 +74,28 @@ export default function Dashboard({ onViewLive }) {
           ))}
         </div>
       )}
-
     </div>
   )
+}
+
+export default function Dashboard({ user, onNavigate, onViewTripMap, onViewLive }) {
+  const role = user?.role
+
+  if (role === 'admin') {
+    return <AdminDashboard onNavigate={onNavigate} />
+  }
+
+  if (role === 'fleet_manager') {
+    return <FleetManagerDashboard onNavigate={onNavigate} />
+  }
+
+  if (role === 'dispatcher') {
+    return <DispatcherDashboard onNavigate={onNavigate} />
+  }
+
+  if (role === 'driver') {
+    return <DriverDashboard onNavigate={onNavigate} onViewTripMap={onViewTripMap} />
+  }
+
+  return <DefaultDashboard onViewLive={onViewLive} />
 }

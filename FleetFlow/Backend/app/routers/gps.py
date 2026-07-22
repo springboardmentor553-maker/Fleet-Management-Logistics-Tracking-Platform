@@ -10,6 +10,7 @@ from app.models.user import User
 
 router = APIRouter(prefix="/gps", tags=["GPS"])
 
+
 # ── WebSocket connection manager ──────────────────────────────────────────────
 class ConnectionManager:
     def __init__(self):
@@ -87,7 +88,7 @@ def get_all_locations(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    return db.query(Vehicle).filter(Vehicle.latitude.isnot(None)).all()
+    return db.query(Vehicle).all()
 
 
 # ── WebSocket: live location feed ─────────────────────────────────────────────
