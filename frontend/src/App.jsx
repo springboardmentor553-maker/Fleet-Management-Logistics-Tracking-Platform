@@ -164,7 +164,7 @@ useEffect(() => {
     if (data.type === 'shipment_status_update') {
       setShipments(prev => prev.map(s =>
         s.id === data.shipment_id
-          ? { ...s, status: data.status }
+          ? { ...s, status: data.status, vehicle_id: data.vehicle_id, driver_id: data.driver_id }
           : s
       ))
     }

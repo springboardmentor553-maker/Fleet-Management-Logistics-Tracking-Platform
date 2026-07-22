@@ -7,6 +7,7 @@ from app.utils.dependencies import require_role
 from app.services.geocoding import geocode_location
 from app.services.routing import get_route
 from app.services.eta_service import calculate_eta
+from app.routers.shipments import broadcast_shipment_update
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
@@ -42,8 +43,26 @@ def check_double_assignment(db: Session, driver_id: int, vehicle_id: int, exclud
         )
 
 
+async def sync_shipment_assignment(db: Session, shipment_id: int, vehicle_id: int, driver_id: int):
+    """
+    Keeps a linked shipment's vehicle/driver in sync with the trip carrying it,
+    so the Shipments page and the Trips page never show conflicting assignments.
+    """
+    if not shipment_id:
+        return
+    shipment = db.query(models.Shipment).filter(models.Shipment.id == shipment_id).first()
+    if not shipment:
+        return
+    if shipment.vehicle_id != vehicle_id or shipment.driver_id != driver_id:
+        shipment.vehicle_id = vehicle_id
+        shipment.driver_id = driver_id
+        db.commit()
+        db.refresh(shipment)
+        await broadcast_shipment_update(shipment)
+
+
 @router.post("/", response_model=schemas.TripResponse)
-def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == trip.vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
@@ -68,6 +87,10 @@ def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), current
     db.add(new_trip)
     db.commit()
     db.refresh(new_trip)
+
+    # Keep the linked shipment's vehicle/driver in sync with this trip
+    await sync_shipment_assignment(db, new_trip.shipment_id, new_trip.vehicle_id, new_trip.driver_id)
+
     return new_trip
 
 
@@ -85,7 +108,7 @@ def get_trip(trip_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{trip_id}", response_model=schemas.TripResponse)
-def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     trip = db.query(models.Trip).filter(models.Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -106,11 +129,21 @@ def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = Depends
     if updated.status in ACTIVE_STATUSES:
         check_double_assignment(db, updated.driver_id, updated.vehicle_id, exclude_trip_id=trip_id)
 
+    previous_shipment_id = trip.shipment_id
+
     for key, value in updated.dict().items():
         setattr(trip, key, value)
 
     db.commit()
     db.refresh(trip)
+
+    # Sync the newly-linked shipment (if any) to this trip's vehicle/driver
+    await sync_shipment_assignment(db, trip.shipment_id, trip.vehicle_id, trip.driver_id)
+
+    # If the trip was unlinked from a shipment or switched to a different one,
+    # the old shipment no longer has a trip — leave its vehicle/driver as-is
+    # (it still reflects the last known assignment) rather than clearing it.
+
     return trip
 
 

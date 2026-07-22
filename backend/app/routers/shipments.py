@@ -35,6 +35,8 @@ async def broadcast_shipment_update(shipment: models.Shipment):
         "status": status_value,
         "origin": shipment.origin,
         "destination": shipment.destination,
+        "vehicle_id": shipment.vehicle_id,
+        "driver_id": shipment.driver_id,
     }
 
     await manager.broadcast(message)
