@@ -8,6 +8,7 @@ from app.schemas.trip import TripCreate, TripUpdate, TripResponse
 from app.services import trip_service
 from app.services.geocoding_service import geocode_location
 from app.services.route_service import generate_route
+from app.services import eta_service
 from app.utils.security import has_role
 from app.models.driver import Driver
 from app.models.trip import Trip
@@ -135,4 +136,45 @@ def get_trip_route(
         "estimated_duration_minutes": route_data["estimated_duration_minutes"],
         "route_summary": route_data["route_summary"],
         "polyline": route_data["polyline"],
+    }
+
+
+@router.get("/{trip_id}/eta")
+def get_trip_eta(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(has_role(["Admin", "Dispatcher", "Driver"])),
+):
+    """
+    Return the Estimated Time of Arrival for a trip.
+
+    Workflow:
+    1. Load Trip (404 if not found).
+    2. Reuse ETA Service which internally reuses the existing Route Service.
+    3. Return distance_km, estimated_duration_minutes, estimated_arrival_time,
+       and eta_readable.
+    """
+    # Verify trip exists (also checked inside eta_service, but guard here for
+    # role-based access control before delegating to the service)
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    # Drivers may only view ETAs for their own trips
+    if current_user.role == "Driver":
+        driver = db.query(Driver).filter(Driver.name.ilike(current_user.name)).first()
+        if not driver or trip.driver_id != driver.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have access to this resource",
+            )
+
+    eta_data = eta_service.calculate_eta(trip_id, db)
+
+    return {
+        "trip_id": trip_id,
+        "distance_km": eta_data["distance_km"],
+        "estimated_duration_minutes": eta_data["estimated_duration_minutes"],
+        "estimated_arrival_time": eta_data["estimated_arrival_time"],
+        "eta_readable": eta_data["eta_readable"],
     }

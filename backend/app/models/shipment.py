@@ -9,9 +9,11 @@ from app.database import Base
 class ShipmentStatus(str, enum.Enum):
     CREATED = "Created"
     ASSIGNED = "Assigned"
+    PICKED_UP = "Picked Up"
     IN_TRANSIT = "In Transit"
-    DELAYED = "Delayed"
+    OUT_FOR_DELIVERY = "Out for Delivery"
     DELIVERED = "Delivered"
+    DELAYED = "Delayed"
     CANCELLED = "Cancelled"
 
 
@@ -24,7 +26,7 @@ class Shipment(Base):
     receiver_name = Column(String(100), nullable=False)
     pickup_location = Column(String(100), nullable=False)
     delivery_location = Column(String(100), nullable=False)
-    current_status = Column(SQLEnum(ShipmentStatus), default=ShipmentStatus.CREATED, nullable=False)
+    current_status = Column(SQLEnum(ShipmentStatus, values_callable=lambda obj: [e.value for e in obj]), default=ShipmentStatus.CREATED, nullable=False)
     weight = Column(Float, nullable=True)
     created_date = Column(DateTime, default=datetime.utcnow, nullable=False)
 
