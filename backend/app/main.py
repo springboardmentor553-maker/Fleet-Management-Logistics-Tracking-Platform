@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from app.routers import auth, driver, vehicle, trip, users
 from app.routers.shipment import router as shipment_router
 from app.routers.dashboard import router as dashboard_router
+from app.websocket.router import router as ws_router
 
 # ---------------------------------------------------------------------------
 # Logging — structured output to stdout so uvicorn captures it cleanly
@@ -117,6 +118,7 @@ app.include_router(shipment_router)
 app.include_router(trip.router)
 app.include_router(users.router)
 app.include_router(dashboard_router)
+app.include_router(ws_router)
 
 
 @app.get("/")

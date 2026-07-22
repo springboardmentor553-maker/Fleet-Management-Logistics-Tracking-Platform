@@ -1,3 +1,5 @@
+import asyncio
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -196,6 +198,28 @@ def edit_shipment(
 
     db.commit()
     db.refresh(db_shipment)
+
+    # -----------------------------------------------------------------------
+    # Broadcast real-time status update to all WebSocket clients watching
+    # this shipment's trip.  Only fires after a successful DB commit.
+    # No polling, no timers — this is event-driven.
+    # -----------------------------------------------------------------------
+    if db_shipment.trip is not None:
+        from app.websocket.connection_manager import manager  # local import avoids circular refs
+        asyncio.ensure_future(
+            manager.broadcast_to_trip(
+                db_shipment.trip.id,
+                {
+                    "type": "status_update",
+                    "trip_id": db_shipment.trip.id,
+                    "tracking_number": db_shipment.tracking_number,
+                    "status": db_shipment.current_status.value
+                    if hasattr(db_shipment.current_status, "value")
+                    else str(db_shipment.current_status),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+        )
 
     return db_shipment
 
