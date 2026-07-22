@@ -4,7 +4,7 @@ from app.database import get_db
 from app import models
 from app import schemas
 from app.utils.dependencies import require_role
-from app.websocket_manager import manager
+from app.connection_manager import manager
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 

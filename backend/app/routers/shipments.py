@@ -4,6 +4,7 @@ from app.database import get_db
 from app import models
 from app import schemas
 from app.utils.dependencies import require_role
+from app.connection_manager import manager
 import re
 
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
@@ -20,6 +21,27 @@ def generate_tracking_number(db: Session) -> str:
             if num > max_number:
                 max_number = num
     return f"FLT{max_number + 1}"
+
+
+async def broadcast_shipment_update(shipment: models.Shipment):
+    """Sends the shipment's new status to the global channel, plus to its
+    linked trip's channel (if it has one), so anyone watching either updates instantly."""
+    status_value = shipment.status.value if hasattr(shipment.status, "value") else shipment.status
+
+    message = {
+        "type": "shipment_status_update",
+        "shipment_id": shipment.id,
+        "tracking_id": shipment.tracking_id,
+        "status": status_value,
+        "origin": shipment.origin,
+        "destination": shipment.destination,
+    }
+
+    await manager.broadcast(message)
+
+    if shipment.trip is not None:
+        await manager.broadcast_to_trip(shipment.trip.id, message)
+
 
 @router.post("/", response_model=schemas.ShipmentResponse)
 def create_shipment(shipment: schemas.ShipmentCreate, db: Session = Depends(get_db)):
@@ -45,7 +67,7 @@ def get_shipment(shipment_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{shipment_id}", response_model=schemas.ShipmentResponse)
-def update_shipment(shipment_id: int, updated: schemas.ShipmentCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+async def update_shipment(shipment_id: int, updated: schemas.ShipmentCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     shipment = db.query(models.Shipment).filter(models.Shipment.id == shipment_id).first()
     if not shipment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
@@ -68,11 +90,14 @@ def update_shipment(shipment_id: int, updated: schemas.ShipmentCreate, db: Sessi
 
     db.commit()
     db.refresh(shipment)
+
+    await broadcast_shipment_update(shipment)
+
     return shipment
 
 
 @router.put("/{shipment_id}/status", response_model=schemas.ShipmentResponse)
-def update_shipment_status(shipment_id: int, update: schemas.ShipmentStatusUpdate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+async def update_shipment_status(shipment_id: int, update: schemas.ShipmentStatusUpdate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     shipment = db.query(models.Shipment).filter(models.Shipment.id == shipment_id).first()
     if not shipment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
@@ -83,6 +108,9 @@ def update_shipment_status(shipment_id: int, update: schemas.ShipmentStatusUpdat
     shipment.status = update.status
     db.commit()
     db.refresh(shipment)
+
+    await broadcast_shipment_update(shipment)
+
     return shipment
 
 

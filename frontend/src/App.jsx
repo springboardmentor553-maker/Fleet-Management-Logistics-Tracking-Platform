@@ -161,6 +161,13 @@ useEffect(() => {
           : v
       ))
     }
+    if (data.type === 'shipment_status_update') {
+      setShipments(prev => prev.map(s =>
+        s.id === data.shipment_id
+          ? { ...s, status: data.status }
+          : s
+      ))
+    }
   }
 
   ws.onerror = (err) => console.log('WebSocket error:', err)
