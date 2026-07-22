@@ -6,6 +6,9 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
 import Drivers from './pages/Drivers'
+import Shipments from './pages/Shipments'
+import Trips from './pages/Trips'
+import LiveTracking from './pages/LiveTracking'
 
 export default function App() {
   return (
@@ -20,6 +23,10 @@ export default function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/vehicles"  element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
           <Route path="/drivers"   element={<ProtectedRoute><Drivers /></ProtectedRoute>} />
+          <Route path="/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
+          <Route path="/trips"     element={<ProtectedRoute><Trips /></ProtectedRoute>} />
+          <Route path="/tracking"  element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
+          <Route path="/tracking/:tripId" element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

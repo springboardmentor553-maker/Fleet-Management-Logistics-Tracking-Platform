@@ -718,3 +718,44 @@ tbody tr:hover { background: var(--bg-table-hover); }
 @keyframes slideUp  { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes spin     { to { transform: rotate(360deg); } }
 @keyframes shimmer  { to { background-position: -200% 0; } }
+
+/* ── Form grid (Shipments / Trips create forms) ─────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-input {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+}
+.form-input:focus { border-color: var(--border-focus); }
+
+/* ── surface-2 alias used by LiveTracking info cards ────────── */
+:root { --surface-2: #f1f5f9; --accent: var(--color-primary); --danger: #ef4444; }
+
+/* ── Utility: btn-sm ────────────────────────────────────────── */
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+}
+
