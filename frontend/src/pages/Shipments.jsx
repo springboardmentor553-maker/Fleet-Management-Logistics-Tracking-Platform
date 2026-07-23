@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { shipmentService, vehicleService, driverService, getApiErrorMessage } from '../services/api'
 import { 
-  Plus, 
   Search, 
   Edit2, 
   Trash2, 
@@ -332,7 +331,7 @@ export default function Shipments() {
                         </div>
                       </td>
                       <td>
-                        <span className={`badge badge--${shipment.current_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                        <span className={`badge badge--${(shipment.current_status || 'created').toLowerCase().replace(/\s+/g, '')}`}>
                           {shipment.current_status}
                         </span>
                       </td>
@@ -503,9 +502,11 @@ export default function Shipments() {
                     >
                       <option value="Created">Created</option>
                       <option value="Assigned">Assigned</option>
+                      <option value="Picked Up">Picked Up</option>
                       <option value="In Transit">In Transit</option>
-                      <option value="Delayed">Delayed</option>
+                      <option value="Out for Delivery">Out for Delivery</option>
                       <option value="Delivered">Delivered</option>
+                      <option value="Delayed">Delayed</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>

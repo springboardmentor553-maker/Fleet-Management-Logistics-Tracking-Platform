@@ -292,7 +292,7 @@ export default function Vehicles() {
                       <td>{vehicle.fuel_type}</td>
                       <td>{getDriverName(vehicle.driver_id)}</td>
                       <td>
-                        <span className={`badge badge--${vehicle.status?.toLowerCase().replace(' ', '') || 'available'}`}>
+                        <span className={`badge badge--${(vehicle.status || 'available').toLowerCase().replace(/\s+/g, '')}`}>
                           {vehicle.status}
                         </span>
                       </td>

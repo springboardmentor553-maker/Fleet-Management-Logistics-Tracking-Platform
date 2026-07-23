@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
+import { tripService } from '../services/api';
 
 // Fix for default Leaflet icon paths in Vite
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -138,6 +138,41 @@ function LiveVehicleTracker({ position }) {
   return null;
 }
 
+function decodePolyline(encodedStr) {
+  if (!encodedStr) return [];
+  if (encodedStr.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(encodedStr);
+      return parsed.map(([lng, lat]) => [lat, lng]);
+    } catch (e) {
+      return [];
+    }
+  }
+  let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null;
+  while (index < encodedStr.length) {
+    byte = null; shift = 0; result = 0;
+    do {
+      byte = encodedStr.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    const deltaLat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lat += deltaLat;
+
+    shift = 0; result = 0;
+    do {
+      byte = encodedStr.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    const deltaLng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lng += deltaLng;
+
+    coordinates.push([lat / 1e5, lng / 1e5]);
+  }
+  return coordinates;
+}
+
 const defaultCenter = [20.5937, 78.9629]; // Center of India (Static reference to prevent infinite loops)
 
 /**
@@ -145,13 +180,12 @@ const defaultCenter = [20.5937, 78.9629]; // Center of India (Static reference t
  *
  * Props
  * -----
+ * tripId             : number  — primary key of the Trip row
  * pickupAddress      : string  — human-readable pickup location
  * destinationAddress : string  — human-readable destination
  * livePosition       : { lat: number, lng: number } | null
- *                      Real-time vehicle position from WebSocket.
- *                      When non-null, a pulsing vehicle marker is shown.
  */
-export default function MapView({ pickupAddress, destinationAddress, livePosition = null }) {
+export default function MapView({ tripId, pickupAddress, destinationAddress, livePosition = null }) {
   const [state, setState] = useState({
     pickup: null,      // { lat, lng, name }
     destination: null, // { lat, lng, name }
@@ -163,7 +197,7 @@ export default function MapView({ pickupAddress, destinationAddress, livePositio
   });
 
   useEffect(() => {
-    if (!pickupAddress || !destinationAddress) {
+    if (!tripId && (!pickupAddress || !destinationAddress)) {
       setState({
         pickup: null,
         destination: null,
@@ -176,95 +210,63 @@ export default function MapView({ pickupAddress, destinationAddress, livePositio
       return;
     }
 
-    const fetchRoute = async () => {
+    const fetchBackendRoute = async () => {
       setState(prev => ({ ...prev, loading: true, error: null, route: null }));
       try {
-        // Geocode Pickup Address using Nominatim
-        const pickupRes = await axios.get(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pickupAddress)}&format=json&limit=1`
-        );
-        if (!pickupRes.data || pickupRes.data.length === 0) {
-          throw new Error(`Could not find coordinates for pickup origin: "${pickupAddress}"`);
+        if (tripId) {
+          // Consume backend GET /trips/{trip_id}/route API
+          const routeRes = await tripService.getRoute(tripId);
+          const data = routeRes.data;
+
+          const pickupLoc = {
+            lat: data.pickup_coordinates.latitude,
+            lng: data.pickup_coordinates.longitude,
+            name: data.pickup_location
+          };
+          const destLoc = {
+            lat: data.destination_coordinates.latitude,
+            lng: data.destination_coordinates.longitude,
+            name: data.destination
+          };
+
+          const decodedPath = decodePolyline(data.polyline);
+          const pathCoords = decodedPath.length > 0
+            ? decodedPath
+            : [[pickupLoc.lat, pickupLoc.lng], [destLoc.lat, destLoc.lng]];
+
+          setState({
+            pickup: pickupLoc,
+            destination: destLoc,
+            route: pathCoords,
+            loading: false,
+            error: null,
+            distance: data.distance_km,
+            duration: Math.round(data.estimated_duration_minutes)
+          });
+        } else {
+          setState({
+            pickup: null,
+            destination: null,
+            route: null,
+            loading: false,
+            error: 'Select a trip to load backend route telemetry.',
+            distance: null,
+            duration: null
+          });
         }
-        const pickupLoc = {
-          lat: parseFloat(pickupRes.data[0].lat),
-          lng: parseFloat(pickupRes.data[0].lon),
-          name: pickupRes.data[0].display_name
-        };
-
-        // Geocode Destination Address using Nominatim
-        const destRes = await axios.get(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destinationAddress)}&format=json&limit=1`
-        );
-        if (!destRes.data || destRes.data.length === 0) {
-          throw new Error(`Could not find coordinates for destination: "${destinationAddress}"`);
-        }
-        const destLoc = {
-          lat: parseFloat(destRes.data[0].lat),
-          lng: parseFloat(destRes.data[0].lon),
-          name: destRes.data[0].display_name
-        };
-
-        // Get API Key for OpenRouteService
-        const apiKey = import.meta.env.VITE_ORS_API_KEY;
-        if (!apiKey) {
-          throw new Error('OpenRouteService API Key (VITE_ORS_API_KEY) is not defined.');
-        }
-
-        // Fetch route from OpenRouteService
-        const routeRes = await axios.post(
-          'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
-          {
-            coordinates: [
-              [pickupLoc.lng, pickupLoc.lat],
-              [destLoc.lng, destLoc.lat]
-            ],
-            units: 'km'
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': apiKey
-            }
-          }
-        );
-
-        if (!routeRes.data || !routeRes.data.features || routeRes.data.features.length === 0) {
-          throw new Error('No route found between locations.');
-        }
-
-        const feature = routeRes.data.features[0];
-        const geometry = feature.geometry;
-        const properties = feature.properties || {};
-
-        // Parse coordinates: ORS returns [lng, lat], Leaflet wants [lat, lng]
-        const pathCoords = geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-
-        const routeSummary = properties.summary || {};
-        const distVal = routeSummary.distance ? routeSummary.distance.toFixed(1) : null;
-        const durVal = routeSummary.duration ? Math.round(routeSummary.duration / 60) : null;
-
-        setState({
-          pickup: pickupLoc,
-          destination: destLoc,
-          route: pathCoords,
-          loading: false,
-          error: null,
-          distance: distVal,
-          duration: durVal
-        });
       } catch (err) {
-        console.error('MapView route fetching error:', err);
+        console.error('MapView backend route fetching error:', err);
+        const detail = err?.response?.data?.detail || err.message || 'Failed to calculate route telemetry.';
         setState(prev => ({
           ...prev,
           loading: false,
-          error: err.message || 'An error occurred during routing.'
+          error: detail
         }));
       }
     };
 
-    fetchRoute();
-  }, [pickupAddress, destinationAddress]);
+    fetchBackendRoute();
+  }, [tripId, pickupAddress, destinationAddress]);
 
   // Memoize bounds with stable reference to prevent infinite rendering loop with react-leaflet
   const mapBounds = React.useMemo(() => {

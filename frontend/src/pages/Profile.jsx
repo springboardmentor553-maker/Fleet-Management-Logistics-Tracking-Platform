@@ -7,7 +7,6 @@ import {
   Truck, 
   Package, 
   Users, 
-  CheckCircle2, 
   Lock, 
   LogOut 
 } from 'lucide-react'

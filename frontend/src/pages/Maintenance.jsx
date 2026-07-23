@@ -5,9 +5,7 @@ import {
   AlertCircle, 
   Wrench, 
   Check, 
-  CheckSquare, 
-  AlertTriangle,
-  ClipboardList
+  AlertTriangle
 } from 'lucide-react'
 
 export default function Maintenance() {

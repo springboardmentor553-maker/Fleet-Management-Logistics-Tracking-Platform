@@ -253,7 +253,7 @@ export default function Drivers() {
                       <td>{driver.license_number}</td>
                       <td>{driver.phone}</td>
                       <td>
-                        <span className={`badge badge--${driver.status?.toLowerCase().replace(' ', '') || 'available'}`}>
+                        <span className={`badge badge--${(driver.status || 'available').toLowerCase().replace(/\s+/g, '')}`}>
                           {driver.status}
                         </span>
                       </td>

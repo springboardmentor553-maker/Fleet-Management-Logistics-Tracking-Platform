@@ -5,8 +5,6 @@ import {
   Truck, 
   Users, 
   Package, 
-  CheckCircle2, 
-  Wrench, 
   ClipboardCheck, 
   Plus, 
   UserPlus, 
@@ -15,6 +13,12 @@ import {
 } from 'lucide-react'
 
 export default function Dashboard() {
+  const [summary, setSummary] = useState({
+    total_shipments: 0,
+    active_deliveries: 0,
+    delivered_shipments: 0,
+    delayed_shipments: 0,
+  })
   const [data, setData] = useState({
     drivers: [],
     vehicles: [],
@@ -43,15 +47,21 @@ export default function Dashboard() {
       setLoading(true)
       setError('')
 
-      const [driversRes, vehiclesRes, shipmentsRes] = await Promise.all([
+      const [summaryRes, driversRes, shipmentsRes] = await Promise.all([
+        api.get('/dashboard/summary'),
         api.get('/drivers/'),
-        api.get('/vehicles/'),
         api.get('/shipments/'),
       ])
 
+      setSummary(summaryRes.data || {
+        total_shipments: 0,
+        active_deliveries: 0,
+        delivered_shipments: 0,
+        delayed_shipments: 0,
+      })
+
       setData({
         drivers: driversRes.data || [],
-        vehicles: vehiclesRes.data || [],
         shipments: shipmentsRes.data || [],
       })
     } catch (err) {
@@ -83,14 +93,6 @@ export default function Dashboard() {
     )
   }
 
-  // Calculate dynamic stats
-  const totalDrivers = data.drivers.length
-  const totalVehicles = data.vehicles.length
-  const totalShipments = data.shipments.length
-  const availableVehicles = data.vehicles.filter((v) => v.status?.toLowerCase() === 'available').length
-  const maintenanceVehicles = data.vehicles.filter((v) => v.status?.toLowerCase() === 'maintenance' || v.status?.toLowerCase() === 'under maintenance').length
-  const deliveredShipments = data.shipments.filter((s) => s.current_status?.toLowerCase() === 'delivered').length
-
   // Latest records
   const latestShipments = [...data.shipments].reverse().slice(0, 5)
   const latestDrivers = [...data.drivers].reverse().slice(0, 5)
@@ -105,71 +107,49 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-        {/* Total Vehicles */}
-        <div className="kpi-card">
-          <div className="kpi-card__icon-container" style={{ backgroundColor: '#EFF6FF', color: 'var(--primary)' }}>
-            <Truck className="kpi-card__icon" />
-          </div>
-          <div className="kpi-card__details">
-            <span className="kpi-card__label">Total Vehicles</span>
-            <span className="kpi-card__value">{totalVehicles}</span>
-          </div>
-        </div>
-
-        {/* Total Drivers */}
-        <div className="kpi-card">
-          <div className="kpi-card__icon-container" style={{ backgroundColor: '#F0FDF4', color: '#16A34A' }}>
-            <Users className="kpi-card__icon" />
-          </div>
-          <div className="kpi-card__details">
-            <span className="kpi-card__label">Total Drivers</span>
-            <span className="kpi-card__value">{totalDrivers}</span>
-          </div>
-        </div>
-
-        {/* Total Shipments */}
+      {/* KPI Cards Grid — Required Milestone 2 Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+        {/* Total Shipments Card */}
         <div className="kpi-card">
           <div className="kpi-card__icon-container" style={{ backgroundColor: '#FEF3C7', color: '#D97706' }}>
             <Package className="kpi-card__icon" />
           </div>
           <div className="kpi-card__details">
             <span className="kpi-card__label">Total Shipments</span>
-            <span className="kpi-card__value">{totalShipments}</span>
+            <span className="kpi-card__value">{summary.total_shipments}</span>
           </div>
         </div>
 
-        {/* Available Fleets */}
+        {/* Active Deliveries Card */}
         <div className="kpi-card">
-          <div className="kpi-card__icon-container" style={{ backgroundColor: '#E0F2FE', color: '#0284C7' }}>
-            <CheckCircle2 className="kpi-card__icon" />
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#EFF6FF', color: 'var(--primary)' }}>
+            <Truck className="kpi-card__icon" />
           </div>
           <div className="kpi-card__details">
-            <span className="kpi-card__label">Available Fleets</span>
-            <span className="kpi-card__value">{availableVehicles}</span>
+            <span className="kpi-card__label">Active Deliveries</span>
+            <span className="kpi-card__value">{summary.active_deliveries}</span>
           </div>
         </div>
 
-        {/* In Maintenance */}
-        <div className="kpi-card">
-          <div className="kpi-card__icon-container" style={{ backgroundColor: '#FEF2F2', color: '#DC2626' }}>
-            <Wrench className="kpi-card__icon" />
-          </div>
-          <div className="kpi-card__details">
-            <span className="kpi-card__label">In Maintenance</span>
-            <span className="kpi-card__value">{maintenanceVehicles}</span>
-          </div>
-        </div>
-
-        {/* Delivered Orders */}
+        {/* Delivered Shipments Card */}
         <div className="kpi-card">
           <div className="kpi-card__icon-container" style={{ backgroundColor: '#F0FDF4', color: '#15803D' }}>
             <ClipboardCheck className="kpi-card__icon" />
           </div>
           <div className="kpi-card__details">
-            <span className="kpi-card__label">Delivered Orders</span>
-            <span className="kpi-card__value">{deliveredShipments}</span>
+            <span className="kpi-card__label">Delivered Shipments</span>
+            <span className="kpi-card__value">{summary.delivered_shipments}</span>
+          </div>
+        </div>
+
+        {/* Delayed Shipments Card */}
+        <div className="kpi-card">
+          <div className="kpi-card__icon-container" style={{ backgroundColor: '#FEF2F2', color: '#DC2626' }}>
+            <AlertTriangle className="kpi-card__icon" />
+          </div>
+          <div className="kpi-card__details">
+            <span className="kpi-card__label">Delayed Shipments</span>
+            <span className="kpi-card__value">{summary.delayed_shipments}</span>
           </div>
         </div>
       </div>
@@ -209,7 +189,7 @@ export default function Dashboard() {
                       <td>{shipment.pickup_location}</td>
                       <td>{shipment.delivery_location}</td>
                       <td>
-                        <span className={`badge badge--${shipment.current_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                        <span className={`badge badge--${(shipment.current_status || 'created').toLowerCase().replace(/\s+/g, '')}`}>
                           {shipment.current_status}
                         </span>
                       </td>
@@ -231,7 +211,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Right Column: Quick Actions & Drivers */}
+        {/* Right Column: Quick Operations Panel & Drivers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* Quick Operations Panel */}
@@ -269,7 +249,7 @@ export default function Dashboard() {
                       <h4 style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-main)' }}>{driver.name}</h4>
                       <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{driver.phone}</p>
                     </div>
-                    <span className={`badge badge--${driver.status?.toLowerCase().replace(' ', '')}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                    <span className={`badge badge--${(driver.status || 'available').toLowerCase().replace(/\s+/g, '')}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
                       {driver.status}
                     </span>
                   </div>

@@ -112,6 +112,9 @@ export const shipmentService = {
   remove(id) {
     return api.delete(`/shipments/${id}`)
   },
+  getTrackingStatus(trackingNumber) {
+    return api.get(`/shipments/${encodeURIComponent(trackingNumber)}/status`)
+  },
 }
 
 export const tripService = {
@@ -129,6 +132,12 @@ export const tripService = {
   },
   remove(id) {
     return api.delete(`/trips/${id}`)
+  },
+  getRoute(id) {
+    return api.get(`/trips/${id}/route`)
+  },
+  getEta(id) {
+    return api.get(`/trips/${id}/eta`)
   },
 }
 

@@ -9,7 +9,6 @@ import {
   X, 
   ChevronLeft, 
   ChevronRight,
-  ShieldAlert,
   Shield
 } from 'lucide-react'
 
@@ -221,7 +220,7 @@ export default function Users() {
                     </td>
                     <td>{u.email}</td>
                     <td>
-                      <span className={`badge badge--${u.role?.toLowerCase() === 'admin' ? 'success' : u.role?.toLowerCase() === 'driver' ? 'danger' : 'secondary'}`}>
+                      <span className={`badge badge--${(u.role || '').toLowerCase() === 'admin' ? 'success' : (u.role || '').toLowerCase() === 'driver' ? 'danger' : 'secondary'}`}>
                         {u.role}
                       </span>
                     </td>

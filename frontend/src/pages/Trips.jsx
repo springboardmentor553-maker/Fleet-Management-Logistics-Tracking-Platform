@@ -342,7 +342,7 @@ export default function Trips() {
                       <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_start_time).toLocaleString()}</td>
                       <td style={{ fontSize: '13px' }}>{new Date(trip.scheduled_end_time).toLocaleString()}</td>
                       <td>
-                        <span className={`badge badge--${trip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                        <span className={`badge badge--${(trip.trip_status || 'created').toLowerCase().replace(/\s+/g, '')}`}>
                           {trip.trip_status}
                         </span>
                       </td>
@@ -442,7 +442,7 @@ export default function Trips() {
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: wsState === 'open' ? '#10B981' : wsState === 'connecting' ? '#F59E0B' : '#6B7280' }}></span>
                   {wsState === 'open' ? 'WS Connected' : wsState === 'connecting' ? 'WS Connecting' : 'WS Offline'}
                 </span>
-                <span className={`badge badge--${selectedTrip.trip_status?.toLowerCase().replace(' ', '') || 'created'}`}>
+                <span className={`badge badge--${(selectedTrip.trip_status || 'created').toLowerCase().replace(/\s+/g, '')}`}>
                   {selectedTrip.trip_status}
                 </span>
               </div>
@@ -450,6 +450,7 @@ export default function Trips() {
           </div>
 
           <MapView 
+            tripId={selectedTrip?.id}
             pickupAddress={selectedTrip?.pickup_location} 
             destinationAddress={selectedTrip?.destination} 
             livePosition={livePosition}

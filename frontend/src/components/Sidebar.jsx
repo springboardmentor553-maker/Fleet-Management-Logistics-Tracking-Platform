@@ -10,7 +10,8 @@ import {
   User, 
   LogOut,
   Shield,
-  Compass
+  Compass,
+  Search
 } from "lucide-react";
 
 const navigationItems = [
@@ -19,6 +20,7 @@ const navigationItems = [
   { to: "/drivers", label: "Drivers", icon: Users, roles: ["Admin", "Fleet Manager"] },
   { to: "/vehicles", label: "Vehicles", icon: Truck, roles: ["Admin", "Fleet Manager"] },
   { to: "/shipments", label: "Shipments", icon: Package, roles: ["Admin", "Dispatcher"] },
+  { to: "/tracking", label: "Track Cargo", icon: Search, roles: ["Admin", "Fleet Manager", "Dispatcher", "Driver"] },
   { to: "/trips", label: "Trips", icon: Compass, roles: ["Admin", "Dispatcher", "Driver"] },
   { to: "/maintenance", label: "Maintenance", icon: Wrench, roles: ["Admin", "Fleet Manager"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["Admin", "Fleet Manager"] },

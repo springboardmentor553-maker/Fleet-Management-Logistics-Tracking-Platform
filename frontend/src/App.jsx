@@ -11,6 +11,7 @@ import Reports from './pages/Reports'
 import Profile from './pages/Profile'
 import Users from './pages/Users'
 import Trips from './pages/Trips'
+import Tracking from './pages/Tracking'
 import AccessDenied from './pages/AccessDenied'
 
 export default function App() {
@@ -38,6 +39,8 @@ export default function App() {
           <Route element={<ProtectedRoute allowedRoles={['Admin', 'Dispatcher', 'Driver']} />}>
             <Route path="/trips" element={<Trips />} />
           </Route>
+
+          <Route path="/tracking" element={<Tracking />} />
           
           <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
             <Route path="/users" element={<Users />} />

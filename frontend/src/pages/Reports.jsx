@@ -3,13 +3,11 @@ import api, { getApiErrorMessage } from '../services/api'
 import { 
   Download, 
   Printer, 
-  AlertCircle, 
   TrendingUp, 
   Users, 
   Wrench, 
-  CheckCircle2, 
-  Package,
-  Activity,
+  Package, 
+  Activity, 
   AlertTriangle
 } from 'lucide-react'
 
