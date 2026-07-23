@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import "./Notifications.css";
-
+import { getSocket } from "../../src/services/websocketService";
 import {
   FaBell,
   FaTrash,
@@ -26,13 +26,19 @@ function Notifications() {
     fetchNotifications();
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 60000);
+useEffect(() => {
 
-    return () => clearInterval(timer);
-  }, []);
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.onmessage = (event) => {
+
+        console.log(event.data);
+
+    };
+
+}, []);
 
   // ====================================
   // Fetch Notifications

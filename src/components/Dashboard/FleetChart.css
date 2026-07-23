@@ -1,19 +1,30 @@
-.chart-container{
-
-    background:white;
-
-    margin-top:25px;
-
-    padding:20px;
-
-    border-radius:12px;
-
-    box-shadow:0px 4px 15px rgba(0,0,0,.12);
-
+.chart-container {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 30px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.08);
 }
 
-.chart-container h2{
+.chart-container h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+}
 
-    margin-bottom:20px;
+.recharts-wrapper {
+    font-size: 13px;
+}
 
+@media (max-width: 768px) {
+
+    .chart-container {
+        padding: 15px;
+    }
+
+    .chart-container h2 {
+        font-size: 20px;
+    }
 }

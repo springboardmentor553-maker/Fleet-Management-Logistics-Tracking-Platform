@@ -1,22 +1,19 @@
-import GoogleMapComponent from "../components/Maps/GoogleMap";
-import "../components/Maps/Map.css";
+import LiveMap from "../components/LiveMap";
+
+import "./MapPage.css";
 
 function MapPage() {
-  return (
-    <div className="map-page">
 
-      <div className="map-card">
+    return (
 
-        <h2 className="map-title">
-          FleetFlow Live Map
-        </h2>
+        <div className="map-wrapper">
 
-        <GoogleMapComponent />
+            <LiveMap />
 
-      </div>
+        </div>
 
-    </div>
-  );
+    );
+
 }
 
 export default MapPage;

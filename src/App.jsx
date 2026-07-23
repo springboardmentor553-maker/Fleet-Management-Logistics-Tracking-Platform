@@ -10,6 +10,8 @@ import Settings from "./pages/Settings";
 import Trips from "./pages/Trips";
 import MainLayout from "./layout/MainLayout";
 import MapPage from "./pages/MapPage";
+import { useEffect } from "react";
+import { connectWebSocket } from "./services/websocketService";
 // Protected Route
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -18,6 +20,11 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+
+    connectWebSocket(1);
+
+}, []);
   return (
     <Routes>
       {/* Login */}
@@ -50,6 +57,7 @@ function App() {
         <Route path="/map" element={<MapPage />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/map" element={<MapPage />} />
       </Route>
 
       {/* Invalid URL */}

@@ -1,29 +1,21 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import "./Shipment.css";
+import { shipmentStatuses } from "../../constants/shipmentStatus.js";
 
 function ShipmentForm({
   selectedShipment,
-
   fetchShipments,
-
   setSelectedShipment,
 }) {
   const [formData, setFormData] = useState({
     sender_name: "",
-
     receiver_name: "",
-
     pickup_location: "",
-
     delivery_location: "",
-
     current_status: "Created",
-
     weight: "",
-
     assigned_driver_id: "",
-
     assigned_vehicle_id: "",
   });
 
@@ -31,20 +23,15 @@ function ShipmentForm({
     if (selectedShipment) {
       setFormData({
         sender_name: selectedShipment.sender_name || "",
-
         receiver_name: selectedShipment.receiver_name || "",
-
         pickup_location: selectedShipment.pickup_location || "",
-
         delivery_location: selectedShipment.delivery_location || "",
-
         current_status: selectedShipment.current_status || "Created",
-
         weight: selectedShipment.weight || "",
-
-        assigned_driver_id: selectedShipment.assigned_driver_id || "",
-
-        assigned_vehicle_id: selectedShipment.assigned_vehicle_id || "",
+        assigned_driver_id:
+          selectedShipment.assigned_driver_id || "",
+        assigned_vehicle_id:
+          selectedShipment.assigned_vehicle_id || "",
       });
     } else {
       resetForm();
@@ -54,29 +41,21 @@ function ShipmentForm({
   const resetForm = () => {
     setFormData({
       sender_name: "",
-
       receiver_name: "",
-
       pickup_location: "",
-
       delivery_location: "",
-
       current_status: "Created",
-
       weight: "",
-
       assigned_driver_id: "",
-
       assigned_vehicle_id: "",
     });
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -84,36 +63,35 @@ function ShipmentForm({
 
     const shipmentData = {
       sender_name: formData.sender_name,
-
       receiver_name: formData.receiver_name,
-
       pickup_location: formData.pickup_location,
-
       delivery_location: formData.delivery_location,
-
       current_status: formData.current_status,
-
       weight: Number(formData.weight),
 
-      assigned_driver_id: Number(formData.assigned_driver_id),
+      assigned_driver_id:
+        formData.assigned_driver_id === ""
+          ? null
+          : Number(formData.assigned_driver_id),
 
-      assigned_vehicle_id: Number(formData.assigned_vehicle_id),
+      assigned_vehicle_id:
+        formData.assigned_vehicle_id === ""
+          ? null
+          : Number(formData.assigned_vehicle_id),
     };
 
     try {
       if (selectedShipment) {
         await api.put(
           `/shipments/${selectedShipment.id}`,
-
-          shipmentData,
+          shipmentData
         );
 
         alert("Shipment Updated Successfully");
       } else {
         await api.post(
           "/shipments",
-
-          shipmentData,
+          shipmentData
         );
 
         alert("Shipment Added Successfully");
@@ -127,7 +105,7 @@ function ShipmentForm({
         setSelectedShipment(null);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       alert("Something went wrong!");
     }
@@ -135,10 +113,17 @@ function ShipmentForm({
 
   return (
     <div className="shipment-form-card">
-      <h2>{selectedShipment ? "Update Shipment" : "Add New Shipment"}</h2>
+      <h2>
+        {selectedShipment
+          ? "Update Shipment"
+          : "Add New Shipment"}
+      </h2>
 
-      <form className="shipment-form" onSubmit={handleSubmit}>
-        {/* Sender Name */}
+      <form
+        className="shipment-form"
+        onSubmit={handleSubmit}
+      >
+        {/* Sender */}
 
         <div className="form-group">
           <label>Sender Name</label>
@@ -153,7 +138,7 @@ function ShipmentForm({
           />
         </div>
 
-        {/* Receiver Name */}
+        {/* Receiver */}
 
         <div className="form-group">
           <label>Receiver Name</label>
@@ -168,7 +153,7 @@ function ShipmentForm({
           />
         </div>
 
-        {/* Pickup Location */}
+        {/* Pickup */}
 
         <div className="form-group">
           <label>Pickup Location</label>
@@ -183,7 +168,7 @@ function ShipmentForm({
           />
         </div>
 
-        {/* Delivery Location */}
+        {/* Delivery */}
 
         <div className="form-group">
           <label>Delivery Location</label>
@@ -217,28 +202,25 @@ function ShipmentForm({
         {/* Status */}
 
         <div className="form-group">
-          <label>Status</label>
+          <label>Shipment Status</label>
 
           <select
             name="current_status"
             value={formData.current_status}
             onChange={handleChange}
           >
-            <option value="Created">Created</option>
-
-            <option value="Assigned">Assigned</option>
-
-            <option value="In Transit">In Transit</option>
-
-            <option value="Delayed">Delayed</option>
-
-            <option value="Delivered">Delivered</option>
-
-            <option value="Cancelled">Cancelled</option>
+            {shipmentStatuses.map((status) => (
+              <option
+                key={status}
+                value={status}
+              >
+                {status}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* Driver ID */}
+        {/* Driver */}
 
         <div className="form-group">
           <label>Assigned Driver ID</label>
@@ -252,7 +234,7 @@ function ShipmentForm({
           />
         </div>
 
-        {/* Vehicle ID */}
+        {/* Vehicle */}
 
         <div className="form-group">
           <label>Assigned Vehicle ID</label>
@@ -267,8 +249,13 @@ function ShipmentForm({
         </div>
 
         <div className="button-group">
-          <button type="submit" className="save-btn">
-            {selectedShipment ? "Update Shipment" : "Add Shipment"}
+          <button
+            type="submit"
+            className="save-btn"
+          >
+            {selectedShipment
+              ? "Update Shipment"
+              : "Add Shipment"}
           </button>
         </div>
       </form>

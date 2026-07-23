@@ -1,0 +1,17 @@
+.map-wrapper{
+
+    width:100%;
+
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    background:#f5f7fa;
+
+    padding:20px;
+
+    box-sizing:border-box;
+
+}
