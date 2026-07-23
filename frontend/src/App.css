@@ -1328,6 +1328,108 @@ body {
   min-height: 0;
 }
 
+/* ===== Shipment Step-Progress Tracker ===== */
+.ff-tracker {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 8px 8px;
+  margin-bottom: 8px;
+}
+
+.ff-tracker-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.ff-tracker-node {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ff-tracker-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.ff-tracker-circle.completed {
+  background: var(--green);
+}
+
+.ff-tracker-circle.current {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--cyan-bg);
+}
+
+.ff-tracker-circle.pending {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+}
+
+.ff-tracker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.ff-tracker-line {
+  flex: 1;
+  height: 3px;
+  margin: 0 -2px;
+}
+
+.ff-tracker-line.completed {
+  background: var(--green);
+}
+
+.ff-tracker-line.pending {
+  background: var(--border);
+}
+
+.ff-tracker-label {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ff-tracker-label.active {
+  color: var(--text-primary);
+}
+
+.ff-tracker-banner {
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 12px 8px 0;
+}
+
+.ff-tracker-banner.delayed {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+.ff-tracker-banner.cancelled {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
 /* ===== Tabs (Shipments page) ===== */
 .ff-tabs {
   display: flex;

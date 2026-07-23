@@ -1,8 +1,50 @@
 import { useState, useEffect } from 'react'
-import { X, MapPin, Truck as TruckIcon, Clock, Navigation } from 'lucide-react'
+import { X, MapPin, Truck as TruckIcon, Clock, Navigation, Check } from 'lucide-react'
 import { getCityCoords, geocodeCity, haversineDistance } from '../utils/cityCoordinates'
 import { getRoute } from '../utils/routing'
 import ShipmentTrackMap from './ShipmentTrackMap'
+
+const STAGES = [
+  { key: 'created', label: 'Created' },
+  { key: 'assigned', label: 'Assigned' },
+  { key: 'picked_up', label: 'Picked Up' },
+  { key: 'in_transit', label: 'In Transit' },
+  { key: 'out_for_delivery', label: 'Out for Delivery' },
+  { key: 'delivered', label: 'Delivered' },
+]
+
+function ShipmentStepTracker({ status }) {
+  if (status === 'cancelled') {
+    return <div className="ff-tracker-banner cancelled">This shipment was cancelled</div>
+  }
+
+  const isDelayed = status === 'delayed'
+  const currentIndex = STAGES.findIndex(s => s.key === status)
+
+  return (
+    <>
+      {isDelayed && <div className="ff-tracker-banner delayed">This shipment is currently delayed</div>}
+      <div className="ff-tracker">
+        {STAGES.map((stage, i) => {
+          const isCompleted = !isDelayed && (i < currentIndex || (i === currentIndex && stage.key === 'delivered'))
+          const isCurrent = !isDelayed && i === currentIndex && stage.key !== 'delivered'
+          const isLast = i === STAGES.length - 1
+          return (
+            <div className="ff-tracker-step" key={stage.key}>
+              <div className="ff-tracker-node">
+                <div className={`ff-tracker-circle ${isCompleted ? 'completed' : isCurrent ? 'current' : 'pending'}`}>
+                  {isCompleted ? <Check size={13} /> : isCurrent ? <span className="ff-tracker-dot" /> : null}
+                </div>
+                {!isLast && <div className={`ff-tracker-line ${isCompleted ? 'completed' : 'pending'}`} />}
+              </div>
+              <span className={`ff-tracker-label ${isCompleted || isCurrent ? 'active' : ''}`}>{stage.label}</span>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
 
 export default function ShipmentTrackingPanel({ shipment, vehicle, driver, onClose }) {
   const [originCoords, setOriginCoords] = useState(null)
@@ -73,6 +115,8 @@ export default function ShipmentTrackingPanel({ shipment, vehicle, driver, onClo
         <div className="ff-section-title"><Navigation size={16} /><span>Shipment Tracking</span></div>
         <X size={18} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={onClose} />
       </div>
+
+      <ShipmentStepTracker status={shipment.status} />
 
       <div className="ff-tracking-layout">
         <div className="ff-tracking-map">

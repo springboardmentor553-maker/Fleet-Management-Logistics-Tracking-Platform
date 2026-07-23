@@ -24,7 +24,11 @@ const STATUS_OPTIONS = [
 const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, search, onShipmentAdded, onStatusUpdate }) => {
   const [activeTab, setActiveTab] = useState('All')
   const [showModal, setShowModal] = useState(false)
-  const [trackingShipment, setTrackingShipment] = useState(null)
+  const [trackingShipmentId, setTrackingShipmentId] = useState(null)
+
+  // Always derive the tracked shipment fresh from the live shipments array,
+  // so real-time WebSocket status updates are reflected instantly — no stale snapshot.
+  const trackingShipment = shipments.find(s => s.id === trackingShipmentId) || null
 
   const filteredShipments = (shipments || []).filter(s => {
     const matchesSearch =
@@ -106,7 +110,7 @@ const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, searc
                     )}
                   </td>
                   <td data-label="" style={{ textAlign: 'right' }}>
-                    <button className="ff-btn-track" onClick={() => setTrackingShipment(s)}>
+                    <button className="ff-btn-track" onClick={() => setTrackingShipmentId(s.id)}>
                       Track
                     </button>
                   </td>
@@ -130,7 +134,7 @@ const Shipments = ({ shipments = [], vehicles = [], drivers = [], loading, searc
           shipment={trackingShipment}
           vehicle={vehicles.find(v => v.id === trackingShipment.vehicle_id)}
           driver={drivers.find(d => d.id === trackingShipment.driver_id)}
-          onClose={() => setTrackingShipment(null)}
+          onClose={() => setTrackingShipmentId(null)}
         />
       )}
     </div>
