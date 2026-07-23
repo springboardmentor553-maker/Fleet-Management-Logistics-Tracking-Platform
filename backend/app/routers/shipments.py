@@ -36,7 +36,7 @@ def validate_shipment_assignment(db: Session, vehicle_id: int, driver_id: int, e
     - a vehicle/driver already busy on another active (non-delivered/cancelled) shipment
     """
     if vehicle_id is not None:
-        vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
+        vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).with_for_update().first()
         if not vehicle:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
         if vehicle.status == "maintenance":
@@ -59,7 +59,7 @@ def validate_shipment_assignment(db: Session, vehicle_id: int, driver_id: int, e
             )
 
     if driver_id is not None:
-        driver = db.query(models.Driver).filter(models.Driver.id == driver_id).first()
+        driver = db.query(models.Driver).filter(models.Driver.id == driver_id).with_for_update().first()
         if not driver:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
         if driver.status != "active":

@@ -109,11 +109,15 @@ async def sync_vehicle_operational_status(db: Session, vehicle_id: int, trip_sta
 
 @router.post("/", response_model=schemas.TripResponse)
 async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
-    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == trip.vehicle_id).first()
+    # Row-level locks: SELECT ... FOR UPDATE. If two requests try to assign the
+    # same driver/vehicle at the exact same moment, the second one blocks here
+    # until the first transaction commits — then re-reads fresh data, so its
+    # double-assignment check below can no longer be fooled by a race condition.
+    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == trip.vehicle_id).with_for_update().first()
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
 
-    driver = db.query(models.Driver).filter(models.Driver.id == trip.driver_id).first()
+    driver = db.query(models.Driver).filter(models.Driver.id == trip.driver_id).with_for_update().first()
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
@@ -164,11 +168,12 @@ async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = D
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
 
-    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == updated.vehicle_id).first()
+    # Row-level locks — same race-condition protection as create_trip
+    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == updated.vehicle_id).with_for_update().first()
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
 
-    driver = db.query(models.Driver).filter(models.Driver.id == updated.driver_id).first()
+    driver = db.query(models.Driver).filter(models.Driver.id == updated.driver_id).with_for_update().first()
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
@@ -219,13 +224,33 @@ async def update_trip_status(trip_id: int, update: schemas.TripStatusUpdate, db:
 
 
 @router.delete("/{trip_id}")
-def delete_trip(trip_id: int, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
+async def delete_trip(trip_id: int, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     trip = db.query(models.Trip).filter(models.Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
 
+    linked_shipment_id = trip.shipment_id
+    vehicle_id = trip.vehicle_id
+    was_ongoing = trip.status == "ongoing"
+
     db.delete(trip)
     db.commit()
+
+    # Cleanup: the trip that assigned this shipment's vehicle/driver no longer
+    # exists, so unassign them rather than leaving stale, orphaned references.
+    if linked_shipment_id:
+        shipment = db.query(models.Shipment).filter(models.Shipment.id == linked_shipment_id).first()
+        if shipment and (shipment.vehicle_id == vehicle_id or shipment.driver_id is not None):
+            shipment.vehicle_id = None
+            shipment.driver_id = None
+            db.commit()
+            db.refresh(shipment)
+            await broadcast_shipment_update(shipment)
+
+    # If the deleted trip was actively using the vehicle, free it back up
+    if was_ongoing:
+        await sync_vehicle_operational_status(db, vehicle_id, "cancelled")
+
     return {"message": "Trip deleted successfully"}
 
 @router.get("/{trip_id}/route", response_model=schemas.TripRouteResponse)

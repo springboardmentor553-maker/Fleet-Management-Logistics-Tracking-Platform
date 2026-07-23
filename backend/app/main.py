@@ -9,12 +9,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import WebSocket, WebSocketDisconnect
 from app.connection_manager import manager
 from app.simulation import simulate_vehicle_movement
+from app.rate_limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FleetFlow Backend")
 os.makedirs("uploads/profile_photos", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Rate limiting — protects against brute-force / abuse. Login, register, and
+# forgot-password get stricter limits set directly on those endpoints in
+# auth.py; every other endpoint falls back to this generous default.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
