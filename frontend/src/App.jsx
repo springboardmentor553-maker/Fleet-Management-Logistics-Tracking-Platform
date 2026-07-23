@@ -157,7 +157,7 @@ useEffect(() => {
     if (data.type === 'vehicle_location_update') {
       setVehicles(prev => prev.map(v =>
         v.id === data.vehicle_id
-          ? { ...v, current_lat: data.current_lat, current_lng: data.current_lng }
+          ? { ...v, current_lat: data.current_lat, current_lng: data.current_lng, status: data.status }
           : v
       ))
     }

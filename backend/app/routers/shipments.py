@@ -11,6 +11,11 @@ router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
 VALID_STATUSES = ["created", "assigned", "picked_up", "in_transit", "out_for_delivery", "delayed", "delivered", "cancelled"]
 
+# A shipment in any of these statuses is still "in progress" — its vehicle/driver
+# are considered busy. Delivered and cancelled shipments no longer occupy anyone.
+ACTIVE_SHIPMENT_STATUSES = ["created", "assigned", "picked_up", "in_transit", "out_for_delivery", "delayed"]
+
+
 def generate_tracking_number(db: Session) -> str:
     existing = db.query(models.Shipment.tracking_id).filter(models.Shipment.tracking_id.like("FLT%")).all()
     max_number = 100000
@@ -21,6 +26,60 @@ def generate_tracking_number(db: Session) -> str:
             if num > max_number:
                 max_number = num
     return f"FLT{max_number + 1}"
+
+
+def validate_shipment_assignment(db: Session, vehicle_id: int, driver_id: int, exclude_shipment_id: int = None):
+    """
+    Blocks assigning a shipment to:
+    - an inactive driver
+    - a vehicle under maintenance
+    - a vehicle/driver already busy on another active (non-delivered/cancelled) shipment
+    """
+    if vehicle_id is not None:
+        vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
+        if vehicle.status == "maintenance":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Vehicle {vehicle.registration_number} is under maintenance and cannot be assigned"
+            )
+
+        vehicle_query = db.query(models.Shipment).filter(
+            models.Shipment.vehicle_id == vehicle_id,
+            models.Shipment.status.in_(ACTIVE_SHIPMENT_STATUSES)
+        )
+        if exclude_shipment_id:
+            vehicle_query = vehicle_query.filter(models.Shipment.id != exclude_shipment_id)
+        conflict = vehicle_query.first()
+        if conflict:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Vehicle {vehicle.registration_number} is already assigned to active shipment {conflict.tracking_id}"
+            )
+
+    if driver_id is not None:
+        driver = db.query(models.Driver).filter(models.Driver.id == driver_id).first()
+        if not driver:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
+        if driver.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Driver {driver.name} is inactive and cannot be assigned"
+            )
+
+        driver_query = db.query(models.Shipment).filter(
+            models.Shipment.driver_id == driver_id,
+            models.Shipment.status.in_(ACTIVE_SHIPMENT_STATUSES)
+        )
+        if exclude_shipment_id:
+            driver_query = driver_query.filter(models.Shipment.id != exclude_shipment_id)
+        conflict = driver_query.first()
+        if conflict:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Driver {driver.name} is already assigned to active shipment {conflict.tracking_id}"
+            )
 
 
 async def broadcast_shipment_update(shipment: models.Shipment):
@@ -47,6 +106,8 @@ async def broadcast_shipment_update(shipment: models.Shipment):
 
 @router.post("/", response_model=schemas.ShipmentResponse)
 def create_shipment(shipment: schemas.ShipmentCreate, db: Session = Depends(get_db)):
+    validate_shipment_assignment(db, shipment.vehicle_id, shipment.driver_id)
+
     tracking_number = generate_tracking_number(db)
     new_shipment = models.Shipment(tracking_id=tracking_number, **shipment.dict())
     db.add(new_shipment)
@@ -77,15 +138,7 @@ async def update_shipment(shipment_id: int, updated: schemas.ShipmentCreate, db:
     if updated.status not in VALID_STATUSES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Status must be one of {VALID_STATUSES}")
 
-    if updated.vehicle_id is not None:
-        vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == updated.vehicle_id).first()
-        if not vehicle:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
-
-    if updated.driver_id is not None:
-        driver = db.query(models.Driver).filter(models.Driver.id == updated.driver_id).first()
-        if not driver:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
+    validate_shipment_assignment(db, updated.vehicle_id, updated.driver_id, exclude_shipment_id=shipment_id)
 
     for key, value in updated.dict().items():
         setattr(shipment, key, value)

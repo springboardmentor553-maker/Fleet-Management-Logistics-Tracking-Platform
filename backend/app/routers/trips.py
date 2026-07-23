@@ -8,6 +8,7 @@ from app.services.geocoding import geocode_location
 from app.services.routing import get_route
 from app.services.eta_service import calculate_eta
 from app.routers.shipments import broadcast_shipment_update
+from app.connection_manager import manager
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
@@ -43,6 +44,20 @@ def check_double_assignment(db: Session, driver_id: int, vehicle_id: int, exclud
         )
 
 
+def validate_driver_and_vehicle_eligibility(driver: models.Driver, vehicle: models.Vehicle):
+    """A trip can't be assigned to an inactive driver or a vehicle under maintenance."""
+    if driver.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Driver {driver.name} is inactive and cannot be assigned to a trip"
+        )
+    if vehicle.status == "maintenance":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Vehicle {vehicle.registration_number} is under maintenance and cannot be assigned to a trip"
+        )
+
+
 async def sync_shipment_assignment(db: Session, shipment_id: int, vehicle_id: int, driver_id: int):
     """
     Keeps a linked shipment's vehicle/driver in sync with the trip carrying it,
@@ -61,6 +76,37 @@ async def sync_shipment_assignment(db: Session, shipment_id: int, vehicle_id: in
         await broadcast_shipment_update(shipment)
 
 
+async def sync_vehicle_operational_status(db: Session, vehicle_id: int, trip_status: str):
+    """
+    Keeps a vehicle's operational status in sync with its trip:
+    - Trip goes 'ongoing'  -> vehicle becomes 'in_use' (unless it's under maintenance)
+    - Trip goes 'completed'/'cancelled' -> vehicle goes back to 'available' (only if it was 'in_use')
+    """
+    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        return
+
+    changed = False
+    if trip_status == "ongoing" and vehicle.status not in ("maintenance", "in_use"):
+        vehicle.status = "in_use"
+        changed = True
+    elif trip_status in ("completed", "cancelled") and vehicle.status == "in_use":
+        vehicle.status = "available"
+        changed = True
+
+    if changed:
+        db.commit()
+        db.refresh(vehicle)
+        await manager.broadcast({
+            "type": "vehicle_location_update",
+            "vehicle_id": vehicle.id,
+            "registration_number": vehicle.registration_number,
+            "current_lat": vehicle.current_lat,
+            "current_lng": vehicle.current_lng,
+            "status": vehicle.status,
+        })
+
+
 @router.post("/", response_model=schemas.TripResponse)
 async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), current_user=Depends(require_role("admin", "fleet_manager"))):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == trip.vehicle_id).first()
@@ -70,6 +116,8 @@ async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), c
     driver = db.query(models.Driver).filter(models.Driver.id == trip.driver_id).first()
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
+
+    validate_driver_and_vehicle_eligibility(driver, vehicle)
 
     if trip.shipment_id is not None:
         shipment = db.query(models.Shipment).filter(models.Shipment.id == trip.shipment_id).first()
@@ -90,6 +138,9 @@ async def create_trip(trip: schemas.TripCreate, db: Session = Depends(get_db), c
 
     # Keep the linked shipment's vehicle/driver in sync with this trip
     await sync_shipment_assignment(db, new_trip.shipment_id, new_trip.vehicle_id, new_trip.driver_id)
+
+    # If this trip was created already 'ongoing', reflect that on the vehicle immediately
+    await sync_vehicle_operational_status(db, new_trip.vehicle_id, new_trip.status)
 
     return new_trip
 
@@ -121,6 +172,8 @@ async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = D
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
+    validate_driver_and_vehicle_eligibility(driver, vehicle)
+
     if updated.shipment_id is not None:
         shipment = db.query(models.Shipment).filter(models.Shipment.id == updated.shipment_id).first()
         if not shipment:
@@ -128,8 +181,6 @@ async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = D
 
     if updated.status in ACTIVE_STATUSES:
         check_double_assignment(db, updated.driver_id, updated.vehicle_id, exclude_trip_id=trip_id)
-
-    previous_shipment_id = trip.shipment_id
 
     for key, value in updated.dict().items():
         setattr(trip, key, value)
@@ -140,15 +191,14 @@ async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = D
     # Sync the newly-linked shipment (if any) to this trip's vehicle/driver
     await sync_shipment_assignment(db, trip.shipment_id, trip.vehicle_id, trip.driver_id)
 
-    # If the trip was unlinked from a shipment or switched to a different one,
-    # the old shipment no longer has a trip — leave its vehicle/driver as-is
-    # (it still reflects the last known assignment) rather than clearing it.
+    # Keep the vehicle's operational status in sync with the trip's new status
+    await sync_vehicle_operational_status(db, trip.vehicle_id, trip.status)
 
     return trip
 
 
 @router.put("/{trip_id}/status", response_model=schemas.TripResponse)
-def update_trip_status(trip_id: int, update: schemas.TripStatusUpdate, db: Session = Depends(get_db)):
+async def update_trip_status(trip_id: int, update: schemas.TripStatusUpdate, db: Session = Depends(get_db)):
     trip = db.query(models.Trip).filter(models.Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -162,6 +212,9 @@ def update_trip_status(trip_id: int, update: schemas.TripStatusUpdate, db: Sessi
     trip.status = update.status
     db.commit()
     db.refresh(trip)
+
+    await sync_vehicle_operational_status(db, trip.vehicle_id, trip.status)
+
     return trip
 
 
