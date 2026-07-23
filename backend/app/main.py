@@ -6,6 +6,7 @@ from app.vehicle import router as vehicle_router
 from app.driver import router as driver_router
 from app.shipment import router as shipment_router
 from app.dashboard import router as dashboard_router
+from app.trip import router as trip_router
 
 app = FastAPI(
     title="FleetFlow API",
@@ -48,6 +49,12 @@ app.include_router(
     shipment_router,
     prefix="/shipments",
     tags=["Shipments"]
+)
+
+app.include_router(
+    trip_router,
+    prefix="/trips",
+    tags=["Trips"]
 )
 
 #Dashboard

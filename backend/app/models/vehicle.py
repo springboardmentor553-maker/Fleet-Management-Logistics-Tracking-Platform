@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 
 class Vehicle(Base):
@@ -22,3 +23,8 @@ class Vehicle(Base):
     model = Column(String, nullable=False)
 
     manufacturer = Column(String, nullable=False)
+
+    trips = relationship(
+        "Trip",
+        back_populates="vehicle"
+        )

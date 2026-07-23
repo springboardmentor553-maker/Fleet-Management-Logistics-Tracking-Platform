@@ -16,6 +16,8 @@ from app.schemas.shipment import (
     ShipmentResponse,
 )
 
+from datetime import datetime
+
 router = APIRouter()
 
 
@@ -29,10 +31,21 @@ def add_shipment(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin"))
 ):
+    shipment_count = db.query(Shipment).count() + 1
+
+    tracking_number = f"FLT{shipment_count:06d}"
+
     new_shipment = Shipment(
-        source=shipment.source,
-        destination=shipment.destination,
+        tracking_number=tracking_number,
+        sender_name=shipment.sender_name,
+        receiver_name=shipment.receiver_name,
+        pickup_location=shipment.pickup_location,
+        delivery_location=shipment.delivery_location,
         status=shipment.status,
+        weight=shipment.weight,
+        created_date=datetime.utcnow(),
+        assigned_driver_id=shipment.assigned_driver_id,
+        assigned_vehicle_id=shipment.assigned_vehicle_id,
     )
 
     db.add(new_shipment)
