@@ -8,7 +8,7 @@ from app.models.vehicle import Vehicle
 from app.schemas.trip import TripCreate, TripUpdate
 
 from app.services.notification_service import create_notification
-
+from app.services import maps_service
 
 ACTIVE_STATUSES = ["Scheduled", "In Progress"]
 
@@ -182,3 +182,40 @@ def delete_trip(trip_id: int, db: Session):
     db.commit()
 
     return {"message": "Trip deleted successfully"}
+# =====================================
+# Get Route For a Trip
+# =====================================
+
+def get_trip_route(trip_id: int, db: Session):
+
+    trip = get_trip(trip_id, db)
+
+    if trip.pickup_latitude is None or trip.pickup_longitude is None:
+        pickup_coords = maps_service.geocode_location(trip.pickup_location)
+        trip.pickup_latitude = pickup_coords["latitude"]
+        trip.pickup_longitude = pickup_coords["longitude"]
+
+    if trip.destination_latitude is None or trip.destination_longitude is None:
+        destination_coords = maps_service.geocode_location(trip.destination)
+        trip.destination_latitude = destination_coords["latitude"]
+        trip.destination_longitude = destination_coords["longitude"]
+
+    db.commit()
+    db.refresh(trip)
+
+    route = maps_service.get_route(
+        trip.pickup_latitude,
+        trip.pickup_longitude,
+        trip.destination_latitude,
+        trip.destination_longitude,
+    )
+
+    return {
+        "trip_id": trip.id,
+        "pickup_location": trip.pickup_location,
+        "destination": trip.destination,
+        "distance_km": route["distance_km"],
+        "duration_minutes": route["duration_minutes"],
+        "route_summary": f"{trip.pickup_location} to {trip.destination}",
+        "polyline": route["polyline"],
+    }

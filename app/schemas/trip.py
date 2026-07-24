@@ -36,3 +36,12 @@ class TripResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TripRouteResponse(BaseModel):
+    trip_id: int
+    pickup_location: str
+    destination: str
+    distance_km: float
+    duration_minutes: float
+    route_summary: str
+    polyline: str        

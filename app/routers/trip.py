@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.schemas.trip import TripCreate, TripUpdate, TripResponse
+from app.schemas.trip import TripCreate, TripUpdate, TripResponse, TripRouteResponse
 from app.services.trip_service import (
     create_trip,
     get_all_trips,
     get_trip,
     update_trip,
     delete_trip,
+    get_trip_route,
 )
 
 router = APIRouter(
@@ -38,6 +39,11 @@ def fetch_trips(db: Session = Depends(get_db)):
 @router.get("/{trip_id}", response_model=TripResponse)
 def fetch_trip(trip_id: int, db: Session = Depends(get_db)):
     return get_trip(trip_id, db)
+
+
+@router.get("/{trip_id}/route", response_model=TripRouteResponse)
+def fetch_trip_route(trip_id: int, db: Session = Depends(get_db)):
+    return get_trip_route(trip_id, db)
 
 
 @router.put("/{trip_id}", response_model=TripResponse)

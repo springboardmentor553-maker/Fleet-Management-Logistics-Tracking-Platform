@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, func
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -15,6 +15,11 @@ class Trip(Base):
 
     pickup_location = Column(String(150), nullable=False)
     destination = Column(String(150), nullable=False)
+
+    pickup_latitude = Column(Float, nullable=True)
+    pickup_longitude = Column(Float, nullable=True)
+    destination_latitude = Column(Float, nullable=True)
+    destination_longitude = Column(Float, nullable=True)
 
     scheduled_start_time = Column(DateTime, nullable=False)
     scheduled_end_time = Column(DateTime, nullable=False)
