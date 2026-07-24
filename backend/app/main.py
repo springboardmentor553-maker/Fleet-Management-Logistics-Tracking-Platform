@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.auth import router as auth_router
+from app.routers import trip
 from app.routers.driver import router as driver_router
 from app.routers.vehicle import router as vehicle_router
 from app.routers.shipment import router as shipment_router
@@ -8,6 +9,8 @@ from app.routers.reports import router as reports_router
 from app.database import Base, engine
 from app import models
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import route
+from app.routers.websocket import router as websocket_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -27,6 +30,9 @@ app.include_router(vehicle_router)
 app.include_router(shipment_router)
 app.include_router(dashboard_router)
 app.include_router(reports_router)
+app.include_router(trip.router)
+app.include_router(route.router)
+app.include_router(websocket_router)
 
 @app.get("/")
 def home():

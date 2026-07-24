@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
-from jose import jwt
 from app.security import oauth2_scheme
+from jose import jwt
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
@@ -27,19 +27,19 @@ def administrator_required(user: dict = Depends(get_current_user)):
 
 
 def fleet_manager_required(user: dict = Depends(get_current_user)):
-    if user.get("role") != "Fleet Manager":
+    if user.get("role") not in ["Administrator", "Fleet Manager"]:
         raise HTTPException(
             status_code=403,
-            detail="Only Fleet Manager can access this API"
+            detail="Only Administrator or Fleet Manager can access this API"
         )
     return user
 
 
 def dispatcher_required(user: dict = Depends(get_current_user)):
-    if user.get("role") != "Dispatcher":
+    if user.get("role") not in ["Administrator", "Dispatcher"]:
         raise HTTPException(
             status_code=403,
-            detail="Only Dispatcher can access this API"
+            detail="Only Administrator or Dispatcher can access this API"
         )
     return user
 

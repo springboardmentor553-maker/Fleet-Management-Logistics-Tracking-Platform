@@ -1,7 +1,12 @@
-import Login from "./pages/Login";
+import Map from "./components/Map";
 
 function App() {
-  return <Login />;
+  return (
+    <div>
+      <h2>Fleet Management</h2>
+      <Map />
+    </div>
+  );
 }
 
 export default App;

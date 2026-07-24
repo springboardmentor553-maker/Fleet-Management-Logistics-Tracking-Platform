@@ -1,37 +1,90 @@
-from fastapi import APIRouter
+import asyncio
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
-from app.models import Shipment
-eta_db={}
+from app.models import Shipment, Driver, Vehicle, Trip
+from app.enums import ShipmentStatus
+from app.dependencies import dispatcher_required
 
-router = APIRouter(prefix="/shipments", tags=["Shipments"])
+from app.services.route_service import get_route
+from app.services.eta_service import calculate_eta
+from app.connection_manager import manager
+
+router = APIRouter(
+    prefix="/shipments",
+    tags=["Shipments"]
+)
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# CREATE SHIPMENT
 @router.post("/")
 def create_shipment(
-    source: str,
-    destination: str,
     shipment_type: str,
     weight: float,
-    status: str,
     driver_id: int,
-    vehicle_id: int
+    vehicle_id: int,
+    eta: str,
+    sender_name: str,
+    receiver_name: str,
+    pickup_location: str,
+    delivery_location: str,
+    current_status: ShipmentStatus,
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
 ):
-    db = SessionLocal()
+
+    # Validate Driver
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
+
+    if not driver:
+        return {"message": "Driver not found"}
+
+    # Validate Vehicle
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        return {"message": "Vehicle not found"}
+
+    # Generate Tracking Number
+    last_shipment = db.query(Shipment).order_by(
+        Shipment.shipment_id.desc()
+    ).first()
+
+    if last_shipment:
+        tracking_number = f"FLT{100000 + last_shipment.shipment_id + 1}"
+    else:
+        tracking_number = "FLT100001"
 
     shipment = Shipment(
-        source=source,
-        destination=destination,
         shipment_type=shipment_type,
         weight=weight,
-        status=status,
         driver_id=driver_id,
-        vehicle_id=vehicle_id
+        vehicle_id=vehicle_id,
+        eta=eta,
+        tracking_number=tracking_number,
+        sender_name=sender_name,
+        receiver_name=receiver_name,
+        pickup_location=pickup_location,
+        delivery_location=delivery_location,
+        current_status=current_status
     )
 
     db.add(shipment)
     db.commit()
     db.refresh(shipment)
-    db.close()
 
     return {
         "message": "Shipment created successfully",
@@ -39,47 +92,98 @@ def create_shipment(
     }
 
 
+# GET ALL SHIPMENTS
 @router.get("/")
-def get_shipments():
-    db = SessionLocal()
-
-    shipments = db.query(Shipment).all()
-
-    db.close()
-
-    return shipments
+def get_all_shipments(
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
+):
+    return db.query(Shipment).all()
 
 
+# GET SHIPMENT BY ID
+@router.get("/{shipment_id}")
+def get_shipment(
+    shipment_id: int,
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
+):
+
+    shipment = db.query(Shipment).filter(
+        Shipment.shipment_id == shipment_id
+    ).first()
+
+    if not shipment:
+        return {"message": "Shipment not found"}
+
+    return shipment
+
+
+# UPDATE SHIPMENT
 @router.put("/{shipment_id}")
 def update_shipment(
     shipment_id: int,
-    source: str,
-    destination: str,
     shipment_type: str,
     weight: float,
-    status: str,
     driver_id: int,
-    vehicle_id: int
+    vehicle_id: int,
+    eta: str,
+    tracking_number: str,
+    sender_name: str,
+    receiver_name: str,
+    pickup_location: str,
+    delivery_location: str,
+    current_status: ShipmentStatus,
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
 ):
-    db = SessionLocal()
 
-    shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    shipment = db.query(Shipment).filter(
+        Shipment.shipment_id == shipment_id
+    ).first()
 
     if not shipment:
-        db.close()
         return {"message": "Shipment not found"}
 
-    shipment.source = source
-    shipment.destination = destination
+    # Validate Driver
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
+
+    if not driver:
+        return {"message": "Driver not found"}
+
+    # Validate Vehicle
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        return {"message": "Vehicle not found"}
+
     shipment.shipment_type = shipment_type
     shipment.weight = weight
-    shipment.status = status
     shipment.driver_id = driver_id
     shipment.vehicle_id = vehicle_id
+    shipment.eta = eta
+    shipment.tracking_number = tracking_number
+    shipment.sender_name = sender_name
+    shipment.receiver_name = receiver_name
+    shipment.pickup_location = pickup_location
+    shipment.delivery_location = delivery_location
+    shipment.current_status = current_status
 
     db.commit()
     db.refresh(shipment)
-    db.close()
+   
+
+    asyncio.run(
+        manager.broadcast({
+            "tracking_number": shipment.tracking_number,
+            "shipment_id": shipment.shipment_id,
+            "current_status": shipment.current_status.value
+        })
+    )
 
     return {
         "message": "Shipment updated successfully",
@@ -87,40 +191,77 @@ def update_shipment(
     }
 
 
+# DELETE SHIPMENT
 @router.delete("/{shipment_id}")
-def delete_shipment(shipment_id: int):
-    db = SessionLocal()
+def delete_shipment(
+    shipment_id: int,
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
+):
 
-    shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+    shipment = db.query(Shipment).filter(
+        Shipment.shipment_id == shipment_id
+    ).first()
 
     if not shipment:
-        db.close()
         return {"message": "Shipment not found"}
 
     db.delete(shipment)
     db.commit()
-    db.close()
 
     return {
         "message": "Shipment deleted successfully"
     }
 
-@router.put("/{shipment_id}/eta")
-def update_eta(shipment_id: int, eta: str):
-    eta_db[shipment_id] = eta
+@router.get("/{tracking_number}/status")
+def track_shipment(
+    tracking_number: str,
+    user=Depends(dispatcher_required),
+    db: Session = Depends(get_db)
+):
 
-    return {
-        "message": "ETA updated successfully",
-        "shipment_id": shipment_id,
-        "eta": eta
-    }
+    shipment = db.query(Shipment).filter(
+        Shipment.tracking_number == tracking_number
+    ).first()
 
-@router.get("/{shipment_id}/eta")
-def get_eta(shipment_id: int):
-    if shipment_id not in eta_db:
+    if not shipment:
         return {"message": "Shipment not found"}
 
+    driver = db.query(Driver).filter(
+        Driver.driver_id == shipment.driver_id
+    ).first()
+
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == shipment.vehicle_id
+    ).first()
+
+    trip = db.query(Trip).filter(
+        Trip.shipment_id == shipment.shipment_id
+    ).first()
+
+    eta = "Not Available"
+
+    if trip:
+        route = get_route(
+            trip.pickup_latitude,
+            trip.pickup_longitude,
+            trip.destination_latitude,
+            trip.destination_longitude
+        )
+
+        if route:
+            eta_data = calculate_eta(
+                route["distance_km"],
+                route["estimated_time_minutes"]
+            )
+            eta = eta_data["estimated_arrival_time"]
+
     return {
-        "shipment_id": shipment_id,
-        "eta": eta_db[shipment_id]
+        "tracking_number": shipment.tracking_number,
+        "current_shipment_status": shipment.current_status,
+        "driver_name": driver.name if driver else None,
+        "vehicle_registration_number": vehicle.vehicle_number if vehicle else None,
+        "pickup_location": shipment.pickup_location,
+        "destination": shipment.delivery_location,
+        "eta": eta
     }

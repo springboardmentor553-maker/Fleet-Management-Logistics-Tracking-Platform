@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Driver
-from app.dependencies import administrator_required
+from app.dependencies import fleet_manager_required
 
 router = APIRouter(
     prefix="/drivers",
@@ -19,15 +19,15 @@ def get_db():
         db.close()
 
 
+# Create Driver
 @router.post("/")
 def create_driver(
     name: str,
     phone: str,
     license_number: str,
-    user=Depends(administrator_required)
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
 ):
-    db = SessionLocal()
-
     driver = Driver(
         name=name,
         phone=phone,
@@ -37,7 +37,6 @@ def create_driver(
     db.add(driver)
     db.commit()
     db.refresh(driver)
-    db.close()
 
     return {
         "message": "Driver created successfully",
@@ -45,23 +44,48 @@ def create_driver(
     }
 
 
+# Get All Drivers
 @router.get("/")
-def get_drivers(user=Depends(administrator_required)):
+def get_drivers(
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
+):
+    return db.query(Driver).all()
 
-    db = SessionLocal()
-    drivers = db.query(Driver).all()
-    db.close()
-    return drivers
 
-@router.put("/{driver_id}")
-def update_driver(driver_id: int, name: str, phone: str, license_number: str, user=Depends(administrator_required)):
-
-    db = SessionLocal()
-
-    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+# Get Driver By ID
+@router.get("/{driver_id}")
+def get_driver(
+    driver_id: int,
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
+):
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
 
     if not driver:
-        db.close()
+        return {"message": "Driver not found"}
+
+    return driver
+
+
+# Update Driver
+@router.put("/{driver_id}")
+def update_driver(
+    driver_id: int,
+    name: str,
+    phone: str,
+    license_number: str,
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
+):
+
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
+
+    if not driver:
         return {"message": "Driver not found"}
 
     driver.name = name
@@ -70,27 +94,31 @@ def update_driver(driver_id: int, name: str, phone: str, license_number: str, us
 
     db.commit()
     db.refresh(driver)
-    db.close()
 
     return {
         "message": "Driver updated successfully",
         "driver": driver
     }
 
+
+# Delete Driver
 @router.delete("/{driver_id}")
-def delete_driver(driver_id: int, user=Depends(administrator_required)):
+def delete_driver(
+    driver_id: int,
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
+):
 
-
-    db = SessionLocal()
-
-    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
 
     if not driver:
-        db.close()
         return {"message": "Driver not found"}
 
     db.delete(driver)
     db.commit()
-    db.close()
 
-    return {"message": "Driver deleted successfully"}
+    return {
+        "message": "Driver deleted successfully"
+    } 
