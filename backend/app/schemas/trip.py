@@ -12,6 +12,12 @@ class TripBase(BaseModel):
     start_location: str
     end_location: str
 
+    pickup_latitude: Optional[float] = None
+    pickup_longitude: Optional[float] = None
+
+    destination_latitude: Optional[float] = None
+    destination_longitude: Optional[float] = None
+
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
 
@@ -32,3 +38,11 @@ class TripResponse(TripBase):
 
     class Config:
         from_attributes = True
+
+
+class RouteResponse(BaseModel):
+    pickup_location: str
+    destination: str
+    distance: str
+    estimated_travel_time: str
+    route_summary: str

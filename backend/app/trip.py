@@ -1,4 +1,3 @@
-from app.enums import ShipmentStatus
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -11,11 +10,14 @@ from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 
 from app.enums import ShipmentStatus
+from app.services.google_maps import get_coordinates
+from app.services.directions import get_route
 
 from app.schemas.trip import (
     TripCreate,
     TripUpdate,
     TripResponse,
+    RouteResponse,
 )
 
 from app.schemas.common import MessageResponse
@@ -121,6 +123,37 @@ def add_trip(
             detail="Vehicle already has an active trip."
         )
 
+        # -----------------------------
+    # Get Pickup & Destination Coordinates
+    # -----------------------------
+    try:
+        pickup_latitude, pickup_longitude = get_coordinates(
+            trip.start_location
+        )
+
+        destination_latitude, destination_longitude = get_coordinates(
+            trip.end_location
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    # -----------------------------
+    # Get Route Information
+    # -----------------------------
+    route = get_route(
+    pickup_latitude,
+    pickup_longitude,
+    destination_latitude,
+    destination_longitude,
+    )
+    print("Distance:", route["distance_text"])
+    print("Duration:", route["duration_text"])
+    print("Polyline:", route["polyline"])
+    
     # -----------------------------
     # Create Trip
     # -----------------------------
@@ -128,13 +161,22 @@ def add_trip(
         shipment_id=trip.shipment_id,
         driver_id=trip.driver_id,
         vehicle_id=trip.vehicle_id,
+
         start_location=trip.start_location,
         end_location=trip.end_location,
+
+        pickup_latitude=pickup_latitude,
+        pickup_longitude=pickup_longitude,
+
+        destination_latitude=destination_latitude,
+        destination_longitude=destination_longitude,
+
         start_time=trip.start_time,
         end_time=trip.end_time,
-        distance=trip.distance,
+
+        distance=route["distance_meters"] / 1000,
         status=trip.status,
-    )
+        )
 
     # -----------------------------
     # Assign Shipment to Trip
@@ -260,4 +302,47 @@ def delete_trip(
 
     return {
         "message": "Trip deleted successfully."
+    }
+
+# -----------------------------
+# Get Route Details
+# -----------------------------
+@router.get("/{trip_id}/route", response_model=RouteResponse)
+def get_trip_route(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_role(
+            "admin",
+            "fleet manager",
+            "dispatcher",
+            "driver",
+        )
+    ),
+):
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id
+    ).first()
+
+    if trip is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found."
+        )
+
+    route = get_route(
+        trip.pickup_latitude,
+        trip.pickup_longitude,
+        trip.destination_latitude,
+        trip.destination_longitude,
+    )
+
+    print(route)
+
+    return {
+    "pickup_location": trip.start_location,
+    "destination": trip.end_location,
+    "distance": route["distance_text"],
+    "estimated_travel_time": route["duration_text"],
+    "route_summary": route.get("summary", "No route summary available"),
     }
