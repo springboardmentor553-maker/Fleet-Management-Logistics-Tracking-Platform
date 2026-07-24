@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, driver, vehicle, shipment, dashboard, trip
+from app.routers import auth, driver, vehicle, shipment, dashboard, trip, tracking
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import notification
 from app.routers import settings
@@ -32,6 +32,7 @@ app.include_router(dashboard.router)
 app.include_router(notification.router)
 app.include_router(settings.router)
 app.include_router(trip.router)
+app.include_router(tracking.router)
 @app.get("/")
 def home():
     return {

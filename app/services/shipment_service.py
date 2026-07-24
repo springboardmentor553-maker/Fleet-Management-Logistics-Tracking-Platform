@@ -1,10 +1,14 @@
+import asyncio
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.shipment import Shipment
+from app.models.trip import Trip
 from app.schemas.shipment import ShipmentCreate, ShipmentUpdate
 
 from app.services.notification_service import create_notification
+from app.connection_manager import manager
 
 
 # =====================================
@@ -119,6 +123,20 @@ def update_shipment(
 
     db.commit()
     db.refresh(db_shipment)
+
+    trip = db.query(Trip).filter(Trip.shipment_id == db_shipment.id).first()
+
+    if trip:
+        asyncio.run(
+            manager.broadcast(
+                trip.id,
+                {
+                    "type": "shipment_status",
+                    "shipment_id": db_shipment.id,
+                    "status": db_shipment.status,
+                }
+            )
+        )
 
     return db_shipment
 
