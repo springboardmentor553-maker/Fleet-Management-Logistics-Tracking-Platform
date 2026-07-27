@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment, trip, gps, route
+from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment, trip, gps, route, maintenance
 from app.connection_manager import manager
+from app.database import init_db
 from fastapi import WebSocket, WebSocketDisconnect
 
 app = FastAPI(
@@ -30,6 +31,13 @@ app.include_router(shipment.router)
 app.include_router(trip.router)
 app.include_router(gps.router)
 app.include_router(route.router)
+app.include_router(maintenance.router)
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+    manager.ensure_simulation_running()
 
 
 def custom_openapi():

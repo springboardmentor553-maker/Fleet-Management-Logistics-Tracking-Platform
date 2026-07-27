@@ -21,7 +21,8 @@ class ConnectionManager:
         self.active.append(ws)
 
     def disconnect(self, ws: WebSocket):
-        self.active.remove(ws)
+        if ws in self.active:
+            self.active.remove(ws)
 
     async def broadcast(self, data: dict):
         dead = []
@@ -31,7 +32,8 @@ class ConnectionManager:
             except Exception:
                 dead.append(ws)
         for ws in dead:
-            self.active.remove(ws)
+            if ws in self.active:
+                self.active.remove(ws)
 
 
 manager = ConnectionManager()
@@ -95,6 +97,8 @@ def get_all_locations(
 @router.websocket("/ws/locations")
 async def ws_locations(websocket: WebSocket):
     await manager.connect(websocket)
+    from app.connection_manager import manager as tracking_manager
+    tracking_manager.ensure_simulation_running()
     try:
         while True:
             await websocket.receive_text()   # keep connection alive

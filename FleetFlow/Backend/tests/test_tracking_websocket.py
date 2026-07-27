@@ -1,7 +1,5 @@
 import asyncio
-
 from fastapi.testclient import TestClient
-
 from app.main import app
 from app.connection_manager import manager
 
@@ -13,7 +11,13 @@ def test_trip_tracking_websocket_broadcasts_updates():
             assert connected["type"] == "connected"
             assert connected["trip_id"] == 42
 
-            asyncio.run(manager.broadcast_trip_update(42, {
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            loop.run_until_complete(manager.broadcast_trip_update(42, {
                 "type": "status_update",
                 "status": "in_transit",
             }))

@@ -45,13 +45,17 @@ const distanceKm = (lat1, lng1, lat2, lng2) => {
   return Math.round(6371 * c * 10) / 10
 }
 
-function FitBounds({ positions }) {
+function FitBounds({ positions, mapKey }) {
   const map = useMap()
+  const fittedRef = useRef(null)
+
   useEffect(() => {
-    if (positions && positions.length > 0) {
+    if (positions && positions.length > 0 && fittedRef.current !== mapKey) {
+      fittedRef.current = mapKey
       map.fitBounds(positions, { padding: [50, 50] })
     }
-  }, [positions, map])
+  }, [positions, map, mapKey])
+
   return null
 }
 
@@ -96,7 +100,6 @@ export default function LiveMap({ tripId, user }) {
         getMyShipments().catch(() => []),
       ])
         .then(([vAll, vGps, sList]) => {
-          // Merge vehicle locations with full vehicle database
           const vMap = new Map()
           ;(vAll || []).forEach(v => vMap.set(Number(v.id), normalizeVehicle(v)))
           ;(vGps || []).forEach(v => {
@@ -218,7 +221,7 @@ export default function LiveMap({ tripId, user }) {
 
     const startPolling = () => {
       if (!pollingTimer) {
-        pollingTimer = window.setInterval(loadData, 8000)
+        pollingTimer = window.setInterval(loadData, 6000)
       }
     }
 
@@ -269,22 +272,28 @@ export default function LiveMap({ tripId, user }) {
     ? vehicles.find(v => Number(v.id) === Number(featuredShipment.vehicle_id))
     : shownVehicles[0]
 
-  const tripPickup = trip?.pickup_latitude != null && trip?.pickup_longitude != null
-    ? [trip.pickup_latitude, trip.pickup_longitude]
-    : null
-
-  const tripDestination = trip?.destination_latitude != null && trip?.destination_longitude != null
-    ? [trip.destination_latitude, trip.destination_longitude]
-    : null
-
+  // Positions to fit map view initially
   const positionsToFit = []
+
+  // Add Start Point, Destination Point, and Vehicle position to initial positions array
+  shipments.forEach((s) => {
+    const r = routes[s.id]
+    const origLat = s.origin_lat || r?.origin_lat
+    const origLng = s.origin_lng || r?.origin_lng
+    const destLat = s.destination_lat || r?.destination_lat
+    const destLng = s.destination_lng || r?.destination_lng
+
+    if (origLat != null && origLng != null) positionsToFit.push([origLat, origLng])
+    if (destLat != null && destLng != null) positionsToFit.push([destLat, destLng])
+  })
+
   shownVehicles.forEach(v => positionsToFit.push([v.latitude, v.longitude]))
-  if (tripPickup) positionsToFit.push(tripPickup)
-  if (tripDestination) positionsToFit.push(tripDestination)
 
   const title = isDriver
     ? `My Navigation Map — Driver Portal`
     : tripId && trip ? `Trip #${trip.id} Live GPS Tracking` : 'Live Fleet GPS Map'
+
+  const mapKey = `${selectedShipmentId || 'all'}-${tripId || 'none'}-${isDriver ? 'driver' : 'admin'}`
 
   // Fetch Route Optimization Variants for the featured shipment
   const handleFetchVariants = (forceRecalculate = false) => {
@@ -491,8 +500,46 @@ export default function LiveMap({ tripId, user }) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {positionsToFit.length > 0 && <FitBounds positions={positionsToFit} />}
+          {positionsToFit.length > 0 && <FitBounds positions={positionsToFit} mapKey={mapKey} />}
 
+          {/* Render Start Point (Origin) and Destination Point Markers for active shipments */}
+          {shipments.map((s) => {
+            const r = routes[s.id]
+            const origLat = s.origin_lat || r?.origin_lat
+            const origLng = s.origin_lng || r?.origin_lng
+            const destLat = s.destination_lat || r?.destination_lat
+            const destLng = s.destination_lng || r?.destination_lng
+
+            return (
+              <div key={`points-${s.id}`}>
+                {origLat != null && origLng != null && (
+                  <Marker key={`pickup-${s.id}`} position={[origLat, origLng]} icon={pickupIcon}>
+                    <Popup>
+                      <div className="map-popup">
+                        <div className="popup-title">📍 Start Point (Origin)</div>
+                        <div><strong>Shipment #{s.id}:</strong> {s.origin}</div>
+                        <div className="popup-coords">📍 {origLat.toFixed(4)}, {origLng.toFixed(4)}</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+
+                {destLat != null && destLng != null && (
+                  <Marker key={`dest-${s.id}`} position={[destLat, destLng]} icon={destIcon}>
+                    <Popup>
+                      <div className="map-popup">
+                        <div className="popup-title">🏁 Destination Point</div>
+                        <div><strong>Shipment #{s.id}:</strong> {s.destination}</div>
+                        <div className="popup-coords">📍 {destLat.toFixed(4)}, {destLng.toFixed(4)}</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Render Moving Live Vehicle Markers */}
           {shownVehicles.map(v => {
             const shipment = shipments.find(s => Number(s.vehicle_id) === Number(v.id))
             const routeEstimate = shipment ? routes[shipment.id] : null
@@ -527,28 +574,6 @@ export default function LiveMap({ tripId, user }) {
               </Marker>
             )
           })}
-
-          {tripPickup && (
-            <Marker position={tripPickup} icon={pickupIcon}>
-              <Popup>
-                <div className="map-popup">
-                  <strong>📍 Pickup Point</strong>
-                  <div>{trip?.shipment_origin || featuredShipment?.origin || 'Origin'}</div>
-                </div>
-              </Popup>
-            </Marker>
-          )}
-
-          {tripDestination && (
-            <Marker position={tripDestination} icon={destIcon}>
-              <Popup>
-                <div className="map-popup">
-                  <strong>🏁 Destination Point</strong>
-                  <div>{trip?.shipment_destination || featuredShipment?.destination || 'Destination'}</div>
-                </div>
-              </Popup>
-            </Marker>
-          )}
 
           {/* Draw route polylines */}
           {activeRecalculated?.geometry ? (

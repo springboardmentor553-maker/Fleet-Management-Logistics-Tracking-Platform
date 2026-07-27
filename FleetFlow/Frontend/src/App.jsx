@@ -6,17 +6,19 @@ import Drivers from './components/Drivers'
 import Shipments from './components/Shipments'
 import Trips from './components/Trips'
 import LiveMap from './components/LiveMap'
+import Maintenance from './components/Maintenance'
 import { getMe } from './api/auth'
 
 import './App.css'
 
 const NAV = [
-  { id: 'dashboard',  label: 'Dashboard',  icon: '📊' },
-  { id: 'shipments',  label: 'Shipments',  icon: '📦' },
-  { id: 'trips',      label: 'Trips',      icon: '🛣️' },
-  { id: 'vehicles',   label: 'Vehicles',   icon: '🚛' },
-  { id: 'drivers',    label: 'Drivers',    icon: '👤' },
-  { id: 'map',        label: 'Live Map',   icon: '🗺️' },
+  { id: 'dashboard',   label: 'Dashboard',   icon: '📊' },
+  { id: 'shipments',   label: 'Shipments',   icon: '📦' },
+  { id: 'trips',       label: 'Trips',       icon: '🛣️' },
+  { id: 'vehicles',    label: 'Vehicles',    icon: '🚛' },
+  { id: 'drivers',     label: 'Drivers',     icon: '👤' },
+  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
+  { id: 'map',         label: 'Live Map',    icon: '🗺️' },
 ]
 
 const FOOTER_ACTIONS = [
@@ -34,11 +36,12 @@ function getNavForRole(role) {
   }
   if (role === 'fleet_manager') {
     return [
-      { id: 'dashboard', label: 'Fleet Overview', icon: '📊' },
-      { id: 'vehicles',  label: 'Vehicles',       icon: '🚛' },
-      { id: 'drivers',   label: 'Drivers',        icon: '👤' },
-      { id: 'trips',     label: 'Trips',          icon: '🛣️' },
-      { id: 'map',       label: 'Live Map',       icon: '🗺️' },
+      { id: 'dashboard',   label: 'Fleet Overview', icon: '📊' },
+      { id: 'vehicles',    label: 'Vehicles',       icon: '🚛' },
+      { id: 'drivers',     label: 'Drivers',        icon: '👤' },
+      { id: 'maintenance', label: 'Maintenance',   icon: '🔧' },
+      { id: 'trips',       label: 'Trips',          icon: '🛣️' },
+      { id: 'map',         label: 'Live Map',       icon: '🗺️' },
     ]
   }
   if (role === 'dispatcher') {
@@ -284,6 +287,7 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
         {page === 'trips' && <Trips onViewTripMap={onViewTripMap} />}
         {page === 'vehicles' && <Vehicles />}
         {page === 'drivers' && <Drivers />}
+        {page === 'maintenance' && <Maintenance />}
         {page === 'map' && <LiveMap tripId={selectedTripId} user={user} />}
         {page === 'profile' && <ProfileDetails user={user} />}
         {page === 'settings' && <SettingsPage user={user} />}

@@ -17,40 +17,7 @@ class ConnectionManager:
         await websocket.accept()
         async with self._lock:
             self._connections_by_trip[trip_id].add(websocket)
-            if trip_id not in self._simulated_positions:
-                # Attempt DB lookup for trip pickup & destination coordinates
-                from app.database import SessionLocal
-                from app.models.trip import Trip
-                db = SessionLocal()
-                try:
-                    trip = db.query(Trip).filter(Trip.id == trip_id).first()
-                    if trip:
-                        start_lat = trip.pickup_latitude or 13.0827
-                        start_lng = trip.pickup_longitude or 80.2707
-                        dest_lat  = trip.destination_latitude or (start_lat + 0.05)
-                        dest_lng  = trip.destination_longitude or (start_lng + 0.05)
-                        v_id      = trip.vehicle_id
-                        plate     = trip.vehicle.plate_number if trip.vehicle else f"TRIP-{trip_id}"
-                    else:
-                        start_lat, start_lng, dest_lat, dest_lng = 13.0827, 80.2707, 13.1327, 80.3207
-                        v_id, plate = trip_id, f"TRIP-{trip_id}"
-
-                    self._simulated_positions[trip_id] = {
-                        "latitude": start_lat,
-                        "longitude": start_lng,
-                        "start_lat": start_lat,
-                        "start_lng": start_lng,
-                        "dest_lat": dest_lat,
-                        "dest_lng": dest_lng,
-                        "step": 0,
-                        "max_steps": 50,
-                        "vehicle_id": v_id,
-                        "plate_number": plate,
-                    }
-                finally:
-                    db.close()
-
-        self._start_simulation_loop()
+        self.ensure_simulation_running()
 
     async def disconnect(self, websocket: WebSocket, trip_id: int) -> None:
         async with self._lock:
@@ -58,57 +25,88 @@ class ConnectionManager:
             connections.discard(websocket)
             if not connections:
                 self._connections_by_trip.pop(trip_id, None)
-                self._simulated_positions.pop(trip_id, None)
 
-    def _start_simulation_loop(self) -> None:
+    def ensure_simulation_running(self) -> None:
         if self._simulation_task is None or self._simulation_task.done():
             self._simulation_task = asyncio.create_task(self._run_simulation_loop())
 
     async def _run_simulation_loop(self) -> None:
         while True:
-            await asyncio.sleep(3)
-            async with self._lock:
-                trip_ids = list(self._connections_by_trip.keys())
+            await asyncio.sleep(2.5)
+            try:
+                from app.database import SessionLocal
+                from app.models.shipment import Shipment
+                from app.models.vehicle import Vehicle
+                from app.routers.gps import manager as gps_manager
 
-            for trip_id in trip_ids:
-                async with self._lock:
-                    pos = self._simulated_positions.get(trip_id)
-                    if pos is None:
-                        continue
+                db = SessionLocal()
+                try:
+                    shipments = db.query(Shipment).filter(
+                        Shipment.status == "in_transit",
+                        Shipment.vehicle_id.isnot(None)
+                    ).all()
 
-                    step = (pos["step"] + 1) % pos["max_steps"]
-                    t = step / float(pos["max_steps"])
-                    new_lat = pos["start_lat"] + (pos["dest_lat"] - pos["start_lat"]) * t
-                    new_lng = pos["start_lng"] + (pos["dest_lng"] - pos["start_lng"]) * t
+                    for shipment in shipments:
+                        v_id = shipment.vehicle_id
+                        s_id = shipment.id
 
-                    pos["latitude"] = new_lat
-                    pos["longitude"] = new_lng
-                    pos["step"] = step
-                    self._simulated_positions[trip_id] = pos
-                    v_id = pos["vehicle_id"]
-                    plate = pos["plate_number"]
+                        start_lat = shipment.origin_lat or 13.0827
+                        start_lng = shipment.origin_lng or 80.2707
+                        dest_lat  = shipment.destination_lat or (start_lat + 0.08)
+                        dest_lng  = shipment.destination_lng or (start_lng + 0.08)
 
-                # Update Vehicle coordinates in DB as it moves
-                if v_id:
-                    from app.database import SessionLocal
-                    from app.models.vehicle import Vehicle
-                    db = SessionLocal()
-                    try:
+                        async with self._lock:
+                            pos = self._simulated_positions.get(s_id)
+                            if pos is None or pos.get("dest_lat") != dest_lat:
+                                pos = {
+                                    "latitude": start_lat,
+                                    "longitude": start_lng,
+                                    "start_lat": start_lat,
+                                    "start_lng": start_lng,
+                                    "dest_lat": dest_lat,
+                                    "dest_lng": dest_lng,
+                                    "step": 0,
+                                    "max_steps": 40,
+                                    "vehicle_id": v_id,
+                                    "plate_number": shipment.vehicle.plate_number if shipment.vehicle else f"VEH-{v_id}",
+                                }
+
+                            step = (pos["step"] + 1) % pos["max_steps"]
+                            t = step / float(pos["max_steps"])
+                            new_lat = pos["start_lat"] + (pos["dest_lat"] - pos["start_lat"]) * t
+                            new_lng = pos["start_lng"] + (pos["dest_lng"] - pos["start_lng"]) * t
+
+                            pos["latitude"] = new_lat
+                            pos["longitude"] = new_lng
+                            pos["step"] = step
+                            self._simulated_positions[s_id] = pos
+
                         v = db.query(Vehicle).filter(Vehicle.id == v_id).first()
                         if v:
                             v.latitude = new_lat
                             v.longitude = new_lng
                             db.commit()
-                    finally:
-                        db.close()
+                            plate = v.plate_number
+                        else:
+                            plate = f"VEH-{v_id}"
 
-                await self.broadcast_location_update(
-                    trip_id,
-                    latitude=new_lat,
-                    longitude=new_lng,
-                    vehicle_id=v_id,
-                    plate_number=plate,
-                )
+                        payload = {
+                            "type": "location_update",
+                            "trip_id": s_id,
+                            "shipment_id": s_id,
+                            "vehicle_id": v_id,
+                            "plate_number": plate,
+                            "latitude": round(new_lat, 6),
+                            "longitude": round(new_lng, 6),
+                            "current_status": "in_transit",
+                        }
+
+                        await self.broadcast_trip_update(s_id, payload)
+                        await gps_manager.broadcast(payload)
+                finally:
+                    db.close()
+            except Exception:
+                pass
 
     async def broadcast_trip_update(self, trip_id: int, payload: dict[str, Any]) -> None:
         async with self._lock:

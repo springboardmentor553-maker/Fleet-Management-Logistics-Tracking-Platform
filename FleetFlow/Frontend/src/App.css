@@ -774,3 +774,22 @@
 .m-val.highlight { color: #818cf8; }
 .m-val.green     { color: #4ade80; }
 .m-val.cyan      { color: #38bdf8; }
+
+.stat-card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:12px;
+    color:white;
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+
+.btn-edit{
+    padding:8px 16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.btn-edit:hover{
+    opacity:.9;
+}
