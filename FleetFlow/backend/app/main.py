@@ -8,6 +8,7 @@ from app.database import test_connection
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.drivers import router as drivers_router
+from app.routers.maintenance import router as maintenance_router
 from app.routers.shipments import router as shipments_router
 from app.routers.tracking import router as tracking_router
 from app.routers.trips import router as trips_router
@@ -30,6 +31,7 @@ app.include_router(vehicles_router, prefix="/vehicles", tags=["vehicles"])
 app.include_router(drivers_router, prefix="/drivers", tags=["drivers"])
 app.include_router(shipments_router, prefix="/shipments", tags=["shipments"])
 app.include_router(trips_router, prefix="/trips", tags=["trips"])
+app.include_router(maintenance_router, prefix="/maintenance", tags=["maintenance"])
 app.include_router(tracking_router, tags=["tracking"])
 app.include_router(ws_tracking_router, tags=["websocket"])
 app.include_router(dashboard_router, tags=["dashboard"])

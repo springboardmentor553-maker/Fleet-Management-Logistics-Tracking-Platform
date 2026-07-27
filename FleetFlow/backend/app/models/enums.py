@@ -36,3 +36,18 @@ class TripStatusEnum(enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+
+class MaintenanceCategoryEnum(enum.Enum):
+    OIL_CHANGE          = "Oil Change"
+    TYRE_REPLACEMENT    = "Tyre Replacement"
+    BRAKE_SERVICE       = "Brake Service"
+    ENGINE_SERVICE      = "Engine Service"
+    GENERAL_INSPECTION  = "General Inspection"
+
+
+class MaintenanceStatusEnum(enum.Enum):
+    SCHEDULED   = "SCHEDULED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED   = "COMPLETED"
+    CANCELLED   = "CANCELLED"

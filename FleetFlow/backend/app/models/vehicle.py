@@ -34,3 +34,10 @@ class Vehicle(Base):
 
     # 1-to-Many: One Vehicle → many Trips over time
     trips = relationship("Trip", back_populates="vehicle")
+
+    # 1-to-Many: One Vehicle → many MaintenanceRecords (Task 4)
+    maintenance_records = relationship(
+        "MaintenanceRecord",
+        back_populates="vehicle",
+        order_by="MaintenanceRecord.service_date.desc()",
+    )
