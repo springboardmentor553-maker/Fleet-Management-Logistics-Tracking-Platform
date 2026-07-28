@@ -1,26 +1,16 @@
 from pydantic import BaseModel
-
+from typing import Optional
 
 class DriverCreate(BaseModel):
-    name: str
-    license_number: str
+    full_name: str
+    email: str
     phone: str
+    license_number: str
+    experience: int
     status: str
 
-
-class DriverUpdate(BaseModel):
-    name: str
-    license_number: str
-    phone: str
-    status: str
-
-
-class DriverResponse(BaseModel):
+class DriverResponse(DriverCreate):
     id: int
-    name: str
-    license_number: str
-    phone: str
-    status: str
 
     class Config:
         from_attributes = True

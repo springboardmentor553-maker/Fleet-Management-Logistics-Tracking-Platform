@@ -1,7 +1,11 @@
+# app/models/__init__.py
+
 from .user import User
-from .driver import Driver
 from .vehicle import Vehicle
+from .driver import Driver
 from .shipment import Shipment
+from .route import Route
 from .notification import Notification
-from .settings import Settings
+from .maintenance import Maintenance
+from .delivery import Delivery
 from .trip import Trip

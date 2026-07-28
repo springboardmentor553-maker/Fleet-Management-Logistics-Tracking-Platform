@@ -1,93 +1,133 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.database import get_db
 from app.models.user import User
-from app.schemas.user import (
-    UserCreate,
-    UserLogin,
-    UserResponse,
-    UserUpdate,
-    Token,
+from app.schemas.user import UserRegister, UserLogin
+
+from app.utils.security import (
+    hash_password,
+    verify_password,
+    create_access_token
 )
 
-from app.services.auth_service import (
-    register_user,
-    login_user,
-    get_profile,
-    update_profile,
-)
-
-# Import BOTH from the same file
-from app.utils.dependencies import (
-    get_db,
-    get_current_user,
-)
 
 router = APIRouter(
     prefix="/auth",
-    tags=["Authentication"],
+    tags=["Authentication"]
 )
 
 
-# ==========================================
-# REGISTER
-# ==========================================
+# -------------------------
+# Register API
+# -------------------------
 
-@router.post(
-    "/register",
-    response_model=UserResponse,
-)
+@router.post("/register")
 def register(
-    user: UserCreate,
-    db: Session = Depends(get_db),
+    user: UserRegister,
+    db: Session = Depends(get_db)
 ):
-    return register_user(user, db)
+
+    # Check existing email
+
+    existing_user = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
 
 
-# ==========================================
-# LOGIN
-# ==========================================
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
 
-@router.post(
-    "/login",
-    response_model=Token,
-)
+
+    # Create new user
+
+    new_user = User(
+    full_name=user.full_name,
+    email=user.email,
+    password=hash_password(user.password),
+    role=user.role,
+    is_active=True
+    )
+
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+
+    return {
+
+        "message": "User registered successfully",
+
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "role": new_user.role
+        }
+
+    }
+
+
+
+# -------------------------
+# Login API
+# -------------------------
+
+@router.post("/login")
 def login(
     user: UserLogin,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    return login_user(user, db)
 
+    # Find user by email
 
-# ==========================================
-# GET PROFILE
-# ==========================================
-
-@router.get(
-    "/profile",
-    response_model=UserResponse,
-)
-def profile(
-    current_user: User = Depends(get_current_user),
-):
-    return get_profile(current_user)
-
-
-# ==========================================
-# UPDATE PROFILE
-# ==========================================
-
-@router.put(
-    "/profile",
-    response_model=UserResponse,
-)
-def update_user_profile(
-    profile: UserUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    return update_profile(
-        profile,
-        current_user,
-        db,
+    db_user = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
     )
+
+
+    if not db_user:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+
+    # Verify password
+
+    if not verify_password(
+        user.password,
+        db_user.password
+    ):
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+
+    # Create JWT token
+
+    access_token = create_access_token(
+        {
+            "sub": db_user.email,
+            "role": db_user.role
+        }
+    )
+
+
+    return {
+
+        "access_token": access_token,
+
+        "token_type": "bearer"
+
+    }

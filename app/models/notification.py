@@ -1,25 +1,13 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-from sqlalchemy.sql import func
 from app.database import Base
 
-
 class Notification(Base):
-
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-
-    title = Column(String(150), nullable=False)
-
-    message = Column(String(500), nullable=False)
-
-    type = Column(String(50), default="info")
-
-    is_read = Column(Boolean, default=False)
-
-    created_at = Column(
-    DateTime(timezone=True),
-    server_default=func.now(),
-    nullable=False
-    )
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    notification_type = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)  
+    status = Column(String, default="Unread")

@@ -1,12 +1,29 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-load_dotenv()
 
-DATABASE_URL = "sqlite:///./freightflow.db"
+class Settings(BaseSettings):
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
+    DB_HOST: str = "localhost"
+    DB_PORT: str = "5432"
+    DB_NAME: str = "fleetflow_db"
 
-SECRET_KEY = "a-very-long-random-secret-string-change-this-later"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+    APP_NAME: str = "FleetFlow API"
+    ENV: str = "development"
 
-ORS_API_KEY = os.getenv("ORS_API_KEY")
+    SECRET_KEY: str = "Ash843"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()

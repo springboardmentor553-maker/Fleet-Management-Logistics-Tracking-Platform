@@ -1,0 +1,12 @@
+from enum import Enum
+import enum
+
+class ShipmentStatus(str, enum.Enum):
+    CREATED = "CREATED"
+    ASSIGNED = "ASSIGNED"
+    PICKED_UP = "PICKED_UP"
+    IN_TRANSIT = "IN_TRANSIT"
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+    DELAYED = "DELAYED"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
