@@ -21,6 +21,7 @@ class Trip(Base):
     scheduled_start = Column(DateTime, nullable=False)
     scheduled_end = Column(DateTime, nullable=False)
     status = Column(String, default="Scheduled")
+    traffic_level = Column(String, default="Normal", server_default="Normal")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

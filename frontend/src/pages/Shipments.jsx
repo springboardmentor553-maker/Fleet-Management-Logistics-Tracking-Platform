@@ -14,6 +14,113 @@ function Shipments() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
+
+  // Scheduling Modal states
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [schedulingShipment, setSchedulingShipment] = useState(null);
+  const [schedulingTrip, setSchedulingTrip] = useState(null);
+  const [scheduledStart, setScheduledStart] = useState("");
+  const [scheduledEnd, setScheduledEnd] = useState("");
+  const [tripStatus, setTripStatus] = useState("Scheduled");
+  const [schedDriverId, setSchedDriverId] = useState("");
+  const [schedVehicleId, setSchedVehicleId] = useState("");
+
+  const getValidTransitions = (currentStatus) => {
+    const transitions = {
+      "Created": ["Assigned", "Cancelled"],
+      "Assigned": ["In Transit", "Cancelled"],
+      "In Transit": ["Delayed", "Delivered", "Cancelled"],
+      "Delayed": ["In Transit", "Delivered", "Cancelled"],
+      "Delivered": [],
+      "Cancelled": []
+    };
+    return transitions[currentStatus] || [];
+  };
+
+  const handleStatusChange = async (shipmentId, newStatus) => {
+    setUpdatingStatusId(shipmentId);
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      const res = await api.put(`/shipments/${shipmentId}/status`, { status: newStatus });
+      // Reload matching dataset
+      await fetchShipmentsAndCarriers();
+      setSuccessMsg(res.data.message || "Shipment status updated successfully.");
+      setTimeout(() => setSuccessMsg(""), 4000);
+    } catch (err) {
+      console.error(err);
+      const detail = err.response?.data?.detail || "Could not update status.";
+      setErrorMsg(detail);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
+  const openScheduleModal = (shipment, trip = null) => {
+    setSchedulingShipment(shipment);
+    setSchedulingTrip(trip);
+    setSchedDriverId(shipment.driver_id ? shipment.driver_id.toString() : "");
+    setSchedVehicleId(shipment.vehicle_id ? shipment.vehicle_id.toString() : "");
+    if (trip) {
+      setScheduledStart(trip.scheduled_start ? trip.scheduled_start.substring(0, 16) : "");
+      setScheduledEnd(trip.scheduled_end ? trip.scheduled_end.substring(0, 16) : "");
+      setTripStatus(trip.status);
+    } else {
+      setScheduledStart("");
+      setScheduledEnd("");
+      setTripStatus("Scheduled");
+    }
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSubmit = async (e) => {
+    e.preventDefault();
+    if (!scheduledStart || !scheduledEnd || !schedDriverId || !schedVehicleId) {
+      alert("Please complete all scheduling parameters.");
+      return;
+    }
+
+    setSubmitting(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const payload = {
+        shipment_id: schedulingShipment.id,
+        driver_id: parseInt(schedDriverId),
+        vehicle_id: parseInt(schedVehicleId),
+        pickup_location: schedulingShipment.source,
+        destination: schedulingShipment.destination,
+        scheduled_start: new Date(scheduledStart).toISOString(),
+        scheduled_end: new Date(scheduledEnd).toISOString(),
+        status: tripStatus
+      };
+
+      if (schedulingTrip) {
+        await api.put(`/trips/${schedulingTrip.id}`, payload);
+        setSuccessMsg("Trip schedule updated successfully!");
+      } else {
+        await api.post("/trips/", payload);
+        setSuccessMsg("Trip scheduled successfully!");
+      }
+
+      setShowScheduleModal(false);
+      setSchedulingShipment(null);
+      setSchedulingTrip(null);
+      await fetchShipmentsAndCarriers();
+      setTimeout(() => setSuccessMsg(""), 4000);
+    } catch (err) {
+      console.error(err);
+      const detail = err.response?.data?.detail || "Scheduling conflict or validation error occurred.";
+      setErrorMsg(detail);
+      setTimeout(() => setErrorMsg(""), 6000);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Modals & Forms display states
   const [showAddForm, setShowAddForm] = useState(false);
@@ -29,7 +136,7 @@ function Shipments() {
   const [destination, setDestination] = useState("");
   const [driverId, setDriverId] = useState("");
   const [vehicleId, setVehicleId] = useState("");
-  const [status, setStatus] = useState("Pending");
+  const [status, setStatus] = useState("Created");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchShipmentsAndCarriers = async () => {
@@ -223,6 +330,23 @@ function Shipments() {
         </div>
       )}
 
+      {successMsg && (
+        <div className="success-banner" style={{
+          padding: "12px 16px",
+          backgroundColor: "var(--success-bg)",
+          border: "1px solid var(--success)",
+          color: "var(--success)",
+          borderRadius: "8px",
+          marginBottom: "16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontWeight: 500
+        }}>
+          <span>✓</span> {successMsg}
+        </div>
+      )}
+
       {/* Scheduling Shipment form drawer */}
       {showAddForm && (
         <div className="form-card">
@@ -282,9 +406,12 @@ function Shipments() {
               <div className="form-group">
                 <label>Operational Status</label>
                 <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="Pending">Pending</option>
+                  <option value="Created">Created</option>
+                  <option value="Assigned">Assigned</option>
                   <option value="In Transit">In Transit</option>
-                  <option value="Completed">Completed</option>
+                  <option value="Delayed">Delayed</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
             )}
@@ -317,7 +444,7 @@ function Shipments() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>Tracking Number</th>
                   <th>Source</th>
                   <th>Destination</th>
                   <th>Driver</th>
@@ -329,15 +456,45 @@ function Shipments() {
               <tbody>
                 {shipments.map((shipment) => (
                   <tr key={shipment.id}>
-                    <td>#{shipment.id}</td>
+                    <td><code>TRK-{shipment.id}</code></td>
                     <td>{shipment.source}</td>
                     <td>{shipment.destination}</td>
                     <td>{getDriverName(shipment.driver_id)}</td>
                     <td>{getVehicleNumber(shipment.vehicle_id)}</td>
                     <td>
-                      <span className={`badge badge-${shipment.status.toLowerCase().replace(" ", "-")}`}>
-                        {shipment.status}
-                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <span className={`badge badge-${shipment.status.toLowerCase().replace(" ", "-")}`}>
+                          {shipment.status}
+                        </span>
+                        {getValidTransitions(shipment.status).length > 0 && (
+                          <select
+                            value={shipment.status}
+                            onChange={(e) => handleStatusChange(shipment.id, e.target.value)}
+                            disabled={updatingStatusId === shipment.id}
+                            className="status-select"
+                            style={{
+                              fontSize: "12px",
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              border: "1.5px solid var(--border)",
+                              backgroundColor: "var(--card-bg)",
+                              color: "var(--text-h)",
+                              outline: "none",
+                              cursor: "pointer"
+                            }}
+                          >
+                            <option value={shipment.status} disabled>-- Update Status --</option>
+                            {getValidTransitions(shipment.status).map((stat) => (
+                              <option key={stat} value={stat}>{stat}</option>
+                            ))}
+                          </select>
+                        )}
+                        {updatingStatusId === shipment.id && (
+                          <span style={{ fontSize: "11px", color: "var(--text)", fontStyle: "italic" }}>
+                            Updating...
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="table-actions">
@@ -347,13 +504,32 @@ function Shipments() {
                         >
                           📜 Logs
                         </button>
-                        {trips.find((t) => t.shipment_id === shipment.id) && (
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => navigate(`/trips/${trips.find((t) => t.shipment_id === shipment.id).id}`)}
-                          >
-                            🗺️ View Route
-                          </button>
+                        {trips.find((t) => t.shipment_id === shipment.id) ? (
+                          <>
+                            <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() => navigate(`/trips/${trips.find((t) => t.shipment_id === shipment.id).id}`)}
+                            >
+                              🗺️ View Route
+                            </button>
+                            {isManagementAllowed && (
+                              <button
+                                className="btn btn-sm btn-secondary"
+                                onClick={() => openScheduleModal(shipment, trips.find((t) => t.shipment_id === shipment.id))}
+                              >
+                                📅 Edit Schedule
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          isManagementAllowed && (
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() => openScheduleModal(shipment)}
+                            >
+                              📅 Schedule
+                            </button>
+                          )
                         )}
                         {isManagementAllowed && shipment.status !== "Completed" && (
                           <>
@@ -411,7 +587,9 @@ function Shipments() {
                       <div className="timeline-badge">📍</div>
                       <div className="timeline-content">
                         <h4>Status: <span className={`badge badge-${log.status.toLowerCase().replace(" ", "-")}`}>{log.status}</span></h4>
-                        <p className="timeline-time">Recorded Time ID: #{log.id}</p>
+                        <p className="timeline-time">
+                          {log.updated_at ? new Date(log.updated_at).toLocaleString() : `Recorded ID: #${log.id}`}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -447,6 +625,156 @@ function Shipments() {
         onConfirm={handleDeleteShipment}
         onCancel={() => setDeleteConfirmId(null)}
       />
+
+      {/* Trip Scheduling Modal */}
+      {showScheduleModal && schedulingShipment && (
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: "500px" }}>
+            <div className="modal-header">
+              <h3>{schedulingTrip ? "Edit Trip Schedule" : "Schedule Shipment Trip"}</h3>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setShowScheduleModal(false);
+                  setSchedulingShipment(null);
+                  setSchedulingTrip(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleScheduleSubmit}>
+              <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <p style={{ margin: 0, fontSize: "14px", color: "var(--text)" }}>
+                  Setting scheduled window for Shipment <strong>TRK-{schedulingShipment.id}</strong> (from {schedulingShipment.source} to {schedulingShipment.destination}).
+                </p>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, display: "block", marginBottom: "6px" }}>Scheduled Start Time</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledStart}
+                    onChange={(e) => setScheduledStart(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1.5px solid var(--border)",
+                      backgroundColor: "var(--bg)",
+                      color: "var(--text-h)"
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, display: "block", marginBottom: "6px" }}>Scheduled End Time</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledEnd}
+                    onChange={(e) => setScheduledEnd(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1.5px solid var(--border)",
+                      backgroundColor: "var(--bg)",
+                      color: "var(--text-h)"
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, display: "block", marginBottom: "6px" }}>Trip Driver Assignment</label>
+                  <select
+                    value={schedDriverId}
+                    onChange={(e) => setSchedDriverId(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1.5px solid var(--border)",
+                      backgroundColor: "var(--bg)",
+                      color: "var(--text-h)"
+                    }}
+                  >
+                    <option value="">-- Select Driver --</option>
+                    {drivers.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} {d.status !== "Available" && d.id !== schedulingShipment.driver_id ? `(${d.status})` : "(Available)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, display: "block", marginBottom: "6px" }}>Trip Vehicle Assignment</label>
+                  <select
+                    value={schedVehicleId}
+                    onChange={(e) => setSchedVehicleId(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1.5px solid var(--border)",
+                      backgroundColor: "var(--bg)",
+                      color: "var(--text-h)"
+                    }}
+                  >
+                    <option value="">-- Select Vehicle --</option>
+                    {vehicles.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.vehicle_number} - {v.vehicle_type} {v.status !== "Available" && v.id !== schedulingShipment.vehicle_id ? `(${v.status})` : "(Available)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontWeight: 600, display: "block", marginBottom: "6px" }}>Trip Status</label>
+                  <select
+                    value={tripStatus}
+                    onChange={(e) => setTripStatus(e.target.value)}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1.5px solid var(--border)",
+                      backgroundColor: "var(--bg)",
+                      color: "var(--text-h)"
+                    }}
+                  >
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setSchedulingShipment(null);
+                    setSchedulingTrip(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? "Processing..." : schedulingTrip ? "Update Schedule" : "Confirm Schedule"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

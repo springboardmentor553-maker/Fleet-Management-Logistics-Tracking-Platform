@@ -11,7 +11,7 @@ class Shipment(Base):
     id = Column(Integer, primary_key=True, index=True)
     source = Column(String, nullable=False)
     destination = Column(String, nullable=False)
-    status = Column(String, default="Pending")
+    status = Column(String, default="Created")
 
     driver_id = Column(Integer, ForeignKey("drivers.id"))
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"))

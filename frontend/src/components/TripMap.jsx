@@ -57,7 +57,7 @@ function MapBoundsAdjuster({ pickupCoords, destCoords, routePoints }) {
   return null;
 }
 
-function TripMap({ pickupLocation, destination, pickupCoords, destCoords, routeGeometry }) {
+function TripMap({ pickupLocation, destination, pickupCoords, destCoords, routeGeometry, currentLocation }) {
   // Memoize route points converting OSRM [longitude, latitude] to Leaflet [latitude, longitude]
   const routePoints = useMemo(() => {
     if (!routeGeometry || !Array.isArray(routeGeometry.coordinates)) {
@@ -69,11 +69,21 @@ function TripMap({ pickupLocation, destination, pickupCoords, destCoords, routeG
     });
   }, [routeGeometry]);
 
+  const vehicleIcon = useMemo(() => {
+    return L.divIcon({
+      html: '<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🚛</div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      className: "vehicle-live-marker"
+    });
+  }, []);
+
   const defaultCenter = [20.5937, 78.9629]; // Center of India as fallback
   const defaultZoom = 5;
 
   const validPickup = pickupCoords && typeof pickupCoords.latitude === "number" && typeof pickupCoords.longitude === "number";
   const validDestination = destCoords && typeof destCoords.latitude === "number" && typeof destCoords.longitude === "number";
+  const validVehicle = currentLocation && typeof currentLocation.latitude === "number" && typeof currentLocation.longitude === "number";
 
   return (
     <div className="trip-map-wrapper" style={{ height: "450px", width: "100%", borderRadius: "8px", overflow: "hidden", position: "relative" }}>
@@ -103,6 +113,16 @@ function TripMap({ pickupLocation, destination, pickupCoords, destCoords, routeG
               <strong>Destination Point</strong>
               <br />
               {destination}
+            </Popup>
+          </Marker>
+        )}
+
+        {validVehicle && (
+          <Marker position={[currentLocation.latitude, currentLocation.longitude]} icon={vehicleIcon}>
+            <Popup>
+              <strong>Current Vehicle Location</strong>
+              <br />
+              Lat: {currentLocation.latitude}, Lon: {currentLocation.longitude}
             </Popup>
           </Marker>
         )}

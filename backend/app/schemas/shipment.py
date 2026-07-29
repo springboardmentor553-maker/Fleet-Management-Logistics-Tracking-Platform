@@ -26,3 +26,7 @@ class ShipmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ShipmentStatusUpdate(BaseModel):
+    status: str

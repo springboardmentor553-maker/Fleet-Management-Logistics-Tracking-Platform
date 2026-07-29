@@ -16,6 +16,7 @@ class TripBase(BaseModel):
     scheduled_start: datetime
     scheduled_end: datetime
     status: Optional[str] = "Scheduled"
+    traffic_level: Optional[str] = "Normal"
 
 
 class TripCreate(TripBase):
@@ -35,6 +36,7 @@ class TripUpdate(BaseModel):
     scheduled_start: Optional[datetime] = None
     scheduled_end: Optional[datetime] = None
     status: Optional[str] = None
+    traffic_level: Optional[str] = None
 
 
 class TripResponse(BaseModel):
@@ -51,7 +53,17 @@ class TripResponse(BaseModel):
     scheduled_start: datetime
     scheduled_end: datetime
     status: str
+    traffic_level: str
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class TripLocationUpdate(BaseModel):
+    latitude: float
+    longitude: float
+
+
+class TripTrafficUpdate(BaseModel):
+    traffic_level: str
