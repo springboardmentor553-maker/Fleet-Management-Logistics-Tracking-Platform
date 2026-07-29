@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -14,6 +14,10 @@ class Trip(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     pickup_location = Column(String, nullable=False)
     destination = Column(String, nullable=False)
+    pickup_latitude = Column(Float, nullable=True)
+    pickup_longitude = Column(Float, nullable=True)
+    destination_latitude = Column(Float, nullable=True)
+    destination_longitude = Column(Float, nullable=True)
     scheduled_start = Column(DateTime, nullable=False)
     scheduled_end = Column(DateTime, nullable=False)
     status = Column(String, default="Scheduled")

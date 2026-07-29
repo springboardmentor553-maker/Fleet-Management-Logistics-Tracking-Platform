@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -6,7 +7,9 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 
 function Shipments() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [shipments, setShipments] = useState([]);
+  const [trips, setTrips] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +38,9 @@ function Shipments() {
     try {
       const shipmentsRes = await api.get("/shipments/");
       setShipments(shipmentsRes.data);
+
+      const tripsRes = await api.get("/trips/");
+      setTrips(tripsRes.data);
 
       // Load drivers & vehicles in order to populate option selectors
       const driversRes = await api.get("/drivers/");
@@ -341,6 +347,14 @@ function Shipments() {
                         >
                           📜 Logs
                         </button>
+                        {trips.find((t) => t.shipment_id === shipment.id) && (
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => navigate(`/trips/${trips.find((t) => t.shipment_id === shipment.id).id}`)}
+                          >
+                            🗺️ View Route
+                          </button>
+                        )}
                         {isManagementAllowed && shipment.status !== "Completed" && (
                           <>
                             <button

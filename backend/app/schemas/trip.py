@@ -9,6 +9,10 @@ class TripBase(BaseModel):
     vehicle_id: int
     pickup_location: str
     destination: str
+    pickup_latitude: Optional[float] = None
+    pickup_longitude: Optional[float] = None
+    destination_latitude: Optional[float] = None
+    destination_longitude: Optional[float] = None
     scheduled_start: datetime
     scheduled_end: datetime
     status: Optional[str] = "Scheduled"
@@ -24,6 +28,10 @@ class TripUpdate(BaseModel):
     vehicle_id: Optional[int] = None
     pickup_location: Optional[str] = None
     destination: Optional[str] = None
+    pickup_latitude: Optional[float] = None
+    pickup_longitude: Optional[float] = None
+    destination_latitude: Optional[float] = None
+    destination_longitude: Optional[float] = None
     scheduled_start: Optional[datetime] = None
     scheduled_end: Optional[datetime] = None
     status: Optional[str] = None
@@ -36,6 +44,10 @@ class TripResponse(BaseModel):
     vehicle_id: int
     pickup_location: str
     destination: str
+    pickup_latitude: Optional[float]
+    pickup_longitude: Optional[float]
+    destination_latitude: Optional[float]
+    destination_longitude: Optional[float]
     scheduled_start: datetime
     scheduled_end: datetime
     status: str

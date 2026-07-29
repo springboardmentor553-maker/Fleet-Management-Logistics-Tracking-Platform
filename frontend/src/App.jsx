@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
 import Shipments from "./pages/Shipments";
+import TripDetails from "./pages/TripDetails";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager", "Dispatcher"]} />}>
                 <Route path="/drivers" element={<Drivers />} />
                 <Route path="/shipments" element={<Shipments />} />
+                <Route path="/trips/:trip_id" element={<TripDetails />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager", "Dispatcher", "Driver"]} />}>
