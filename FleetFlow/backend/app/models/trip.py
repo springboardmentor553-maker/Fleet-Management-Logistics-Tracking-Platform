@@ -54,3 +54,7 @@ class Trip(Base):
     shipment = relationship("Shipment", back_populates="trip")
     driver = relationship("Driver", back_populates="trips")
     vehicle = relationship("Vehicle", back_populates="trips")
+
+    # 1-to-1 (uselist=False): One Trip has at most one active DriverAssignment
+    assignment = relationship("DriverAssignment", back_populates="trip", uselist=False)
+

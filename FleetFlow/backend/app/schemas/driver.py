@@ -1,4 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
+
+from app.models.enums import DriverStatusEnum
 
 
 class DriverCreate(BaseModel):
@@ -11,9 +14,10 @@ class DriverCreate(BaseModel):
 class DriverRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    user_id: int
+    id:              int
+    user_id:         int
     license_details: str
+    status:          Optional[DriverStatusEnum] = DriverStatusEnum.AVAILABLE
 
 
 class DriverUpdate(BaseModel):

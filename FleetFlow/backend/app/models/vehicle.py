@@ -41,3 +41,6 @@ class Vehicle(Base):
         back_populates="vehicle",
         order_by="MaintenanceRecord.service_date.desc()",
     )
+
+    # 1-to-Many: One Vehicle → many DriverAssignments
+    assignments = relationship("DriverAssignment", back_populates="vehicle")

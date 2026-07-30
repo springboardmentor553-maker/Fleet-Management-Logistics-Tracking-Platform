@@ -51,3 +51,21 @@ class MaintenanceStatusEnum(enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED   = "COMPLETED"
     CANCELLED   = "CANCELLED"
+
+
+class AssignmentStatusEnum(enum.Enum):
+    ACTIVE    = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+
+class AttendanceStatusEnum(enum.Enum):
+    PRESENT = "PRESENT"
+    ABSENT  = "ABSENT"
+    LEAVE   = "LEAVE"
+
+
+class DriverStatusEnum(enum.Enum):
+    AVAILABLE = "AVAILABLE"
+    ON_DUTY   = "ON_DUTY"
+    OFF_DUTY  = "OFF_DUTY"
