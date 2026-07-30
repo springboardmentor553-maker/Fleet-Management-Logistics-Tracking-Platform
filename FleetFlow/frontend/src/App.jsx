@@ -9,6 +9,8 @@ import Drivers from './pages/Drivers'
 import Shipments from './pages/Shipments'
 import Trips from './pages/Trips'
 import LiveTracking from './pages/LiveTracking'
+import DriverAssignments from './pages/DriverAssignments'
+import DriverAttendance from './pages/DriverAttendance'
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/trips"     element={<ProtectedRoute><Trips /></ProtectedRoute>} />
           <Route path="/tracking"  element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
           <Route path="/tracking/:tripId" element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
+          <Route path="/assignments" element={<ProtectedRoute><DriverAssignments /></ProtectedRoute>} />
+          <Route path="/attendance"  element={<ProtectedRoute><DriverAttendance /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

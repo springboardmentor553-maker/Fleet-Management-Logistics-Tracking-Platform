@@ -82,4 +82,26 @@ export const tripApi = {
 export const WS_BASE = 'ws://localhost:8000'
 export const trackingWsUrl = (tripId) => `${WS_BASE}/ws/tracking/${tripId}`
 
+// ── Driver Assignments ────────────────────────────────────────
+export const assignmentApi = {
+  list:   (params)     => api.get('/driver-assignments', { params }),
+  get:    (id)         => api.get(`/driver-assignments/${id}`),
+  create: (data)       => api.post('/driver-assignments', data),
+  update: (id, data)   => api.put(`/driver-assignments/${id}`, data),
+  cancel: (id)         => api.delete(`/driver-assignments/${id}`),
+}
+
+// ── Driver Attendance ─────────────────────────────────────────
+export const attendanceApi = {
+  list:   (params)     => api.get('/driver-attendance', { params }),
+  get:    (id)         => api.get(`/driver-attendance/${id}`),
+  create: (data)       => api.post('/driver-attendance', data),
+  update: (id, data)   => api.put(`/driver-attendance/${id}`, data),
+}
+
+// ── Driver Performance ────────────────────────────────────────
+export const performanceApi = {
+  get: (driverId) => api.get(`/drivers/${driverId}/performance`),
+}
+
 export default api

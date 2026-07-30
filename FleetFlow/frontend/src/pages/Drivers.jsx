@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
-import { RoleBadge } from '../components/StatusBadge'
+import StatusBadge, { RoleBadge } from '../components/StatusBadge'
 import DriverModal from '../components/DriverModal'
 import { driverApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -100,6 +100,7 @@ export default function Drivers() {
                       <th>Profile ID</th>
                       <th>User ID</th>
                       <th>License Details</th>
+                      <th>Status</th>
                       {canManage && <th style={{ textAlign: 'right' }}>Actions</th>}
                     </tr>
                   </thead>
@@ -113,6 +114,7 @@ export default function Drivers() {
                           </span>
                         </td>
                         <td><strong>{d.license_details}</strong></td>
+                        <td><StatusBadge status={d.status || 'AVAILABLE'} /></td>
                         {canManage && (
                           <td style={{ textAlign: 'right' }}>
                             <div className="action-row" style={{ justifyContent: 'flex-end' }}>

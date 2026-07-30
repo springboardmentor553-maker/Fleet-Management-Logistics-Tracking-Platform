@@ -524,6 +524,40 @@ tbody tr:hover { background: var(--bg-table-hover); }
 .badge-maintenance { background: var(--status-maint-bg);   color: var(--status-maint-text); }
 .badge-maintenance .badge-dot { background: var(--status-maint-text); }
 
+/* Driver status badges */
+.badge-on_duty   { background: rgba(59,130,246,0.12);  color: #60a5fa; }
+.badge-on_duty .badge-dot   { background: #60a5fa; }
+.badge-off_duty  { background: rgba(107,114,128,0.12); color: #9ca3af; }
+.badge-off_duty .badge-dot  { background: #9ca3af; }
+
+/* Assignment status badges */
+.badge-active    { background: rgba(34,197,94,0.12);   color: #4ade80; }
+.badge-active .badge-dot    { background: #4ade80; }
+.badge-completed { background: rgba(99,102,241,0.14);  color: #a5b4fc; }
+.badge-completed .badge-dot { background: #a5b4fc; }
+.badge-cancelled { background: rgba(107,114,128,0.10); color: #6b7280; }
+.badge-cancelled .badge-dot { background: #6b7280; }
+
+/* Shipment / Trip status badges */
+.badge-created          { background: rgba(14,165,233,0.12);  color: #38bdf8; }
+.badge-created .badge-dot { background: #38bdf8; }
+.badge-assigned         { background: rgba(168,85,247,0.12);  color: #c084fc; }
+.badge-assigned .badge-dot { background: #c084fc; }
+.badge-in_transit       { background: rgba(59,130,246,0.12);  color: #60a5fa; }
+.badge-in_transit .badge-dot { background: #60a5fa; }
+.badge-picked_up        { background: rgba(245,158,11,0.12);  color: #fbbf24; }
+.badge-picked_up .badge-dot { background: #fbbf24; }
+.badge-out_for_delivery { background: rgba(249,115,22,0.12);  color: #fb923c; }
+.badge-out_for_delivery .badge-dot { background: #fb923c; }
+.badge-delivered        { background: rgba(34,197,94,0.12);   color: #4ade80; }
+.badge-delivered .badge-dot { background: #4ade80; }
+.badge-delayed          { background: rgba(245,158,11,0.12);  color: #fbbf24; }
+.badge-delayed .badge-dot   { background: #fbbf24; }
+.badge-scheduled        { background: rgba(99,102,241,0.12);  color: #818cf8; }
+.badge-scheduled .badge-dot { background: #818cf8; }
+.badge-in_progress      { background: rgba(34,197,94,0.12);   color: #4ade80; }
+.badge-in_progress .badge-dot { background: #4ade80; }
+
 .badge-admin      { background: var(--role-admin-bg);      color: var(--role-admin-text); }
 .badge-fleet_manager { background: var(--role-manager-bg); color: var(--role-manager-text); }
 .badge-driver     { background: var(--role-driver-bg);     color: var(--role-driver-text); }
