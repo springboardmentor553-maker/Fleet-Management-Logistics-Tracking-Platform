@@ -81,14 +81,12 @@ export default function DriverAttendance() {
     }
     setSaving(true); setFormErr('')
     try {
-      // Build ISO datetime strings with timezone offset
-      const tzOffset = '+05:30'
       const payload = {
         driver_id: Number(form.driver_id),
         date:      form.date,
         status:    form.status,
-        check_in_time:  form.check_in_time  ? `${form.check_in_time}${tzOffset}` : null,
-        check_out_time: form.check_out_time ? `${form.check_out_time}${tzOffset}` : null,
+        check_in_time:  form.check_in_time  || null,
+        check_out_time: form.check_out_time || null,
       }
       await attendanceApi.create(payload)
       showToast('Attendance recorded successfully')
@@ -101,13 +99,22 @@ export default function DriverAttendance() {
   }
 
   // ── Edit attendance ──────────────────────────────────────────
+  function toLocalInputValue(isoStr) {
+    // Convert UTC ISO string → "YYYY-MM-DDTHH:MM" in local time for datetime-local input
+    if (!isoStr) return ''
+    const d = new Date(isoStr)
+    if (isNaN(d)) return ''
+    const pad = n => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
   function openEdit(rec) {
     setForm({
       driver_id:      rec.driver_id,
       date:           rec.date,
       status:         rec.status,
-      check_in_time:  rec.check_in_time  ? rec.check_in_time.slice(0, 16)  : '',
-      check_out_time: rec.check_out_time ? rec.check_out_time.slice(0, 16) : '',
+      check_in_time:  toLocalInputValue(rec.check_in_time),
+      check_out_time: toLocalInputValue(rec.check_out_time),
     })
     setFormErr('')
     setModal(rec)
@@ -117,11 +124,12 @@ export default function DriverAttendance() {
     e.preventDefault()
     setSaving(true); setFormErr('')
     try {
-      const tzOffset = '+05:30'
+      // datetime-local values are already in "YYYY-MM-DDTHH:MM" format;
+      // just send them as-is (the backend uses datetime.fromisoformat which handles this)
       const payload = {
         status:         form.status,
-        check_in_time:  form.check_in_time  ? `${form.check_in_time}${tzOffset}`  : null,
-        check_out_time: form.check_out_time ? `${form.check_out_time}${tzOffset}` : null,
+        check_in_time:  form.check_in_time  || null,
+        check_out_time: form.check_out_time || null,
       }
       await attendanceApi.update(modal.id, payload)
       showToast('Attendance updated')
