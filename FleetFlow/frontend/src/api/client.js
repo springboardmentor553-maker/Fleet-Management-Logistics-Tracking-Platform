@@ -52,9 +52,15 @@ export const driverApi = {
   delete: (id)       => api.delete(`/drivers/${id}`),
 }
 
-// ── Dashboard ─────────────────────────────────────────────────
+// ── Dashboard & Analytics ───────────────────────────────────────
 export const dashboardApi = {
-  summary: () => api.get('/dashboard'),
+  summary: () => api.get('/dashboard'), // Legacy
+  fleet:   () => api.get('/dashboard/fleet'),
+}
+
+export const analyticsApi = {
+  fuel:       () => api.get('/analytics/fuel'),
+  operations: () => api.get('/analytics/operations'),
 }
 
 // ── Shipments ─────────────────────────────────────────────────
@@ -103,6 +109,15 @@ export const attendanceApi = {
 // ── Driver Performance ────────────────────────────────────────
 export const performanceApi = {
   get: (driverId) => api.get(`/drivers/${driverId}/performance`),
+}
+
+// ── Fuel Records ──────────────────────────────────────────────
+export const fuelApi = {
+  list:   (params)     => api.get('/fuel', { params }),
+  get:    (id)         => api.get(`/fuel/${id}`),
+  create: (data)       => api.post('/fuel', data),
+  update: (id, data)   => api.put(`/fuel/${id}`, data),
+  delete: (id)         => api.delete(`/fuel/${id}`),
 }
 
 export default api

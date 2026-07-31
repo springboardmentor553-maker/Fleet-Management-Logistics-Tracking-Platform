@@ -11,6 +11,7 @@ import Trips from './pages/Trips'
 import LiveTracking from './pages/LiveTracking'
 import DriverAssignments from './pages/DriverAssignments'
 import DriverAttendance from './pages/DriverAttendance'
+import FuelRecords from './pages/FuelRecords'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/tracking/:tripId" element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
           <Route path="/assignments" element={<ProtectedRoute><DriverAssignments /></ProtectedRoute>} />
           <Route path="/attendance"  element={<ProtectedRoute><DriverAttendance /></ProtectedRoute>} />
+          <Route path="/fuel"        element={<ProtectedRoute><FuelRecords /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -13,6 +13,7 @@ const NAV = [
     items: [
       { to: '/vehicles', label: 'Vehicles',  icon: <TruckIcon /> },
       { to: '/drivers',  label: 'Drivers',   icon: <UserIcon /> },
+      { to: '/fuel',     label: 'Fuel Log',  icon: <FuelIcon /> },
     ],
   },
   {
@@ -165,6 +166,17 @@ function CalendarIcon({ size = 18 }) {
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
+function FuelIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 22v-4a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v4" />
+      <path d="M7 22v-4" />
+      <path d="M11 22v-4" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M14 22h6v-6a4 4 0 0 0-4-4v0a4 4 0 0 0-4 4v6z" />
     </svg>
   )
 }

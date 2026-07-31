@@ -24,3 +24,4 @@ from app.models.trip import Trip  # noqa: F401
 from app.models.maintenance import MaintenanceRecord  # noqa: F401
 from app.models.driver_assignment import DriverAssignment  # noqa: F401
 from app.models.driver_attendance import DriverAttendance  # noqa: F401
+from app.models.fuel_record import FuelRecord  # noqa: F401
