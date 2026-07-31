@@ -93,10 +93,11 @@ export const assignmentApi = {
 
 // ── Driver Attendance ─────────────────────────────────────────
 export const attendanceApi = {
-  list:   (params)     => api.get('/driver-attendance', { params }),
-  get:    (id)         => api.get(`/driver-attendance/${id}`),
-  create: (data)       => api.post('/driver-attendance', data),
-  update: (id, data)   => api.put(`/driver-attendance/${id}`, data),
+  list:         (params) => api.get('/driver-attendance', { params }),
+  get:          (id)     => api.get(`/driver-attendance/${id}`),
+  create:       (data)   => api.post('/driver-attendance', data),
+  update:       (id, data) => api.put(`/driver-attendance/${id}`, data),
+  todaySummary: ()       => api.get('/driver-attendance/today-summary'),
 }
 
 // ── Driver Performance ────────────────────────────────────────

@@ -417,6 +417,51 @@ def list_attendance(
     return [_att_to_resp(r) for r in q.order_by(DriverAttendance.date.desc()).all()]
 
 
+# ── Today-summary helper (server-side date, no timezone ambiguity) ────────────
+
+from datetime import date as DateObj  # noqa: E402
+
+class AttendanceTodaySummary(BaseModel):
+    date:         str
+    total:        int
+    present:      int
+    absent:       int
+    on_leave:     int
+    not_marked:   int  # drivers with no record today
+    total_drivers: int
+
+
+@router.get(
+    "/driver-attendance/today-summary",
+    response_model=AttendanceTodaySummary,
+    summary="Today's attendance summary (server-side date)",
+    tags=["driver-attendance"],
+)
+def attendance_today_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from app.models.driver import Driver  # local import to avoid circular
+    today = DateObj.today()
+    total_drivers = db.query(Driver).count()
+
+    today_recs = db.query(DriverAttendance).filter(DriverAttendance.date == today).all()
+    present  = sum(1 for r in today_recs if r.status == AttendanceStatusEnum.PRESENT)
+    absent   = sum(1 for r in today_recs if r.status == AttendanceStatusEnum.ABSENT)
+    on_leave = sum(1 for r in today_recs if r.status == AttendanceStatusEnum.LEAVE)
+    not_marked = max(0, total_drivers - len(today_recs))
+
+    return AttendanceTodaySummary(
+        date=today.isoformat(),
+        total=len(today_recs),
+        present=present,
+        absent=absent,
+        on_leave=on_leave,
+        not_marked=not_marked,
+        total_drivers=total_drivers,
+    )
+
+
 @router.get(
     "/driver-attendance/{record_id}",
     response_model=AttendanceResponse,

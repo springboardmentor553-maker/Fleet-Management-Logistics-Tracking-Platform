@@ -11,6 +11,7 @@ export default function DriverAttendance() {
   const [tab, setTab]             = useState('attendance')  // 'attendance' | 'performance'
   const [records, setRecords]     = useState([])
   const [drivers, setDrivers]     = useState([])
+  const [todaySummary, setTodaySummary] = useState(null)  // from server-side endpoint
   const [perf, setPerf]           = useState(null)
   const [perfLoading, setPerfLoading] = useState(false)
   const [perfDriverId, setPerfDriverId] = useState('')
@@ -25,9 +26,9 @@ export default function DriverAttendance() {
   const [filterDate,   setFilterDate]   = useState('')
   const [filterStatus, setFilterStatus] = useState('')
 
-  // Form
+  // Form — use server date string passed back from todaySummary to avoid UTC drift
   const [form, setForm] = useState({
-    driver_id: '', date: new Date().toISOString().slice(0, 10),
+    driver_id: '', date: new Date().toLocaleDateString('en-CA'),  // YYYY-MM-DD in local tz
     status: 'PRESENT', check_in_time: '', check_out_time: ''
   })
   const [formErr, setFormErr] = useState('')
@@ -40,12 +41,14 @@ export default function DriverAttendance() {
       if (filterDriver) params.driver_id = filterDriver
       if (filterDate)   params.date       = filterDate
       if (filterStatus) params.status     = filterStatus
-      const [att, drvs] = await Promise.all([
+      const [att, drvs, summary] = await Promise.all([
         attendanceApi.list(params),
         driverApi.list(),
+        attendanceApi.todaySummary(),
       ])
       setRecords(att.data)
       setDrivers(drvs.data)
+      setTodaySummary(summary.data)
     } catch {}
     setLoading(false)
   }, [filterDriver, filterDate, filterStatus])
@@ -154,12 +157,12 @@ export default function DriverAttendance() {
     setPerfLoading(false)
   }
 
-  // ── Render ───────────────────────────────────────────────────
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const todayRecords = records.filter(r => r.date === todayStr)
-  const presentToday = todayRecords.filter(r => r.status === 'PRESENT').length
-  const absentToday  = todayRecords.filter(r => r.status === 'ABSENT').length
-  const leaveToday   = todayRecords.filter(r => r.status === 'LEAVE').length
+  // ── Render — use server-computed today summary to avoid UTC/IST date mismatch
+  const presentToday  = todaySummary?.present   ?? 0
+  const absentToday   = todaySummary?.absent    ?? 0
+  const leaveToday    = todaySummary?.on_leave  ?? 0
+  const notMarked     = todaySummary?.not_marked ?? 0
+  const serverToday   = todaySummary?.date ?? ''
 
   return (
     <div className="app-shell">
@@ -211,17 +214,23 @@ export default function DriverAttendance() {
                 )}
               </div>
 
-              {/* Today's summary */}
+              {/* Today's summary — sourced from server-side /today-summary endpoint */}
+              {serverToday && (
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+                  📅 Showing today: <strong>{serverToday}</strong>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
                 {[
-                  { label: "Today's Present", val: presentToday, color: '#22c55e', emoji: '✅' },
-                  { label: "Today's Absent",  val: absentToday,  color: '#ef4444', emoji: '❌' },
-                  { label: "Today's On Leave", val: leaveToday,  color: '#f59e0b', emoji: '🏖' },
-                  { label: 'Total Records',   val: records.length, color: '#3b82f6', emoji: '📋' },
+                  { label: "Today Present",   val: presentToday,      color: '#22c55e', emoji: '✅' },
+                  { label: "Today Absent",    val: absentToday,       color: '#ef4444', emoji: '❌' },
+                  { label: "Today On Leave",  val: leaveToday,        color: '#f59e0b', emoji: '🏖' },
+                  { label: 'Not Marked Yet',  val: notMarked,         color: '#6b7280', emoji: '⬜' },
+                  { label: 'All Records',     val: records.length,    color: '#3b82f6', emoji: '📋' },
                 ].map(s => (
                   <div key={s.label} style={{
                     background: 'var(--bg-card)', border: '1px solid var(--border)',
-                    borderRadius: 12, padding: '14px 20px', flex: '1 1 120px', minWidth: 120
+                    borderRadius: 12, padding: '14px 20px', flex: '1 1 110px', minWidth: 110
                   }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color }}>
                       {s.emoji} {s.val}
