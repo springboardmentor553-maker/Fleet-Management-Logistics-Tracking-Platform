@@ -8,6 +8,7 @@ from backend.app.routers.shipment import router as shipment_router
 from backend.app.routers.trip import router as trip_router, compat_router as trip_compat_router
 from backend.app.routers.maintenance import router as maintenance_router
 from backend.app.routers.driver_assignment import router as driver_assignment_router
+from backend.app.routers.driver_attendance import router as driver_attendance_router
 from backend.app.models.shipment_history import ShipmentHistory
 
 from backend.app.dependencies import get_current_user
@@ -25,6 +26,7 @@ app.include_router(trip_router)
 app.include_router(trip_compat_router)
 app.include_router(maintenance_router)
 app.include_router(driver_assignment_router)
+app.include_router(driver_attendance_router)
 
 
 @app.get("/")
