@@ -16,3 +16,5 @@ class Driver(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     trips = relationship("Trip", back_populates="driver")
+    assignments = relationship("DriverAssignment", back_populates="driver")
+    attendances = relationship("DriverAttendance", back_populates="driver")

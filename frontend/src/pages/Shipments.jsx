@@ -146,9 +146,6 @@ function Shipments() {
       const shipmentsRes = await api.get("/shipments/");
       setShipments(shipmentsRes.data);
 
-      const tripsRes = await api.get("/trips/");
-      setTrips(tripsRes.data);
-
       // Load drivers & vehicles in order to populate option selectors
       const driversRes = await api.get("/drivers/");
       setDrivers(driversRes.data);
@@ -161,7 +158,18 @@ function Shipments() {
     } finally {
       setLoading(false);
     }
+
+    // Fetch trips independently — a trips API failure should not block the shipments page.
+    // When trips is empty, "View Route" simply won't appear (expected).
+    try {
+      const tripsRes = await api.get("/trips/");
+      setTrips(tripsRes.data);
+    } catch (err) {
+      console.warn("Could not fetch trips list (View Route will be hidden):", err?.response?.status);
+      setTrips([]);
+    }
   };
+
 
   useEffect(() => {
     fetchShipmentsAndCarriers();

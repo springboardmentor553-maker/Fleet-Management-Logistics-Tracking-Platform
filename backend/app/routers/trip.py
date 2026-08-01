@@ -92,6 +92,14 @@ def add_trip(
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle Not Found")
 
+    # Prevent scheduling trips with maintenance or inactive vehicles
+    target_trip_status = trip.status or "Scheduled"
+    if vehicle.status in ["Maintenance", "Inactive"] and target_trip_status in ["Scheduled", "Active"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Vehicle is currently in '{vehicle.status}' status and cannot be assigned to active or scheduled trips"
+        )
+
     # Validate scheduled times
     if trip.scheduled_start >= trip.scheduled_end:
         raise HTTPException(status_code=400, detail="scheduled_start must be before scheduled_end")
@@ -246,6 +254,16 @@ def update_trip(
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if trip_data.vehicle_id is not None and not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle Not Found")
+
+    # Prevent assigning vehicle under maintenance or inactive status
+    if vehicle and vehicle.status in ["Maintenance", "Inactive"] and target_status in ["Scheduled", "Active"]:
+        # Allow it only if the vehicle was ALREADY assigned to the trip and status didn't change to Scheduled/Active in this request
+        # (e.g. if we are updating some other fields on an already active trip, but wait! An active trip vehicle status is "On Trip",
+        # whereas here its status is "Maintenance" or "Inactive". If the status became "Maintenance" or "Inactive", we should definitely block it).
+        raise HTTPException(
+            status_code=400,
+            detail=f"Vehicle is currently in '{vehicle.status}' status and cannot be assigned to active or scheduled trips"
+        )
 
     # Validate sched start < sched end
     if scheduled_start >= scheduled_end:
