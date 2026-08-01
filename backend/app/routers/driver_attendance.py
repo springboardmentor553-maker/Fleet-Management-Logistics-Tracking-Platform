@@ -20,6 +20,23 @@ router = APIRouter(
 WRITE_ROLES = ["Admin", "Fleet Manager"]
 READ_ROLES = ["Admin", "Fleet Manager", "Dispatcher"]
 
+# Attendance status → Driver status mapping
+ATTENDANCE_TO_DRIVER_STATUS = {
+    "Present": "Available",
+    "Absent": "Inactive",
+    "Leave": "Inactive",
+}
+
+
+def _sync_driver_status(db: Session, driver_id: int, attendance_status: str) -> None:
+    """Update Driver.status to reflect the current attendance_status."""
+    driver_status = ATTENDANCE_TO_DRIVER_STATUS.get(attendance_status)
+    if driver_status:
+        driver = db.query(Driver).filter(Driver.id == driver_id).first()
+        if driver:
+            driver.status = driver_status
+            db.commit()
+
 
 # ── POST ──────────────────────────────────────────────────────────────────────
 
@@ -44,6 +61,10 @@ def create_attendance(
     db.add(record)
     db.commit()
     db.refresh(record)
+
+    # Sync Driver.status based on attendance
+    _sync_driver_status(db, record.driver_id, record.attendance_status)
+
     return record
 
 
@@ -105,7 +126,13 @@ def update_attendance(
 
     db.commit()
     db.refresh(record)
+
+    # Sync Driver.status if attendance_status changed
+    if payload.attendance_status is not None:
+        _sync_driver_status(db, record.driver_id, record.attendance_status)
+
     return record
+
 
 
 # ── DELETE ────────────────────────────────────────────────────────────────────
