@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import Sidebar from '../components/Sidebar'
 import StatCard from '../components/StatCard'
 import StatusBadge from '../components/StatusBadge'
@@ -162,6 +163,74 @@ export default function Dashboard() {
               desc={`${fuelStats?.vehicle_lowest_usage?.total_liters || 0} Liters`}
               icon={<CheckIcon color="var(--stat-available)" />}
             />
+          </div>
+
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '-10px', marginTop: '10px' }}>Visualizations</h2>
+          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title">Fleet Status Distribution</div>
+              </div>
+              <div className="card-body" style={{ height: '300px' }}>
+                {loading ? <div className="skeleton" style={{ height: '100%' }} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Available', value: Math.max(0, (fleetStats?.total_vehicles || 0) - (fleetStats?.active_vehicles || 0) - (fleetStats?.maintenance_vehicles || 0)) },
+                          { name: 'On Trip', value: fleetStats?.active_vehicles || 0 },
+                          { name: 'Maintenance', value: fleetStats?.maintenance_vehicles || 0 }
+                        ]}
+                        cx="50%" cy="50%"
+                        innerRadius={70} outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        <Cell fill="#8b5cf6" />
+                        <Cell fill="#0ea5e9" />
+                        <Cell fill="#f59e0b" />
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title">Logistics Overview</div>
+              </div>
+              <div className="card-body" style={{ height: '300px' }}>
+                {loading ? <div className="skeleton" style={{ height: '100%' }} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        { name: 'Active', count: fleetStats?.active_shipments || 0 },
+                        { name: 'Delivered', count: fleetStats?.delivered_shipments || 0 },
+                        { name: 'Delayed', count: opStats?.delayed_deliveries || 0 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
+                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} 
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                        <Cell fill="#0ea5e9" />
+                        <Cell fill="#10b981" />
+                        <Cell fill="#ef4444" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Quick fleet overview */}
