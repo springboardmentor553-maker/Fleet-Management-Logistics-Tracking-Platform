@@ -33,6 +33,7 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 - Trip scheduling with ETA calculation and geocoding
 - **Driver Attendance & Assignments** for tracking driver shifts and trip allocation
 - **Fuel Monitoring & Analytics** to track fleet fuel consumption and costs
+- **Maintenance Alerts & Reporting** with automated background task scheduling (Celery)
 
 ---
 
@@ -50,6 +51,7 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 | Routing Engine | OSRM (Open Source Routing Machine) |
 | Geocoding | OpenStreetMap Nominatim |
 | HTTP Client | httpx |
+| Task Queue | Celery + Redis |
 
 ### Frontend
 | Layer | Technology |
@@ -131,11 +133,13 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 - [x] **Soft-delete only** — history is NEVER erased (`DELETE` sets `status=CANCELLED`, row preserved)
 - [x] Filter records by `vehicle_id`, `status`, `category`
 
-### Milestone 4 — Driver Ops & Fuel Monitoring
+### Milestone 4 — Driver Ops, Fuel Monitoring & Background Tasks
 - [x] **Driver Assignment** model & APIs to allocate drivers to vehicles and trips dynamically.
 - [x] **Driver Attendance** model & APIs to track daily shifts (Present, Absent, Leave) with Check-In / Check-Out times.
 - [x] **Fuel Monitoring** model & CRUD APIs for detailed fuel logs per vehicle and driver.
 - [x] **Dynamic Analytics endpoints**: Dynamic computation of Fleet Dashboard stats, Fuel Analytics, and Operational delivery metrics without storing derived data.
+- [x] **Maintenance Alerts & Reports**: Dynamic aggregated maintenance reports and automated alert generation.
+- [x] **Celery & Redis Integration**: Configured Celery worker and beat scheduler to automatically generate pending alerts for upcoming/overdue maintenance tasks.
 - [x] **Fully responsive UI design**: Added mobile and tablet optimizations for sidebar, modals, data tables, and metrics dashboards.
 
 ---
@@ -212,6 +216,18 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 | status | ENUM | SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED |
 | notes | TEXT | optional |
 | created_at | TIMESTAMP | auto |
+
+### `maintenance_alerts`
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | |
+| vehicle_id | INTEGER FK → vehicles | |
+| maintenance_id | INTEGER FK → maintenance_records | |
+| alert_message | VARCHAR | |
+| alert_type | VARCHAR | |
+| status | ENUM | PENDING, SENT, COMPLETED |
+| generated_date | TIMESTAMP | auto |
+| next_service_date | DATE | |
 
 ### `driver_assignments`
 | Column | Type | Notes |
@@ -305,7 +321,7 @@ Authorization: Bearer <access_token>
 | GET | `/trips/{id}/route` | OSRM route (distance, duration, polyline) |
 | GET | `/trips/{id}/eta` | ETA calculation |
 
-### Maintenance — `/maintenance`
+### Maintenance — `/maintenance`, `/maintenance-alerts`
 | Method | Endpoint | Description |
 |---|---|---|
 | GET | `/maintenance` | List records (filter: `vehicle_id`, `status`, `category`) |
@@ -313,6 +329,9 @@ Authorization: Bearer <access_token>
 | GET | `/maintenance/{id}` | Get record by ID |
 | PUT | `/maintenance/{id}` | Update (auto-syncs vehicle status) |
 | DELETE | `/maintenance/{id}` | Soft-cancel (history preserved forever) |
+| GET | `/maintenance-alerts` | List all maintenance alerts |
+| POST | `/maintenance-alerts` | Create maintenance alert manually |
+| PUT | `/maintenance-alerts/{id}/status` | Update alert status |
 
 ### Driver Operations & Fuel — `/assignments`, `/attendance`, `/fuel`
 | Method | Endpoint | Description |
@@ -330,6 +349,7 @@ Authorization: Bearer <access_token>
 | GET | `/dashboard/fleet` | Aggregated fleet summary stats (dynamically computed) |
 | GET | `/analytics/fuel` | Aggregated fuel metrics |
 | GET | `/analytics/operations` | Aggregated delivery and trip performance metrics |
+| GET | `/reports/maintenance` | Aggregated maintenance reports |
 | GET | `/health/db` | Database connection health check |
 
 
@@ -400,12 +420,25 @@ python3 seed.py
 ```
 This creates: 8 users, 6 vehicles, 5 drivers, 7 shipments, 6 trips.
 
-### 6. Start the backend
+### 6. Start the backend & Celery
 ```bash
-# Terminal 1
+# Terminal 1 - FastAPI
 source .venv/bin/activate
 cd FleetFlow/backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 - Redis (Docker)
+docker-compose up -d redis
+
+# Terminal 3 - Celery Worker
+source .venv/bin/activate
+cd FleetFlow/backend
+celery -A app.celery worker -l info
+
+# Terminal 4 - Celery Beat
+source .venv/bin/activate
+cd FleetFlow/backend
+celery -A app.celery beat -l info
 ```
 
 ### 7. Start the frontend
@@ -550,8 +583,9 @@ Shipment tracking, OSRM route optimization, Leaflet Routing Machine integration,
 ### ✅ Milestone 3 — Vehicle Maintenance (Complete)
 Maintenance model, 5 predefined categories, full CRUD API, vehicle FK validation, automatic vehicle status sync, soft-delete history preservation, queryable filters.
 
-### ✅ Milestone 4 — Driver Ops, Fuel & Analytics (Complete)
-Driver Assignments, Driver Attendance, Fuel Monitoring records, fully dynamic aggregated analytics dashboard endpoints, dynamic metric computations for the current month, and complete web app responsive design for mobile and tablet compatibility.
+### ✅ Milestone 4 — Driver Ops, Fuel & Background Tasks (Complete)
+Driver Assignments, Driver Attendance, Fuel Monitoring records, fully dynamic aggregated analytics dashboard endpoints, dynamic metric computations for the current month. Complete web app responsive design for mobile and tablet compatibility.
+Implemented Maintenance Alerts API, dynamic Maintenance Reports, and Celery + Redis background task integration for automated daily maintenance scheduling checks.
 
 ---
 

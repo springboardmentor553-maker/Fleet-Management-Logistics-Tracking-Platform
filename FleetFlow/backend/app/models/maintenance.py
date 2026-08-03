@@ -1,5 +1,6 @@
 """Maintenance model — Task 1 & 4.
 
+
 One Vehicle → many MaintenanceRecord (1-to-Many).
 Maintenance history is NEVER deleted (soft-status via CANCELLED).
 """

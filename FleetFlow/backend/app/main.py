@@ -16,6 +16,8 @@ from app.routers.tracking import router as tracking_router
 from app.routers.trips import router as trips_router
 from app.routers.vehicles import router as vehicles_router
 from app.routers.ws_tracking import router as ws_tracking_router
+from app.routers.maintenance_alerts import router as maintenance_alerts_router
+from app.routers.reports import router as reports_router
 
 # Import FuelRecord so SQLAlchemy/Alembic registers the table in Base.metadata
 from app.models import fuel_record as _fuel_record_model  # noqa: F401
@@ -42,6 +44,8 @@ app.include_router(tracking_router, tags=["tracking"])
 app.include_router(ws_tracking_router, tags=["websocket"])
 app.include_router(dashboard_router, tags=["dashboard"])
 app.include_router(fuel_analytics_router, tags=["fuel", "analytics", "dashboard"])
+app.include_router(maintenance_alerts_router, prefix="/maintenance-alerts", tags=["maintenance-alerts"])
+app.include_router(reports_router, prefix="/reports", tags=["reports"])
 
 
 @app.on_event("startup")

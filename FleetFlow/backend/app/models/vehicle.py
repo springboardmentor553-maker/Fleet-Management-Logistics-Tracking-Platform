@@ -1,5 +1,6 @@
 """Vehicle model."""
 
+# pyrefly: ignore [missing-import]
 from sqlalchemy import Column, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 

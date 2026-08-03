@@ -39,11 +39,11 @@ class TripStatusEnum(enum.Enum):
 
 
 class MaintenanceCategoryEnum(enum.Enum):
-    OIL_CHANGE          = "Oil Change"
-    TYRE_REPLACEMENT    = "Tyre Replacement"
-    BRAKE_SERVICE       = "Brake Service"
-    ENGINE_SERVICE      = "Engine Service"
-    GENERAL_INSPECTION  = "General Inspection"
+    OIL_CHANGE          = "OIL_CHANGE"
+    TYRE_REPLACEMENT    = "TYRE_REPLACEMENT"
+    BRAKE_SERVICE       = "BRAKE_SERVICE"
+    ENGINE_SERVICE      = "ENGINE_SERVICE"
+    GENERAL_INSPECTION  = "GENERAL_INSPECTION"
 
 
 class MaintenanceStatusEnum(enum.Enum):
