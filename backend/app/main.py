@@ -11,6 +11,13 @@ from app import models
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import route
 from app.routers.websocket import router as websocket_router
+from app.routers import maintenance
+from app.routers import driver_assignment
+from app.routers import driver_performance
+from app.routers import driver_attendance
+from app.routers import fuel_record
+
+
 
 
 Base.metadata.create_all(bind=engine)
@@ -33,6 +40,11 @@ app.include_router(reports_router)
 app.include_router(trip.router)
 app.include_router(route.router)
 app.include_router(websocket_router)
+app.include_router(maintenance.router)
+app.include_router(driver_assignment.router)
+app.include_router(driver_performance.router) 
+app.include_router(driver_attendance.router)
+app.include_router(fuel_record.router)
 
 @app.get("/")
 def home():
