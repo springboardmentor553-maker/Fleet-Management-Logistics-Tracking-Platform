@@ -286,7 +286,7 @@ export default function FuelRecords() {
                 )}
 
                 {modal === 'create' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="form-grid">
                     <div className="form-group">
                       <label className="form-label">Vehicle *</label>
                       <select
@@ -333,7 +333,7 @@ export default function FuelRecords() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Fuel Quantity (L) *</label>
                     <input
@@ -358,7 +358,7 @@ export default function FuelRecords() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Odometer Reading</label>
                     <input

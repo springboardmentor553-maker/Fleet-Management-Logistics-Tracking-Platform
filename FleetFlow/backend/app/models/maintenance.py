@@ -61,3 +61,6 @@ class MaintenanceRecord(Base):
     # ── Relationships ─────────────────────────────────────────────
     # Many MaintenanceRecords → 1 Vehicle
     vehicle = relationship("Vehicle", back_populates="maintenance_records")
+
+    # 1 MaintenanceRecord → Many MaintenanceAlerts
+    maintenance_alerts = relationship("MaintenanceAlert", back_populates="maintenance")

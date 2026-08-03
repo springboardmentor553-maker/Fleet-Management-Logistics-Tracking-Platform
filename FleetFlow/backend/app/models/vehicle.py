@@ -44,3 +44,6 @@ class Vehicle(Base):
 
     # 1-to-Many: One Vehicle → many DriverAssignments
     assignments = relationship("DriverAssignment", back_populates="vehicle")
+
+    # 1-to-Many: One Vehicle → many MaintenanceAlerts
+    maintenance_alerts = relationship("MaintenanceAlert", back_populates="vehicle")

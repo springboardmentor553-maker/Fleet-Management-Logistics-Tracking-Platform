@@ -367,7 +367,7 @@ export default function LiveTracking() {
                   <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--color-primary)', marginBottom: 10 }}>
                     📍 Live Position
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div className="form-grid">
                     <Mini label="Latitude"  value={location?.lat?.toFixed(5) ?? '—'} />
                     <Mini label="Longitude" value={location?.lng?.toFixed(5) ?? '—'} />
                     <Mini label="Trip"      value={tripId ? `#${tripId}` : '—'} />

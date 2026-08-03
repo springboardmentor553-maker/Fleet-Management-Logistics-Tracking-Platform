@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const [timeRange, setTimeRange] = useState('current_month')
   const [fleetStats, setFleetStats] = useState(null)
   const [fuelStats, setFuelStats] = useState(null)
   const [opStats, setOpStats] = useState(null)
@@ -16,11 +17,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true)
       try {
         const [fleetRes, fuelRes, opRes, v] = await Promise.all([
-          dashboardApi.fleet(),
-          analyticsApi.fuel(),
-          analyticsApi.operations(),
+          dashboardApi.fleet({ time_range: timeRange }),
+          analyticsApi.fuel({ time_range: timeRange }),
+          analyticsApi.operations({ time_range: timeRange }),
           vehicleApi.list()
         ])
         setFleetStats(fleetRes.data)
@@ -33,7 +35,7 @@ export default function Dashboard() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [timeRange])
 
   const now = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -46,7 +48,18 @@ export default function Dashboard() {
             <div className="top-bar-title">Fleet Dashboard</div>
             <div className="top-bar-subtitle">{now}</div>
           </div>
-          <div className="top-bar-right">
+          <div className="top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <select 
+              className="form-select" 
+              style={{ width: '160px', padding: '6px 12px', fontSize: '0.85rem' }}
+              value={timeRange} 
+              onChange={(e) => setTimeRange(e.target.value)}
+            >
+              <option value="current_month">Current Month</option>
+              <option value="last_month">Last Month</option>
+              <option value="last_3_months">Last 3 Months</option>
+              <option value="last_6_months">Last 6 Months</option>
+            </select>
             <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
               Signed in as <strong>{user?.email}</strong>
             </span>
@@ -59,30 +72,30 @@ export default function Dashboard() {
           <div className="stat-grid">
             <StatCard
               label="Total Vehicles"
-              value={loading ? '…' : fleetStats?.vehicles?.total}
+              value={loading ? '…' : fleetStats?.total_vehicles}
               variant="total"
-              desc={`${fleetStats?.vehicles?.available || 0} available`}
+              desc={`${(fleetStats?.total_vehicles || 0) - (fleetStats?.active_vehicles || 0) - (fleetStats?.maintenance_vehicles || 0)} available`}
               icon={<TruckIcon color="var(--stat-total)" />}
             />
             <StatCard
               label="Vehicles On Trip"
-              value={loading ? '…' : fleetStats?.vehicles?.active}
+              value={loading ? '…' : fleetStats?.active_vehicles}
               variant="active"
               desc="Currently deployed"
               icon={<ActiveIcon />}
             />
             <StatCard
               label="Under Maintenance"
-              value={loading ? '…' : fleetStats?.vehicles?.maintenance}
+              value={loading ? '…' : fleetStats?.maintenance_vehicles}
               variant="maint"
               desc="In service"
               icon={<WrenchIcon />}
             />
             <StatCard
               label="Drivers On Duty"
-              value={loading ? '…' : fleetStats?.drivers?.on_duty}
+              value={loading ? '…' : fleetStats?.on_duty_drivers}
               variant="avail"
-              desc={`Out of ${fleetStats?.drivers?.total || 0} total`}
+              desc={`Out of ${fleetStats?.total_drivers || 0} total`}
               icon={<UserIcon color="var(--stat-available)" />}
             />
           </div>
@@ -91,28 +104,28 @@ export default function Dashboard() {
           <div className="stat-grid">
             <StatCard
               label="Active Shipments"
-              value={loading ? '…' : fleetStats?.shipments?.active}
+              value={loading ? '…' : fleetStats?.active_shipments}
               variant="total"
-              desc={`${fleetStats?.shipments?.delivered || 0} delivered`}
+              desc={`${fleetStats?.delivered_shipments || 0} delivered`}
               icon={<BoxIcon color="var(--stat-total)" />}
             />
             <StatCard
               label="Delivery Success Rate"
               value={loading ? '…' : `${opStats?.delivery_success_rate?.toFixed(1) || 0}%`}
               variant="avail"
-              desc={`${opStats?.total_shipments_delivered || 0} total successful`}
+              desc={`${opStats?.successful_deliveries || 0} total successful`}
               icon={<CheckIcon color="var(--stat-available)" />}
             />
             <StatCard
               label="Avg Trip Distance"
-              value={loading ? '…' : `${opStats?.average_trip_distance_km?.toFixed(0) || 0} km`}
+              value={loading ? '…' : `${opStats?.avg_trip_distance_km?.toFixed(0) || 0} km`}
               variant="active"
               desc="Based on coordinates"
               icon={<RouteIcon color="var(--stat-active)" />}
             />
             <StatCard
               label="Delayed Shipments"
-              value={loading ? '…' : opStats?.delayed_shipments || 0}
+              value={loading ? '…' : opStats?.delayed_deliveries || 0}
               variant="maint"
               desc="Needs attention"
               icon={<AlertIcon />}
@@ -123,7 +136,7 @@ export default function Dashboard() {
           <div className="stat-grid">
             <StatCard
               label="Total Fuel Consumed"
-              value={loading ? '…' : `${fuelStats?.total_fuel_consumed_liters || 0} L`}
+              value={loading ? '…' : `${fuelStats?.total_fuel_consumed_ltrs || 0} L`}
               variant="total"
               desc="Across all vehicles"
               icon={<FuelIcon />}

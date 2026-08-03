@@ -576,7 +576,7 @@ export default function DriverAttendance() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label">Check-In Time</label>
                     <input

@@ -44,6 +44,42 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.services.security import get_current_user
 
+
+def get_date_range(time_range: str):
+    from datetime import date, timedelta
+    import calendar
+    today = date.today()
+    
+    def safe_date(year, month, day):
+        last_day = calendar.monthrange(year, month)[1]
+        return date(year, month, min(day, last_day))
+
+    if time_range == "last_month":
+        first_day_this_month = today.replace(day=1)
+        end_date = first_day_this_month - timedelta(days=1)
+        start_date = end_date.replace(day=1)
+    elif time_range == "last_3_months":
+        start_month = today.month - 3
+        start_year = today.year
+        if start_month <= 0:
+            start_month += 12
+            start_year -= 1
+        start_date = safe_date(start_year, start_month, today.day)
+        end_date = today
+    elif time_range == "last_6_months":
+        start_month = today.month - 6
+        start_year = today.year
+        if start_month <= 0:
+            start_month += 12
+            start_year -= 1
+        start_date = safe_date(start_year, start_month, today.day)
+        end_date = today
+    else: # "current_month" default
+        start_date = today.replace(day=1)
+        end_date = today
+        
+    return start_date, end_date
+
 router = APIRouter()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -241,9 +277,12 @@ class FuelAnalyticsResponse(BaseModel):
     tags=["analytics"],
 )
 def fuel_analytics(
+    time_range: str = Query("current_month"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    start_date, end_date = get_date_range(time_range)
+    
     # Aggregate per vehicle
     per_vehicle = (
         db.query(
@@ -251,13 +290,14 @@ def fuel_analytics(
             func.sum(FuelRecord.fuel_quantity).label("total_qty"),
             func.sum(FuelRecord.fuel_cost).label("total_cost"),
         )
+        .filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date)
         .group_by(FuelRecord.vehicle_id)
         .all()
     )
 
     total_qty  = sum(r.total_qty  for r in per_vehicle) if per_vehicle else 0.0
     total_cost = sum(r.total_cost for r in per_vehicle) if per_vehicle else 0.0
-    total_recs = db.query(func.count(FuelRecord.id)).scalar() or 0
+    total_recs = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
 
     highest = lowest = None
     if per_vehicle:
@@ -341,9 +381,12 @@ _ACTIVE_SHIP = (
     tags=["dashboard"],
 )
 def fleet_dashboard(
+    time_range: str = Query("current_month"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    start_date, end_date = get_date_range(time_range)
+    
     # ── Vehicles ──────────────────────────────────────────────
     total_v     = db.query(func.count(Vehicle.id)).scalar() or 0
     active_v    = db.query(func.count(Vehicle.id)).filter(Vehicle.current_status == VehicleStatusEnum.IN_USE).scalar() or 0
@@ -355,19 +398,19 @@ def fleet_dashboard(
     avail_d     = db.query(func.count(Driver.id)).filter(Driver.status == DriverStatusEnum.AVAILABLE).scalar() or 0
     on_duty_d   = db.query(func.count(Driver.id)).filter(Driver.status == DriverStatusEnum.ON_DUTY).scalar() or 0
 
-    # ── Trips ─────────────────────────────────────────────────
-    total_t      = db.query(func.count(Trip.id)).scalar() or 0
-    completed_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.COMPLETED).scalar() or 0
-    active_t     = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.IN_PROGRESS).scalar() or 0
-    scheduled_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.SCHEDULED).scalar() or 0
-    cancelled_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.CANCELLED).scalar() or 0
+    # ── Trips (Filtered by month) ─────────────────────────────
+    total_t      = db.query(func.count(Trip.id)).filter(Trip.created_at >= start_date, Trip.created_at <= end_date).scalar() or 0
+    completed_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.COMPLETED, Trip.created_at >= start_date, Trip.created_at <= end_date).scalar() or 0
+    active_t     = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.IN_PROGRESS, Trip.created_at >= start_date, Trip.created_at <= end_date).scalar() or 0
+    scheduled_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.SCHEDULED, Trip.created_at >= start_date, Trip.created_at <= end_date).scalar() or 0
+    cancelled_t  = db.query(func.count(Trip.id)).filter(Trip.status == TripStatusEnum.CANCELLED, Trip.created_at >= start_date, Trip.created_at <= end_date).scalar() or 0
 
-    # ── Shipments ─────────────────────────────────────────────
-    total_s     = db.query(func.count(Shipment.id)).scalar() or 0
-    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP)).scalar() or 0
-    delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED).scalar() or 0
-    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED).scalar() or 0
-    cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED).scalar() or 0
+    # ── Shipments (Filtered by month) ─────────────────────────
+    total_s     = db.query(func.count(Shipment.id)).filter(Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP), Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
 
     # ── Maintenance ───────────────────────────────────────────
     open_maint  = (
@@ -376,10 +419,10 @@ def fleet_dashboard(
         .scalar() or 0
     )
 
-    # ── Fuel ──────────────────────────────────────────────────
-    fuel_recs   = db.query(func.count(FuelRecord.id)).scalar() or 0
-    fuel_qty    = db.query(func.coalesce(func.sum(FuelRecord.fuel_quantity), 0.0)).scalar() or 0.0
-    fuel_cost   = db.query(func.coalesce(func.sum(FuelRecord.fuel_cost),     0.0)).scalar() or 0.0
+    # ── Fuel (Filtered by month) ──────────────────────────────
+    fuel_recs   = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
+    fuel_qty    = db.query(func.coalesce(func.sum(FuelRecord.fuel_quantity), 0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
+    fuel_cost   = db.query(func.coalesce(func.sum(FuelRecord.fuel_cost),     0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
 
     return FleetDashboardResponse(
         total_vehicles=total_v,
@@ -449,20 +492,23 @@ def _haversine(lat1, lng1, lat2, lng2) -> float:
     tags=["analytics"],
 )
 def operations_analytics(
+    time_range: str = Query("current_month"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    start_date, end_date = get_date_range(time_range)
+    
     # ── Shipment delivery outcomes ────────────────────────────
-    total_s     = db.query(func.count(Shipment.id)).scalar() or 0
-    delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED).scalar() or 0
-    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED).scalar() or 0
-    cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED).scalar() or 0
-    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP)).scalar() or 0
+    total_s     = db.query(func.count(Shipment.id)).filter(Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP), Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
 
     success_rate = round(delivered_s / total_s * 100, 1) if total_s else 0.0
 
     # ── Trip metrics ──────────────────────────────────────────
-    all_trips = db.query(Trip).all()
+    all_trips = db.query(Trip).filter(Trip.created_at >= start_date, Trip.created_at <= end_date).all()
     total_t   = len(all_trips)
     active_t  = sum(1 for t in all_trips if t.status == TripStatusEnum.IN_PROGRESS)
 

@@ -31,6 +31,8 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 - Maintenance scheduling with automatic vehicle status synchronization
 - Shipment lifecycle tracking from creation to delivery
 - Trip scheduling with ETA calculation and geocoding
+- **Driver Attendance & Assignments** for tracking driver shifts and trip allocation
+- **Fuel Monitoring & Analytics** to track fleet fuel consumption and costs
 
 ---
 
@@ -129,6 +131,13 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 - [x] **Soft-delete only** — history is NEVER erased (`DELETE` sets `status=CANCELLED`, row preserved)
 - [x] Filter records by `vehicle_id`, `status`, `category`
 
+### Milestone 4 — Driver Ops & Fuel Monitoring
+- [x] **Driver Assignment** model & APIs to allocate drivers to vehicles and trips dynamically.
+- [x] **Driver Attendance** model & APIs to track daily shifts (Present, Absent, Leave) with Check-In / Check-Out times.
+- [x] **Fuel Monitoring** model & CRUD APIs for detailed fuel logs per vehicle and driver.
+- [x] **Dynamic Analytics endpoints**: Dynamic computation of Fleet Dashboard stats, Fuel Analytics, and Operational delivery metrics without storing derived data.
+- [x] **Fully responsive UI design**: Added mobile and tablet optimizations for sidebar, modals, data tables, and metrics dashboards.
+
 ---
 
 ## Database Schema
@@ -204,6 +213,42 @@ FleetFlow is a full-stack logistics and fleet management platform built to help 
 | notes | TEXT | optional |
 | created_at | TIMESTAMP | auto |
 
+### `driver_assignments`
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | |
+| driver_id | INTEGER FK → drivers | |
+| vehicle_id | INTEGER FK → vehicles | |
+| trip_id | INTEGER FK → trips | optional |
+| assignment_date | DATE | |
+| assignment_status | ENUM | ACTIVE, COMPLETED, CANCELLED |
+| remarks | TEXT | optional |
+
+### `driver_attendance`
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | |
+| driver_id | INTEGER FK → drivers | |
+| date | DATE | |
+| attendance_status | VARCHAR | Present, Absent, Leave |
+| check_in_time | TIMESTAMP | optional |
+| check_out_time | TIMESTAMP | optional |
+
+### `fuel_records`
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | |
+| vehicle_id | INTEGER FK → vehicles | |
+| driver_id | INTEGER FK → drivers | optional |
+| fuel_quantity | FLOAT | Liters |
+| fuel_cost | FLOAT | Cost |
+| odometer_reading | FLOAT | optional |
+| fuel_date | DATE | |
+| fuel_station | VARCHAR | optional |
+| remarks | TEXT | optional |
+| created_at | TIMESTAMP | auto |
+
+
 ---
 
 ## API Reference
@@ -269,12 +314,24 @@ Authorization: Bearer <access_token>
 | PUT | `/maintenance/{id}` | Update (auto-syncs vehicle status) |
 | DELETE | `/maintenance/{id}` | Soft-cancel (history preserved forever) |
 
-### Real-time / Other
+### Driver Operations & Fuel — `/assignments`, `/attendance`, `/fuel`
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/assignments` | Assign driver to vehicle/trip |
+| GET | `/assignments` | View driver assignments |
+| POST | `/attendance` | Mark driver attendance |
+| GET | `/fuel` | List fuel records |
+| POST | `/fuel` | Add fuel record |
+
+### Real-time / Analytics
 | Type | Endpoint | Description |
 |---|---|---|
 | WS | `/ws/tracking/{trip_id}` | Real-time GPS stream (connect via WebSocket) |
-| GET | `/dashboard` | Aggregated fleet summary stats |
+| GET | `/dashboard/fleet` | Aggregated fleet summary stats (dynamically computed) |
+| GET | `/analytics/fuel` | Aggregated fuel metrics |
+| GET | `/analytics/operations` | Aggregated delivery and trip performance metrics |
 | GET | `/health/db` | Database connection health check |
+
 
 #### WebSocket Message Types
 ```json
@@ -492,6 +549,9 @@ Shipment tracking, OSRM route optimization, Leaflet Routing Machine integration,
 
 ### ✅ Milestone 3 — Vehicle Maintenance (Complete)
 Maintenance model, 5 predefined categories, full CRUD API, vehicle FK validation, automatic vehicle status sync, soft-delete history preservation, queryable filters.
+
+### ✅ Milestone 4 — Driver Ops, Fuel & Analytics (Complete)
+Driver Assignments, Driver Attendance, Fuel Monitoring records, fully dynamic aggregated analytics dashboard endpoints, dynamic metric computations for the current month, and complete web app responsive design for mobile and tablet compatibility.
 
 ---
 

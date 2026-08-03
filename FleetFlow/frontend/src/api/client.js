@@ -55,12 +55,12 @@ export const driverApi = {
 // ── Dashboard & Analytics ───────────────────────────────────────
 export const dashboardApi = {
   summary: () => api.get('/dashboard'), // Legacy
-  fleet:   () => api.get('/dashboard/fleet'),
+  fleet:   (params) => api.get('/dashboard/fleet', { params }),
 }
 
 export const analyticsApi = {
-  fuel:       () => api.get('/analytics/fuel'),
-  operations: () => api.get('/analytics/operations'),
+  fuel:       (params) => api.get('/analytics/fuel', { params }),
+  operations: (params) => api.get('/analytics/operations', { params }),
 }
 
 // ── Shipments ─────────────────────────────────────────────────

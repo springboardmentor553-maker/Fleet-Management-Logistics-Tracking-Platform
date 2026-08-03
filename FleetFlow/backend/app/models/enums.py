@@ -69,3 +69,9 @@ class DriverStatusEnum(enum.Enum):
     AVAILABLE = "AVAILABLE"
     ON_DUTY   = "ON_DUTY"
     OFF_DUTY  = "OFF_DUTY"
+
+class AlertStatusEnum(enum.Enum):
+    PENDING = "PENDING"
+    SENT    = "SENT"
+    COMPLETED = "COMPLETED"
+
