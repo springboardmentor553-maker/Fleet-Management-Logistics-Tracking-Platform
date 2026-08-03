@@ -18,3 +18,4 @@ class Vehicle(Base):
     trips = relationship("Trip", back_populates="vehicle")
     maintenances = relationship("Maintenance", back_populates="vehicle", cascade="all, delete-orphan")
     assignments = relationship("DriverAssignment", back_populates="vehicle")
+    fuel_records = relationship("FuelRecord", back_populates="vehicle")

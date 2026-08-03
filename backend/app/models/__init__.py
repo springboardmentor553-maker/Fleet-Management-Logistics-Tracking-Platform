@@ -7,4 +7,5 @@ from .trip import Trip
 from .maintenance import Maintenance
 from .driver_assignment import DriverAssignment
 from .driver_attendance import DriverAttendance
+from .fuel_record import FuelRecord
 

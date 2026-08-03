@@ -17,6 +17,7 @@ from backend.app.models.shipment import Shipment
 from backend.app.models.trip import Trip
 from backend.app.models.driver_assignment import DriverAssignment
 from backend.app.models.driver_attendance import DriverAttendance
+from backend.app.models.fuel_record import FuelRecord
 
 
 # this is the Alembic Config object, which provides
