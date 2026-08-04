@@ -58,7 +58,12 @@ def list_drivers(
     current_user: User = Depends(get_current_user),
 ) -> list[DriverRead]:
     drivers = db.query(Driver).order_by(Driver.id.asc()).all()
-    return [DriverRead.model_validate(d) for d in drivers]
+    res = []
+    for d in drivers:
+        dr = DriverRead.model_validate(d)
+        dr.name = d.user.email.split('@')[0].capitalize() if d.user else d.license_details
+        res.append(dr)
+    return res
 
 
 @router.get(

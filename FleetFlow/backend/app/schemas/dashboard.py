@@ -5,13 +5,17 @@ from pydantic import BaseModel
 
 class DashboardSummary(BaseModel):
     # ── Vehicles ──────────────────────────────────────────────────────────────
-    totalVehicles: int
-    active: int
-    maintenance: int
-    available: int
+    total_vehicles: int
+    active_vehicles: int
+    maintenance_vehicles: int
+    available_vehicles: int
+
+    # ── Drivers ───────────────────────────────────────────────────────────────
+    total_drivers: int
+    on_duty_drivers: int
 
     # ── Shipments ─────────────────────────────────────────────────────────────
-    totalShipments: int
-    activeDeliveries: int      # PICKED_UP + IN_TRANSIT + OUT_FOR_DELIVERY
-    deliveredShipments: int
-    delayedShipments: int
+    total_shipments: int
+    active_shipments: int      
+    delivered_shipments: int
+    delayed_shipments: int

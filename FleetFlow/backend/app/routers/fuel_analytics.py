@@ -169,8 +169,18 @@ def create_fuel_record(
     _get_vehicle_or_404(body.vehicle_id, db)
     if body.driver_id is not None:
         _get_driver_or_404(body.driver_id, db)
+    else:
+        # Auto-assign driver based on active assignment
+        active_assignment = db.query(DriverAssignment).filter(
+            DriverAssignment.vehicle_id == body.vehicle_id,
+            DriverAssignment.status == AssignmentStatusEnum.ACTIVE
+        ).first()
+        if active_assignment:
+            body.driver_id = active_assignment.driver_id
 
     rec = FuelRecord(**body.model_dump())
+    # Hardcode fuel cost to 95.0 per litre
+    rec.fuel_cost = rec.fuel_quantity * 95.0
     db.add(rec)
     db.commit()
     db.refresh(rec)
@@ -233,6 +243,10 @@ def update_fuel_record(
         raise HTTPException(status_code=404, detail=f"Fuel record id={record_id} not found.")
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(rec, field, value)
+    
+    # Enforce hardcoded fuel cost
+    rec.fuel_cost = rec.fuel_quantity * 95.0
+    
     db.commit()
     db.refresh(rec)
     return _to_resp(rec)
@@ -288,7 +302,6 @@ def fuel_analytics(
         db.query(
             FuelRecord.vehicle_id,
             func.sum(FuelRecord.fuel_quantity).label("total_qty"),
-            func.sum(FuelRecord.fuel_cost).label("total_cost"),
         )
         .filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date)
         .group_by(FuelRecord.vehicle_id)
@@ -296,7 +309,7 @@ def fuel_analytics(
     )
 
     total_qty  = sum(r.total_qty  for r in per_vehicle) if per_vehicle else 0.0
-    total_cost = sum(r.total_cost for r in per_vehicle) if per_vehicle else 0.0
+    total_cost = total_qty * 95.0
     total_recs = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
 
     highest = lowest = None
@@ -307,12 +320,12 @@ def fuel_analytics(
         v_bot = db.get(Vehicle, bot.vehicle_id)
         highest = {
             "vehicle_id":           top.vehicle_id,
-            "registration_number":  v_top.registration_number if v_top else None,
+            "registration_number":  v_top.registration_number if v_top else f"Veh {top.vehicle_id}",
             "total_litres":         round(top.total_qty, 2),
         }
         lowest = {
             "vehicle_id":           bot.vehicle_id,
-            "registration_number":  v_bot.registration_number if v_bot else None,
+            "registration_number":  v_bot.registration_number if v_bot else f"Veh {bot.vehicle_id}",
             "total_litres":         round(bot.total_qty, 2),
         }
 
@@ -321,7 +334,7 @@ def fuel_analytics(
         total_fuel_consumed_ltrs=round(total_qty, 2),
         total_fuel_cost=round(total_cost, 2),
         avg_fuel_per_record_ltrs=round(total_qty / total_recs, 2) if total_recs else 0.0,
-        avg_cost_per_litre=round(total_cost / total_qty, 2) if total_qty else 0.0,
+        avg_cost_per_litre=95.0,
         vehicle_highest_usage=highest,
         vehicle_lowest_usage=lowest,
     )
@@ -407,9 +420,9 @@ def fleet_dashboard(
 
     # ── Shipments (Filtered by month) ─────────────────────────
     total_s     = db.query(func.count(Shipment.id)).filter(Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
-    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP), Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP)).scalar() or 0
     delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
-    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED).scalar() or 0
     cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
 
     # ── Maintenance ───────────────────────────────────────────
@@ -422,7 +435,7 @@ def fleet_dashboard(
     # ── Fuel (Filtered by month) ──────────────────────────────
     fuel_recs   = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
     fuel_qty    = db.query(func.coalesce(func.sum(FuelRecord.fuel_quantity), 0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
-    fuel_cost   = db.query(func.coalesce(func.sum(FuelRecord.fuel_cost),     0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
+    fuel_cost   = float(fuel_qty) * 95.0
 
     return FleetDashboardResponse(
         total_vehicles=total_v,
@@ -501,9 +514,13 @@ def operations_analytics(
     # ── Shipment delivery outcomes ────────────────────────────
     total_s     = db.query(func.count(Shipment.id)).filter(Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
     delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
-    delayed_s   = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELAYED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    from datetime import datetime, timezone
+    delayed_s   = db.query(func.count(Shipment.id)).filter(
+        (Shipment.status == ShipmentStatusEnum.DELAYED) | 
+        ((Shipment.eta < datetime.now(timezone.utc)) & ~Shipment.status.in_([ShipmentStatusEnum.DELIVERED, ShipmentStatusEnum.CANCELLED]))
+    ).scalar() or 0
     cancelled_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.CANCELLED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
-    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP), Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
+    active_s    = db.query(func.count(Shipment.id)).filter(Shipment.status.in_(_ACTIVE_SHIP)).scalar() or 0
 
     success_rate = round(delivered_s / total_s * 100, 1) if total_s else 0.0
 

@@ -18,7 +18,7 @@ class DriverRead(BaseModel):
     user_id:         int
     license_details: str
     status:          Optional[DriverStatusEnum] = DriverStatusEnum.AVAILABLE
-
+    name:            Optional[str] = None
 
 class DriverUpdate(BaseModel):
     license_details: str | None = Field(default=None, min_length=3)

@@ -63,6 +63,17 @@ export const analyticsApi = {
   operations: (params) => api.get('/analytics/operations', { params }),
 }
 
+export const maintenanceAlertsApi = {
+  list:   (params) => api.get('/maintenance-alerts', { params }),
+  create: (data)   => api.post('/maintenance-alerts', data),
+  update: (id, status) => api.put(`/maintenance-alerts/${id}`, { status }),
+  delete: (id)     => api.delete(`/maintenance-alerts/${id}`),
+}
+
+export const reportsApi = {
+  maintenance: () => api.get('/reports/maintenance'),
+}
+
 // ── Shipments ─────────────────────────────────────────────────
 export const shipmentApi = {
   list:         ()           => api.get('/shipments'),
@@ -118,6 +129,15 @@ export const fuelApi = {
   create: (data)       => api.post('/fuel', data),
   update: (id, data)   => api.put(`/fuel/${id}`, data),
   delete: (id)         => api.delete(`/fuel/${id}`),
+}
+
+// ── Maintenance ───────────────────────────────────────────────
+export const maintenanceApi = {
+  list:   (params)     => api.get('/maintenance', { params }),
+  get:    (id)         => api.get(`/maintenance/${id}`),
+  create: (data)       => api.post('/maintenance', data),
+  update: (id, data)   => api.put(`/maintenance/${id}`, data),
+  delete: (id)         => api.delete(`/maintenance/${id}`),
 }
 
 export default api

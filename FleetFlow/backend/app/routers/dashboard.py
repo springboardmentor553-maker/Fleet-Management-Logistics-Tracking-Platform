@@ -68,21 +68,38 @@ def dashboard(
         .scalar() or 0
     )
 
+    from datetime import datetime
     delayed = (
         db.query(func.count(Shipment.id))
-        .filter(Shipment.status == ShipmentStatusEnum.DELAYED)
+        .filter(
+            (Shipment.status == ShipmentStatusEnum.DELAYED) | 
+            ((Shipment.eta < datetime.utcnow()) & ~Shipment.status.in_([ShipmentStatusEnum.DELIVERED, ShipmentStatusEnum.CANCELLED]))
+        )
+        .scalar() or 0
+    )
+
+    # ── Drivers ───────────────────────────────────────────────────────────────
+    from app.models.driver import Driver
+    from app.models.enums import DriverStatusEnum
+    total_drivers = db.query(func.count(Driver.id)).scalar() or 0
+    on_duty_drivers = (
+        db.query(func.count(Driver.id))
+        .filter(Driver.status == DriverStatusEnum.ON_DUTY)
         .scalar() or 0
     )
 
     return DashboardSummary(
         # vehicles
-        totalVehicles=total_vehicles,
-        active=active_vehicles,
-        maintenance=maintenance,
-        available=available,
+        total_vehicles=total_vehicles,
+        active_vehicles=active_vehicles,
+        maintenance_vehicles=maintenance,
+        available_vehicles=available,
+        # drivers
+        total_drivers=total_drivers,
+        on_duty_drivers=on_duty_drivers,
         # shipments
-        totalShipments=total_shipments,
-        activeDeliveries=active_deliveries,
-        deliveredShipments=delivered,
-        delayedShipments=delayed,
+        total_shipments=total_shipments,
+        active_shipments=active_deliveries,
+        delivered_shipments=delivered,
+        delayed_shipments=delayed,
     )

@@ -146,30 +146,32 @@ export default function Dashboard() {
               label="Total Fuel Cost"
               value={loading ? '…' : `₹${fuelStats?.total_fuel_cost?.toLocaleString() || 0}`}
               variant="active"
-              desc={`₹${fuelStats?.average_fuel_cost_per_liter?.toFixed(1) || 0} per liter`}
+              desc={`₹${fuelStats?.avg_cost_per_litre?.toFixed(1) || 0} per liter`}
               icon={<ChartIcon />}
             />
             <StatCard
               label="Highest Consumer"
-              value={loading ? '…' : fuelStats?.vehicle_highest_usage?.vehicle_id || 'N/A'}
+              value={loading ? '…' : fuelStats?.vehicle_highest_usage?.registration_number || 'N/A'}
               variant="maint"
-              desc={`${fuelStats?.vehicle_highest_usage?.total_liters || 0} Liters`}
+              desc={`${fuelStats?.vehicle_highest_usage?.total_litres || 0} Liters`}
               icon={<TruckIcon color="var(--stat-maint)" />}
             />
             <StatCard
               label="Most Efficient"
-              value={loading ? '…' : fuelStats?.vehicle_lowest_usage?.vehicle_id || 'N/A'}
+              value={loading ? '…' : fuelStats?.vehicle_lowest_usage?.registration_number || 'N/A'}
               variant="avail"
-              desc={`${fuelStats?.vehicle_lowest_usage?.total_liters || 0} Liters`}
+              desc={`${fuelStats?.vehicle_lowest_usage?.total_litres || 0} Liters`}
               icon={<CheckIcon color="var(--stat-available)" />}
             />
           </div>
 
           <h2 style={{ fontSize: '1.2rem', marginBottom: '-10px', marginTop: '10px' }}>Visualizations</h2>
-          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
+          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+            
+            {/* 1. Fleet Status (Donut) */}
             <div className="card">
               <div className="card-header">
-                <div className="card-title">Fleet Status Distribution</div>
+                <div className="card-title">Fleet Composition</div>
               </div>
               <div className="card-body" style={{ height: '300px' }}>
                 {loading ? <div className="skeleton" style={{ height: '100%' }} /> : (
@@ -182,7 +184,7 @@ export default function Dashboard() {
                           { name: 'Maintenance', value: fleetStats?.maintenance_vehicles || 0 }
                         ]}
                         cx="50%" cy="50%"
-                        innerRadius={70} outerRadius={110}
+                        innerRadius={65} outerRadius={100}
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
@@ -192,36 +194,39 @@ export default function Dashboard() {
                         <Cell fill="#f59e0b" />
                       </Pie>
                       <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
-                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#cbd5e1' }} />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
 
+            {/* 2. Trip Overview (Bar) */}
             <div className="card">
               <div className="card-header">
-                <div className="card-title">Logistics Overview</div>
+                <div className="card-title">Trip Status</div>
               </div>
               <div className="card-body" style={{ height: '300px' }}>
                 {loading ? <div className="skeleton" style={{ height: '100%' }} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={[
-                        { name: 'Active', count: fleetStats?.active_shipments || 0 },
-                        { name: 'Delivered', count: fleetStats?.delivered_shipments || 0 },
-                        { name: 'Delayed', count: opStats?.delayed_deliveries || 0 }
+                        { name: 'Scheduled', count: fleetStats?.scheduled_trips || 0 },
+                        { name: 'Active', count: fleetStats?.active_trips || 0 },
+                        { name: 'Completed', count: fleetStats?.completed_trips || 0 },
+                        { name: 'Cancelled', count: fleetStats?.cancelled_trips || 0 }
                       ]}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                      margin={{ top: 20, right: 30, left: -20, bottom: 5 }}
                     >
-                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                       <Tooltip 
-                        cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
+                        cursor={{ fill: 'rgba(128,128,128,0.1)' }} 
                         contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} 
                         itemStyle={{ color: '#fff' }}
                       />
-                      <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={50}>
+                        <Cell fill="#a5b4fc" />
                         <Cell fill="#0ea5e9" />
                         <Cell fill="#10b981" />
                         <Cell fill="#ef4444" />
@@ -231,6 +236,40 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
+
+            {/* 3. Delivery Outcomes (Pie) */}
+            <div className="card">
+              <div className="card-header">
+                <div className="card-title">Delivery Outcomes</div>
+              </div>
+              <div className="card-body" style={{ height: '300px' }}>
+                {loading ? <div className="skeleton" style={{ height: '100%' }} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Successful', value: opStats?.successful_deliveries || 0 },
+                          { name: 'Delayed', value: opStats?.delayed_deliveries || 0 },
+                          { name: 'Cancelled', value: opStats?.cancelled_deliveries || 0 }
+                        ]}
+                        cx="50%" cy="50%"
+                        innerRadius={0} outerRadius={100}
+                        dataKey="value"
+                        stroke="var(--bg-card)"
+                        strokeWidth={2}
+                      >
+                        <Cell fill="#10b981" />
+                        <Cell fill="#f59e0b" />
+                        <Cell fill="#ef4444" />
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
           </div>
 
           {/* Quick fleet overview */}

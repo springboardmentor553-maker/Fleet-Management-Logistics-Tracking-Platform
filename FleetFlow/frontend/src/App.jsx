@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -12,11 +13,13 @@ import LiveTracking from './pages/LiveTracking'
 import DriverAssignments from './pages/DriverAssignments'
 import DriverAttendance from './pages/DriverAttendance'
 import FuelRecords from './pages/FuelRecords'
+import Maintenance from './pages/Maintenance'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route path="/login"    element={<Login />} />
@@ -33,11 +36,13 @@ export default function App() {
           <Route path="/assignments" element={<ProtectedRoute><DriverAssignments /></ProtectedRoute>} />
           <Route path="/attendance"  element={<ProtectedRoute><DriverAttendance /></ProtectedRoute>} />
           <Route path="/fuel"        element={<ProtectedRoute><FuelRecords /></ProtectedRoute>} />
+          <Route path="/maintenance" element={<ProtectedRoute><Maintenance /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
