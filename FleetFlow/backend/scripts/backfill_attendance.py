@@ -1,8 +1,8 @@
-from datetime import timezone
 from app.database import SessionLocal
-from app.models.trip import Trip
 from app.models.driver_attendance import DriverAttendance
 from app.models.enums import AttendanceStatusEnum
+from app.models.trip import Trip
+
 
 def backfill():
     db = SessionLocal()

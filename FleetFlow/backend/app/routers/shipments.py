@@ -7,14 +7,13 @@ The sequence is derived from the current maximum shipment id stored in the DB.
 import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.core import RoleEnum, User, Shipment
+from app.models.core import RoleEnum, Shipment, User
 from app.schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.services.security import get_current_user, require_roles
-
 
 router = APIRouter()
 
@@ -115,7 +114,9 @@ def update_shipment(
     payload: ShipmentUpdate,
     db: Session = Depends(get_db),
 ) -> ShipmentRead:
-    from app.routers.ws_tracking import broadcast_shipment_status  # avoid circular import
+    from app.routers.ws_tracking import (
+        broadcast_shipment_status,  # avoid circular import
+    )
 
     shipment = _get_shipment_or_404(db, shipment_id)
     updates = payload.model_dump(exclude_unset=True)

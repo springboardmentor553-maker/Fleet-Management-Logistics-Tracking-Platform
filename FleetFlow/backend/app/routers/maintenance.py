@@ -16,18 +16,21 @@ Task 6: All validation errors return HTTP 422; bad vehicle IDs return HTTP 404.
 
 import logging
 from datetime import date as DateType
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.enums import MaintenanceCategoryEnum, MaintenanceStatusEnum, VehicleStatusEnum
+from app.models.enums import (
+    MaintenanceCategoryEnum,
+    MaintenanceStatusEnum,
+    VehicleStatusEnum,
+)
 from app.models.maintenance import MaintenanceRecord
+from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.services.security import get_current_user
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -41,21 +44,21 @@ class MaintenanceCreate(BaseModel):
     vehicle_id:       int
     category:         MaintenanceCategoryEnum
     service_date:     DateType
-    next_service_date: Optional[DateType]       = None
-    service_cost:     Optional[float]           = Field(None, ge=0)
-    service_provider: Optional[str]             = Field(None, max_length=255)
+    next_service_date: DateType | None       = None
+    service_cost:     float | None           = Field(None, ge=0)
+    service_provider: str | None             = Field(None, max_length=255)
     status:           MaintenanceStatusEnum     = MaintenanceStatusEnum.SCHEDULED
-    notes:            Optional[str]             = None
+    notes:            str | None             = None
 
 
 class MaintenanceUpdate(BaseModel):
-    category:         Optional[MaintenanceCategoryEnum] = None
-    service_date:     Optional[DateType]                = None
-    next_service_date: Optional[DateType]               = None
-    service_cost:     Optional[float]                   = Field(None, ge=0)
-    service_provider: Optional[str]                     = Field(None, max_length=255)
-    status:           Optional[MaintenanceStatusEnum]   = None
-    notes:            Optional[str]                     = None
+    category:         MaintenanceCategoryEnum | None = None
+    service_date:     DateType | None                = None
+    next_service_date: DateType | None               = None
+    service_cost:     float | None                   = Field(None, ge=0)
+    service_provider: str | None                     = Field(None, max_length=255)
+    status:           MaintenanceStatusEnum | None   = None
+    notes:            str | None                     = None
 
 
 class MaintenanceResponse(BaseModel):
@@ -63,16 +66,16 @@ class MaintenanceResponse(BaseModel):
     vehicle_id:       int
     category:         MaintenanceCategoryEnum
     service_date:     DateType
-    next_service_date: Optional[DateType]
-    service_cost:     Optional[float]
-    service_provider: Optional[str]
+    next_service_date: DateType | None
+    service_cost:     float | None
+    service_provider: str | None
     status:           MaintenanceStatusEnum
-    notes:            Optional[str]
+    notes:            str | None
     created_at:       str
 
     # Vehicle summary
-    vehicle_registration: Optional[str] = None
-    vehicle_type:         Optional[str] = None
+    vehicle_registration: str | None = None
+    vehicle_type:         str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -173,9 +176,9 @@ def create_maintenance(
     summary="List all maintenance records",
 )
 def list_maintenance(
-    vehicle_id: Optional[int]                    = Query(None, description="Filter by vehicle"),
-    status_filter: Optional[MaintenanceStatusEnum] = Query(None, alias="status", description="Filter by status"),
-    category: Optional[MaintenanceCategoryEnum]  = Query(None, description="Filter by category"),
+    vehicle_id: int | None                    = Query(None, description="Filter by vehicle"),
+    status_filter: MaintenanceStatusEnum | None = Query(None, alias="status", description="Filter by status"),
+    category: MaintenanceCategoryEnum | None  = Query(None, description="Filter by category"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

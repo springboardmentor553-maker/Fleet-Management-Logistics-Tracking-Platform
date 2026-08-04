@@ -9,17 +9,17 @@ import sys
 from datetime import datetime, timedelta
 
 from app.database import SessionLocal
+from app.models.driver import Driver
 from app.models.enums import (
     RoleEnum,
     ShipmentStatusEnum,
     TripStatusEnum,
     VehicleStatusEnum,
 )
-from app.models.user import User
-from app.models.driver import Driver
-from app.models.vehicle import Vehicle
 from app.models.shipment import Shipment
 from app.models.trip import Trip
+from app.models.user import User
+from app.models.vehicle import Vehicle
 from app.services.security import hash_password
 
 PASS = "\033[92m✅\033[0m"

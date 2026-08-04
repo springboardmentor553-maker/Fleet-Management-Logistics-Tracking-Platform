@@ -1,8 +1,8 @@
-import sys
 from app.database import SessionLocal
-from app.models.fuel_record import FuelRecord
 from app.models.driver_assignment import DriverAssignment
 from app.models.enums import AssignmentStatusEnum
+from app.models.fuel_record import FuelRecord
+
 
 def migrate():
     db = SessionLocal()

@@ -6,7 +6,6 @@ from app.models.core import Driver, RoleEnum, User
 from app.schemas.driver import DriverCreate, DriverRead, DriverUpdate
 from app.services.security import get_current_user, require_roles
 
-
 router = APIRouter()
 
 

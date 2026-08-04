@@ -5,10 +5,15 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.core import Shipment, ShipmentStatusEnum, User, Vehicle, VehicleStatusEnum
+from app.models.core import (
+    Shipment,
+    ShipmentStatusEnum,
+    User,
+    Vehicle,
+    VehicleStatusEnum,
+)
 from app.schemas.dashboard import DashboardSummary
 from app.services.security import get_current_user
-
 
 router = APIRouter()
 

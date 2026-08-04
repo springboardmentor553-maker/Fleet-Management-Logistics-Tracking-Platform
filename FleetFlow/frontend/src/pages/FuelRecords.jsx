@@ -18,7 +18,7 @@ export default function FuelRecords() {
   const [filterVehicle, setFilterVehicle] = useState('')
 
   const [form, setForm] = useState({
-    vehicle_id: '', driver_id: '', fuel_quantity: '',
+    vehicle_id: '', driver_id: '', fuel_quantity: '', fuel_cost: '',
     odometer_reading: '', fuel_date: new Date().toISOString().slice(0, 10), fuel_station: '', remarks: ''
   })
   const [formErr, setFormErr] = useState('')
@@ -60,7 +60,7 @@ export default function FuelRecords() {
 
   function openCreate() {
     setForm({
-      vehicle_id: '', driver_id: '', fuel_quantity: '',
+      vehicle_id: '', driver_id: '', fuel_quantity: '', fuel_cost: '',
       odometer_reading: '', fuel_date: new Date().toISOString().slice(0, 10), fuel_station: '', remarks: ''
     })
     setFormErr('')
@@ -69,8 +69,8 @@ export default function FuelRecords() {
 
   async function handleCreate(e) {
     e.preventDefault()
-    if (!form.vehicle_id || !form.fuel_quantity) {
-      setFormErr('Vehicle and Quantity are required.')
+    if (!form.vehicle_id || !form.fuel_quantity || !form.fuel_cost) {
+      setFormErr('Vehicle, Quantity and Cost are required.')
       return
     }
     setSaving(true); setFormErr('')
@@ -79,6 +79,7 @@ export default function FuelRecords() {
         vehicle_id: Number(form.vehicle_id),
         driver_id: form.driver_id ? Number(form.driver_id) : null,
         fuel_quantity: Number(form.fuel_quantity),
+        fuel_cost: Number(form.fuel_cost),
         odometer_reading: form.odometer_reading ? Number(form.odometer_reading) : null,
         fuel_date: form.fuel_date,
         fuel_station: form.fuel_station || null,
@@ -99,6 +100,7 @@ export default function FuelRecords() {
       vehicle_id: rec.vehicle_id,
       driver_id: rec.driver_id || '',
       fuel_quantity: rec.fuel_quantity,
+      fuel_cost: rec.fuel_cost || '',
       odometer_reading: rec.odometer_reading || '',
       fuel_date: rec.fuel_date,
       fuel_station: rec.fuel_station || '',
@@ -114,6 +116,7 @@ export default function FuelRecords() {
     try {
       const payload = {
         fuel_quantity: Number(form.fuel_quantity),
+        fuel_cost: Number(form.fuel_cost),
         odometer_reading: form.odometer_reading ? Number(form.odometer_reading) : null,
         fuel_date: form.fuel_date,
         fuel_station: form.fuel_station || null,
@@ -339,6 +342,17 @@ export default function FuelRecords() {
                       className="form-input"
                       value={form.fuel_quantity}
                       onChange={e => setForm(f => ({ ...f, fuel_quantity: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Total Cost (₹) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-input"
+                      value={form.fuel_cost}
+                      onChange={e => setForm(f => ({ ...f, fuel_cost: e.target.value }))}
                       required
                     />
                   </div>

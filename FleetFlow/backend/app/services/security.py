@@ -11,7 +11,6 @@ from app.config import settings
 from app.database import get_db
 from app.models.core import RoleEnum, User
 
-
 # HTTPBearer gives Swagger a clean "paste your token" dialog
 # (OAuth2PasswordBearer was sending form-encoded data to /auth/login
 #  which expects JSON, causing 422 errors)

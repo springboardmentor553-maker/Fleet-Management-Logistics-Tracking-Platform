@@ -15,8 +15,7 @@ Validation:
 """
 
 import logging
-from datetime import date as DateType, datetime
-from typing import Optional
+from datetime import date as DateType
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -26,9 +25,9 @@ from app.database import get_db
 from app.models.enums import AlertStatusEnum
 from app.models.maintenance import MaintenanceRecord
 from app.models.maintenance_alert import MaintenanceAlert
+from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.services.security import get_current_user
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -61,8 +60,8 @@ class AlertResponse(BaseModel):
     next_service_date: DateType
 
     # Denormalised summaries for the frontend
-    vehicle_registration: Optional[str] = None
-    maintenance_category: Optional[str] = None
+    vehicle_registration: str | None = None
+    maintenance_category: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -162,9 +161,9 @@ def create_alert(
     summary="List all maintenance alerts",
 )
 def list_alerts(
-    vehicle_id: Optional[int] = Query(None, description="Filter by vehicle"),
-    status_filter: Optional[AlertStatusEnum] = Query(None, alias="status", description="Filter by status"),
-    alert_type: Optional[str] = Query(None, description="Filter by alert type"),
+    vehicle_id: int | None = Query(None, description="Filter by vehicle"),
+    status_filter: AlertStatusEnum | None = Query(None, alias="status", description="Filter by status"),
+    alert_type: str | None = Query(None, description="Filter by alert type"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

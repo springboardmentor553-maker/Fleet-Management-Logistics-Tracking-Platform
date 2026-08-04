@@ -1,9 +1,8 @@
-import sys
 import os
+import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -11,9 +10,8 @@ from alembic import context
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # 2. Import your Base, models, and settings
-from app.database import Base
-import app.models  # This triggers the imports in your __init__.py
 from app.config import settings
+from app.database import Base
 
 # this is the Alembic Config object
 config = context.config

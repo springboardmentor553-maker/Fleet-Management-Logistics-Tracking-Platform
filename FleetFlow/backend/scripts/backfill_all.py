@@ -1,22 +1,27 @@
-import sys
 import os
-from datetime import datetime, timedelta, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 import random
+import sys
+from datetime import datetime, timedelta, timezone
 
 # Setup Django/FastAPI equivalent environment
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from app.database import SessionLocal
-from app.models.vehicle import Vehicle
-from app.models.trip import Trip
-from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.driver_assignment import DriverAssignment
 from app.models.driver_attendance import DriverAttendance
-from app.models.enums import DriverStatusEnum, AttendanceStatusEnum, AssignmentStatusEnum, VehicleStatusEnum, MaintenanceCategoryEnum, MaintenanceStatusEnum
+from app.models.enums import (
+    AssignmentStatusEnum,
+    AttendanceStatusEnum,
+    DriverStatusEnum,
+    MaintenanceCategoryEnum,
+    MaintenanceStatusEnum,
+    VehicleStatusEnum,
+)
 from app.models.fuel_record import FuelRecord
 from app.models.maintenance import MaintenanceRecord
+from app.models.trip import Trip
+from app.models.vehicle import Vehicle
+
 
 def run():
     db = SessionLocal()

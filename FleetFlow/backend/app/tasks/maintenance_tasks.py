@@ -1,10 +1,11 @@
 import logging
 from datetime import date, timedelta
+
 from app.celery import celery_app
 from app.database import SessionLocal
+from app.models.enums import AlertStatusEnum, MaintenanceStatusEnum
 from app.models.maintenance import MaintenanceRecord
 from app.models.maintenance_alert import MaintenanceAlert
-from app.models.enums import MaintenanceStatusEnum, AlertStatusEnum
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ def check_maintenance_schedules():
             db.query(MaintenanceRecord)
             .filter(MaintenanceRecord.next_service_date.isnot(None))
             .filter(MaintenanceRecord.next_service_date <= upcoming_threshold)
+            .filter(MaintenanceRecord.status != MaintenanceStatusEnum.COMPLETED)
             .all()
         )
 
@@ -72,7 +74,7 @@ def check_maintenance_schedules():
             logger.info("No new maintenance alerts to generate.")
 
     except Exception as e:
-        logger.error(f"Error checking maintenance schedules: {str(e)}")
+        logger.error(f"Error checking maintenance schedules: {e!s}")
         db.rollback()
     finally:
         db.close()

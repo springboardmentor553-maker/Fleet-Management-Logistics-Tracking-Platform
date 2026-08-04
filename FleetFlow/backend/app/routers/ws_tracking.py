@@ -59,11 +59,10 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-
 from app.connection_manager import manager
 from app.database import SessionLocal
-from app.models.trip import Trip
 from app.models.shipment import Shipment
+from app.models.trip import Trip
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

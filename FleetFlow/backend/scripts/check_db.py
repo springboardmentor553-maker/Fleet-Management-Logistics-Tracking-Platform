@@ -1,10 +1,10 @@
 from app.database import SessionLocal
-from app.models.vehicle import Vehicle
 from app.models.driver import Driver
-from app.models.shipment import Shipment
+from app.models.driver_attendance import DriverAttendance
 from app.models.fuel_record import FuelRecord
 from app.models.maintenance import MaintenanceRecord
-from app.models.driver_attendance import DriverAttendance
+from app.models.shipment import Shipment
+from app.models.vehicle import Vehicle
 
 db = SessionLocal()
 

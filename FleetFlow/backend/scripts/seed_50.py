@@ -1,23 +1,28 @@
-import sys
 import random
 import uuid
 from datetime import datetime, timedelta, timezone
 
 from app.database import SessionLocal
-from app.models.enums import (
-    RoleEnum, ShipmentStatusEnum, TripStatusEnum, VehicleStatusEnum,
-    AssignmentStatusEnum, DriverStatusEnum, MaintenanceStatusEnum, AttendanceStatusEnum,
-    MaintenanceCategoryEnum
-)
-from app.models.user import User
 from app.models.driver import Driver
-from app.models.vehicle import Vehicle
-from app.models.shipment import Shipment
-from app.models.trip import Trip
 from app.models.driver_assignment import DriverAssignment
+from app.models.driver_attendance import DriverAttendance
+from app.models.enums import (
+    AssignmentStatusEnum,
+    AttendanceStatusEnum,
+    DriverStatusEnum,
+    MaintenanceCategoryEnum,
+    MaintenanceStatusEnum,
+    RoleEnum,
+    ShipmentStatusEnum,
+    TripStatusEnum,
+    VehicleStatusEnum,
+)
 from app.models.fuel_record import FuelRecord
 from app.models.maintenance import MaintenanceRecord
-from app.models.driver_attendance import DriverAttendance
+from app.models.shipment import Shipment
+from app.models.trip import Trip
+from app.models.user import User
+from app.models.vehicle import Vehicle
 from app.services.security import hash_password
 
 db = SessionLocal()
@@ -53,7 +58,7 @@ def main():
             db.commit()
             db.refresh(driver)
         drivers.append(driver)
-    log("✅", f"50 Drivers ensured.")
+    log("✅", "50 Drivers ensured.")
 
     print("\n── Creating Vehicles (50) ──────────")
     vehicles = []
@@ -73,7 +78,7 @@ def main():
             db.commit()
             db.refresh(veh)
         vehicles.append(veh)
-    log("✅", f"50 Vehicles ensured.")
+    log("✅", "50 Vehicles ensured.")
 
     print("\n── Setting 17 Vehicles to Maintenance ──────────")
     for i in range(17):
@@ -95,7 +100,7 @@ def main():
             )
             db.add(mr)
             db.commit()
-    log("✅", f"17 Vehicles set to maintenance with records.")
+    log("✅", "17 Vehicles set to maintenance with records.")
 
     print("\n── Creating Driver Assignments (50) ──────────")
     # Assign the rest of the drivers to the rest of the vehicles (available ones)
@@ -122,7 +127,7 @@ def main():
             db.commit()
             db.refresh(da)
         assignments.append(da)
-    log("✅", f"Created driver assignments.")
+    log("✅", "Created driver assignments.")
 
     print("\n── Creating Shipments, Trips, Fuel, Attendance ──────────")
     for idx, (d, v) in enumerate(zip(avail_drivers, avail_vehicles)):

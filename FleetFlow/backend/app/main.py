@@ -5,22 +5,22 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import test_connection
+
+# Import FuelRecord so SQLAlchemy/Alembic registers the table in Base.metadata
+from app.models import fuel_record as _fuel_record_model  # noqa: F401
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.driver_management import router as driver_mgmt_router
 from app.routers.drivers import router as drivers_router
 from app.routers.fuel_analytics import router as fuel_analytics_router
 from app.routers.maintenance import router as maintenance_router
+from app.routers.maintenance_alerts import router as maintenance_alerts_router
+from app.routers.reports import router as reports_router
 from app.routers.shipments import router as shipments_router
 from app.routers.tracking import router as tracking_router
 from app.routers.trips import router as trips_router
 from app.routers.vehicles import router as vehicles_router
 from app.routers.ws_tracking import router as ws_tracking_router
-from app.routers.maintenance_alerts import router as maintenance_alerts_router
-from app.routers.reports import router as reports_router
-
-# Import FuelRecord so SQLAlchemy/Alembic registers the table in Base.metadata
-from app.models import fuel_record as _fuel_record_model  # noqa: F401
 
 app = FastAPI(title="FleetFlow Backend", version="1.0.0")
 logger = logging.getLogger(__name__)

@@ -25,18 +25,15 @@ GET    /drivers/{driver_id}/performance              Performance summary from Tr
 
 import logging
 from datetime import date as DateType
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.driver import Driver
 from app.models.driver_assignment import DriverAssignment
 from app.models.driver_attendance import DriverAttendance
-from app.models.driver import Driver
-from app.models.vehicle import Vehicle
-from app.models.trip import Trip
 from app.models.enums import (
     AssignmentStatusEnum,
     AttendanceStatusEnum,
@@ -44,8 +41,10 @@ from app.models.enums import (
     TripStatusEnum,
     VehicleStatusEnum,
 )
-from app.services.security import get_current_user
+from app.models.trip import Trip
 from app.models.user import User
+from app.models.vehicle import Vehicle
+from app.services.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -58,27 +57,27 @@ router = APIRouter()
 class AssignmentCreate(BaseModel):
     driver_id:  int
     vehicle_id: int
-    trip_id:    Optional[int] = None
-    remarks:    Optional[str] = None
+    trip_id:    int | None = None
+    remarks:    str | None = None
 
 
 class AssignmentUpdate(BaseModel):
-    status:  Optional[AssignmentStatusEnum] = None
-    remarks: Optional[str]                  = None
+    status:  AssignmentStatusEnum | None = None
+    remarks: str | None                  = None
 
 
 class AssignmentResponse(BaseModel):
     id:              int
     driver_id:       int
     vehicle_id:      int
-    trip_id:         Optional[int]
+    trip_id:         int | None
     assignment_date: str
     status:          AssignmentStatusEnum
-    remarks:         Optional[str]
+    remarks:         str | None
 
     # Derived summaries
-    driver_license:        Optional[str] = None
-    vehicle_registration:  Optional[str] = None
+    driver_license:        str | None = None
+    vehicle_registration:  str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -205,8 +204,8 @@ def assign_driver(
     tags=["driver-assignments"],
 )
 def list_assignments(
-    driver_id:     Optional[int]                  = Query(None),
-    status_filter: Optional[AssignmentStatusEnum] = Query(None, alias="status"),
+    driver_id:     int | None                  = Query(None),
+    status_filter: AssignmentStatusEnum | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -302,14 +301,14 @@ class AttendanceCreate(BaseModel):
     driver_id:      int
     date:           DateType
     status:         AttendanceStatusEnum
-    check_in_time:  Optional[str] = Field(None, description="ISO 8601 datetime with timezone")
-    check_out_time: Optional[str] = Field(None, description="ISO 8601 datetime with timezone")
+    check_in_time:  str | None = Field(None, description="ISO 8601 datetime with timezone")
+    check_out_time: str | None = Field(None, description="ISO 8601 datetime with timezone")
 
 
 class AttendanceUpdate(BaseModel):
-    status:         Optional[AttendanceStatusEnum] = None
-    check_in_time:  Optional[str]                  = None
-    check_out_time: Optional[str]                  = None
+    status:         AttendanceStatusEnum | None = None
+    check_in_time:  str | None                  = None
+    check_out_time: str | None                  = None
 
 
 class AttendanceResponse(BaseModel):
@@ -317,8 +316,8 @@ class AttendanceResponse(BaseModel):
     driver_id:      int
     date:           str
     status:         AttendanceStatusEnum
-    check_in_time:  Optional[str]
-    check_out_time: Optional[str]
+    check_in_time:  str | None
+    check_out_time: str | None
 
     model_config = {"from_attributes": True}
 
@@ -338,10 +337,10 @@ def _att_to_resp(a: DriverAttendance) -> AttendanceResponse:
 # Task 2 — Attendance CRUD
 # ─────────────────────────────────────────────────────────────────────────────
 
-from datetime import datetime, timezone  # noqa: E402  (after model imports)
+from datetime import datetime
 
 
-def _parse_dt(value: Optional[str], field: str) -> Optional[datetime]:
+def _parse_dt(value: str | None, field: str) -> datetime | None:
     if value is None:
         return None
     try:
@@ -401,9 +400,9 @@ def create_attendance(
     tags=["driver-attendance"],
 )
 def list_attendance(
-    driver_id:     Optional[int]                   = Query(None),
-    date_filter:   Optional[DateType]              = Query(None, alias="date"),
-    status_filter: Optional[AttendanceStatusEnum]  = Query(None, alias="status"),
+    driver_id:     int | None                   = Query(None),
+    date_filter:   DateType | None              = Query(None, alias="date"),
+    status_filter: AttendanceStatusEnum | None  = Query(None, alias="status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -419,7 +418,8 @@ def list_attendance(
 
 # ── Today-summary helper (server-side date, no timezone ambiguity) ────────────
 
-from datetime import date as DateObj  # noqa: E402
+from datetime import date as DateObj
+
 
 class AttendanceTodaySummary(BaseModel):
     date:         str

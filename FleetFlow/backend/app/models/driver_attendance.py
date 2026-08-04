@@ -4,9 +4,16 @@ One Driver → many daily attendance records.
 Allowed statuses: PRESENT, ABSENT, LEAVE.
 """
 
-from datetime import datetime, timezone
 
-from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from app.database import Base

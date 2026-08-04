@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 
 from app.models.enums import DriverStatusEnum
 
@@ -17,8 +17,9 @@ class DriverRead(BaseModel):
     id:              int
     user_id:         int
     license_details: str
-    status:          Optional[DriverStatusEnum] = DriverStatusEnum.AVAILABLE
-    name:            Optional[str] = None
+    status:          DriverStatusEnum | None = DriverStatusEnum.AVAILABLE
+    name:            str | None = None
 
 class DriverUpdate(BaseModel):
     license_details: str | None = Field(default=None, min_length=3)
+    status: DriverStatusEnum | None = None

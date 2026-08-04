@@ -16,18 +16,17 @@ GET    /dashboard/fleet         Fleet performance dashboard (dynamic)
 
 from __future__ import annotations
 
-from datetime import date as DateType, datetime, timedelta, timezone
-from typing import List, Optional
+from datetime import date as DateType
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.driver import Driver
 from app.models.driver_assignment import DriverAssignment
-from app.models.driver_attendance import DriverAttendance
 from app.models.enums import (
     AssignmentStatusEnum,
     DriverStatusEnum,
@@ -46,8 +45,8 @@ from app.services.security import get_current_user
 
 
 def get_date_range(time_range: str):
-    from datetime import date, timedelta
     import calendar
+    from datetime import date
     today = date.today()
     
     def safe_date(year, month, day):
@@ -88,34 +87,34 @@ router = APIRouter()
 
 class FuelRecordCreate(BaseModel):
     vehicle_id:       int
-    driver_id:        Optional[int]   = None
+    driver_id:        int | None   = None
     fuel_quantity:    float           = Field(..., gt=0, description="Litres, must be > 0")
     fuel_cost:        float           = Field(..., gt=0, description="Cost, must be > 0")
-    odometer_reading: Optional[float] = Field(None, ge=0)
+    odometer_reading: float | None = Field(None, ge=0)
     fuel_date:        DateType        = Field(default_factory=DateType.today)
-    fuel_station:     Optional[str]   = None
-    remarks:          Optional[str]   = None
+    fuel_station:     str | None   = None
+    remarks:          str | None   = None
 
 
 class FuelRecordUpdate(BaseModel):
-    fuel_quantity:    Optional[float]    = Field(None, gt=0)
-    fuel_cost:        Optional[float]    = Field(None, gt=0)
-    odometer_reading: Optional[float]   = Field(None, ge=0)
-    fuel_date:        Optional[DateType] = None
-    fuel_station:     Optional[str]     = None
-    remarks:          Optional[str]     = None
+    fuel_quantity:    float | None    = Field(None, gt=0)
+    fuel_cost:        float | None    = Field(None, gt=0)
+    odometer_reading: float | None   = Field(None, ge=0)
+    fuel_date:        DateType | None = None
+    fuel_station:     str | None     = None
+    remarks:          str | None     = None
 
 
 class FuelRecordResponse(BaseModel):
     id:               int
     vehicle_id:       int
-    driver_id:        Optional[int]
+    driver_id:        int | None
     fuel_quantity:    float
     fuel_cost:        float
-    odometer_reading: Optional[float]
+    odometer_reading: float | None
     fuel_date:        str
-    fuel_station:     Optional[str]
-    remarks:          Optional[str]
+    fuel_station:     str | None
+    remarks:          str | None
     created_at:       str
 
     model_config = {"from_attributes": True}
@@ -179,8 +178,6 @@ def create_fuel_record(
             body.driver_id = active_assignment.driver_id
 
     rec = FuelRecord(**body.model_dump())
-    # Hardcode fuel cost to 95.0 per litre
-    rec.fuel_cost = rec.fuel_quantity * 95.0
     db.add(rec)
     db.commit()
     db.refresh(rec)
@@ -189,15 +186,15 @@ def create_fuel_record(
 
 @router.get(
     "/fuel",
-    response_model=List[FuelRecordResponse],
+    response_model=list[FuelRecordResponse],
     summary="List fuel records",
     tags=["fuel"],
 )
 def list_fuel_records(
-    vehicle_id: Optional[int]      = Query(None),
-    driver_id:  Optional[int]      = Query(None),
-    date_from:  Optional[DateType] = Query(None),
-    date_to:    Optional[DateType] = Query(None),
+    vehicle_id: int | None      = Query(None),
+    driver_id:  int | None      = Query(None),
+    date_from:  DateType | None = Query(None),
+    date_to:    DateType | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -244,9 +241,6 @@ def update_fuel_record(
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(rec, field, value)
     
-    # Enforce hardcoded fuel cost
-    rec.fuel_cost = rec.fuel_quantity * 95.0
-    
     db.commit()
     db.refresh(rec)
     return _to_resp(rec)
@@ -280,8 +274,8 @@ class FuelAnalyticsResponse(BaseModel):
     total_fuel_cost:           float
     avg_fuel_per_record_ltrs:  float
     avg_cost_per_litre:        float
-    vehicle_highest_usage:     Optional[dict]  # {vehicle_id, registration_number, total_litres}
-    vehicle_lowest_usage:      Optional[dict]
+    vehicle_highest_usage:     dict | None  # {vehicle_id, registration_number, total_litres}
+    vehicle_lowest_usage:      dict | None
 
 
 @router.get(
@@ -302,6 +296,7 @@ def fuel_analytics(
         db.query(
             FuelRecord.vehicle_id,
             func.sum(FuelRecord.fuel_quantity).label("total_qty"),
+            func.sum(FuelRecord.fuel_cost).label("total_cost"),
         )
         .filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date)
         .group_by(FuelRecord.vehicle_id)
@@ -309,7 +304,7 @@ def fuel_analytics(
     )
 
     total_qty  = sum(r.total_qty  for r in per_vehicle) if per_vehicle else 0.0
-    total_cost = total_qty * 95.0
+    total_cost = sum(r.total_cost for r in per_vehicle) if per_vehicle else 0.0
     total_recs = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
 
     highest = lowest = None
@@ -334,7 +329,7 @@ def fuel_analytics(
         total_fuel_consumed_ltrs=round(total_qty, 2),
         total_fuel_cost=round(total_cost, 2),
         avg_fuel_per_record_ltrs=round(total_qty / total_recs, 2) if total_recs else 0.0,
-        avg_cost_per_litre=95.0,
+        avg_cost_per_litre=round(total_cost / total_qty, 2) if total_qty > 0 else 0.0,
         vehicle_highest_usage=highest,
         vehicle_lowest_usage=lowest,
     )
@@ -435,7 +430,7 @@ def fleet_dashboard(
     # ── Fuel (Filtered by month) ──────────────────────────────
     fuel_recs   = db.query(func.count(FuelRecord.id)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0
     fuel_qty    = db.query(func.coalesce(func.sum(FuelRecord.fuel_quantity), 0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
-    fuel_cost   = float(fuel_qty) * 95.0
+    fuel_cost   = db.query(func.coalesce(func.sum(FuelRecord.fuel_cost), 0.0)).filter(FuelRecord.fuel_date >= start_date, FuelRecord.fuel_date <= end_date).scalar() or 0.0
 
     return FleetDashboardResponse(
         total_vehicles=total_v,
@@ -476,11 +471,11 @@ class OperationalAnalyticsResponse(BaseModel):
 
     # Trip metrics
     total_trips:             int
-    avg_trip_distance_km:    Optional[float]   # computed from lat/lng haversine
-    avg_trip_duration_hrs:   Optional[float]   # scheduled end - scheduled start
+    avg_trip_distance_km:    float | None   # computed from lat/lng haversine
+    avg_trip_duration_hrs:   float | None   # scheduled end - scheduled start
 
     # Shipment timing
-    avg_delivery_time_hrs:   Optional[float]   # scheduled_end - scheduled_start across completed trips
+    avg_delivery_time_hrs:   float | None   # scheduled_end - scheduled_start across completed trips
 
     # Active workload
     active_trips_now:        int
@@ -514,7 +509,6 @@ def operations_analytics(
     # ── Shipment delivery outcomes ────────────────────────────
     total_s     = db.query(func.count(Shipment.id)).filter(Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
     delivered_s = db.query(func.count(Shipment.id)).filter(Shipment.status == ShipmentStatusEnum.DELIVERED, Shipment.created_at >= start_date, Shipment.created_at <= end_date).scalar() or 0
-    from datetime import datetime, timezone
     delayed_s   = db.query(func.count(Shipment.id)).filter(
         (Shipment.status == ShipmentStatusEnum.DELAYED) | 
         ((Shipment.eta < datetime.now(timezone.utc)) & ~Shipment.status.in_([ShipmentStatusEnum.DELIVERED, ShipmentStatusEnum.CANCELLED]))

@@ -5,17 +5,17 @@ Revises: d3e4f5g6h7i8
 Create Date: 2026-07-27 19:36:44.063619
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '8fc314d07745'
-down_revision: Union[str, Sequence[str], None] = 'd3e4f5g6h7i8'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = 'd3e4f5g6h7i8'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

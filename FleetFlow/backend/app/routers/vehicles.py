@@ -6,7 +6,6 @@ from app.models.core import RoleEnum, User, Vehicle
 from app.schemas.vehicle import VehicleCreate, VehicleRead, VehicleUpdate
 from app.services.security import get_current_user, require_roles
 
-
 router = APIRouter()
 
 

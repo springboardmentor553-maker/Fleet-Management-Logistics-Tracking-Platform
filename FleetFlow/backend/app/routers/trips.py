@@ -26,6 +26,7 @@ from app.models.core import (
     User,
     Vehicle,
 )
+from app.models.enums import DriverStatusEnum, VehicleStatusEnum
 from app.schemas.trip import RouteResponse, TripCreate, TripRead, TripUpdate
 from app.services.directions import DirectionsError, get_route
 from app.services.geocoding import GeocodingError, geocode_location
@@ -74,6 +75,11 @@ def _validate_driver(db: Session, driver_id: int) -> Driver:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Driver with id={driver_id} not found",
         )
+    if driver.status == DriverStatusEnum.OFF_DUTY:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Driver id={driver_id} is currently off duty and cannot be assigned to a trip",
+        )
     return driver
 
 
@@ -84,6 +90,11 @@ def _validate_vehicle(db: Session, vehicle_id: int) -> Vehicle:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Vehicle with id={vehicle_id} not found",
+        )
+    if vehicle.current_status == VehicleStatusEnum.MAINTENANCE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Vehicle id={vehicle_id} is under maintenance and cannot be assigned to a trip",
         )
     return vehicle
 
