@@ -16,6 +16,8 @@ from app.routers import driver_assignment
 from app.routers import driver_performance
 from app.routers import driver_attendance
 from app.routers import fuel_record
+from app.routers import maintenance_alert
+
 
 
 
@@ -45,6 +47,7 @@ app.include_router(driver_assignment.router)
 app.include_router(driver_performance.router) 
 app.include_router(driver_attendance.router)
 app.include_router(fuel_record.router)
+app.include_router(maintenance_alert.router)
 
 @app.get("/")
 def home():

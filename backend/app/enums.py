@@ -17,3 +17,14 @@ class MaintenanceCategory(str, Enum):
     BRAKE_SERVICE = "Brake Service"
     ENGINE_SERVICE = "Engine Service"
     GENERAL_INSPECTION = "General Inspection"
+
+    
+class AttendanceStatus(str, Enum):
+    PRESENT = "Present"
+    ABSENT = "Absent"
+    LEAVE = "Leave"
+
+class AlertStatus(str, Enum):
+    PENDING = "Pending"
+    SENT = "Sent"
+    COMPLETED = "Completed"

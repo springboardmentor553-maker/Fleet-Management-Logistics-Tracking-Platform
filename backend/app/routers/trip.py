@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from app.enums import AttendanceStatus
 from app.database import SessionLocal
-from app.models import Trip, Shipment, Driver, Vehicle
+from app.models import Trip, Shipment, Driver, Vehicle, Maintenance, DriverAttendance
 from app.dependencies import dispatcher_required
 from app.services.geocoding_service import get_coordinates
 from app.services.route_service import get_route
@@ -55,6 +55,22 @@ def create_trip(
     if not driver:
         return {"message": "Driver not found"}
 
+    # Check if driver is on leave
+    attendance = (
+        db.query(DriverAttendance)
+        .filter(
+            DriverAttendance.driver_id == driver_id
+        )
+        .order_by(DriverAttendance.date.desc())
+        .first()
+)
+
+    if attendance and attendance.attendance_status == AttendanceStatus.LEAVE:
+        raise HTTPException(
+            status_code=400,
+            detail="Driver is on leave"
+    )
+
     # Validate Vehicle
     vehicle = db.query(Vehicle).filter(
         Vehicle.vehicle_id == vehicle_id
@@ -93,7 +109,23 @@ def create_trip(
     if not destination_coordinates:
         return {"message": "Destination location not found"}
 
-    # Create Trip
+# Check if vehicle is under maintenance
+    active_maintenance = (
+        db.query(Maintenance)
+        .filter(
+            Maintenance.vehicle_id == vehicle_id,
+            Maintenance.maintenance_status != "Completed"
+        )
+        .first()
+    )
+
+    if active_maintenance:
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle is under maintenance"
+        )
+
+# Create Trip
     trip = Trip(
         shipment_id=shipment_id,
         driver_id=driver_id,
@@ -116,7 +148,7 @@ def create_trip(
     return {
         "message": "Trip created successfully",
         "trip": trip
-    }
+}
 
 
 # GET ALL TRIPS

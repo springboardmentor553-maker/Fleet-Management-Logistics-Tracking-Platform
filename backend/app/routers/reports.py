@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Driver, Vehicle, Shipment
 from app.dependencies import fleet_manager_required
+from sqlalchemy import func
+from app.models import Maintenance
+
 
 router = APIRouter(
     prefix="/reports",
@@ -128,3 +131,49 @@ def shipment_report(
             for s in shipments
         ]
     }
+
+@router.get("/maintenance")
+def maintenance_report(current_user=Depends(fleet_manager_required)):
+
+    db = SessionLocal()
+
+    try:
+        total_records = db.query(Maintenance).count()
+
+        vehicles_under_maintenance = db.query(Maintenance).filter(
+            Maintenance.maintenance_status == "Under Maintenance"
+        ).count()
+
+        completed_services = db.query(Maintenance).filter(
+            Maintenance.maintenance_status == "Completed"
+        ).count()
+
+        overdue_services = db.query(Maintenance).filter(
+            Maintenance.next_service_date < func.now()
+        ).count()
+
+        total_maintenance_cost = db.query(
+            func.coalesce(func.sum(Maintenance.service_cost), 0)
+        ).scalar()
+
+        category = (
+            db.query(
+                Maintenance.maintenance_category,
+                func.count(Maintenance.maintenance_category).label("count")
+            )
+            .group_by(Maintenance.maintenance_category)
+            .order_by(func.count(Maintenance.maintenance_category).desc())
+            .first()
+        )
+
+        return {
+            "total_maintenance_records": total_records,
+            "vehicles_under_maintenance": vehicles_under_maintenance,
+            "completed_services": completed_services,
+            "overdue_services": overdue_services,
+            "total_maintenance_cost": total_maintenance_cost,
+            "most_frequent_maintenance_category": category[0].value if category else None
+        }
+
+    finally:
+        db.close()

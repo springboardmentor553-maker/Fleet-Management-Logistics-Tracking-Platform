@@ -7,7 +7,7 @@ from app.enums import ShipmentStatus
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.enums import MaintenanceCategory
-
+from app.enums import AlertStatus,AttendanceStatus
 
 class User(Base):
     __tablename__ = "users"
@@ -51,6 +51,7 @@ class Vehicle(Base):
     trips = relationship("Trip", back_populates="vehicle")
     assignments=relationship("DriverAssignment",back_populates="vehicle")
     fuel_records = relationship("FuelRecord",back_populates="vehicle")
+    maintenance_alerts = relationship("MaintenanceAlert",back_populates="vehicle")
 
 
 
@@ -138,6 +139,7 @@ class Maintenance(Base):
     notes = Column(String)
 
     created_at = Column(DateTime, server_default=func.now())
+    alerts = relationship("MaintenanceAlert",back_populates="maintenance")
 
 class DriverAssignment(Base):
     __tablename__="driver_assignments"
@@ -209,3 +211,16 @@ class FuelRecord(Base):
 
     vehicle = relationship("Vehicle", back_populates="fuel_records")
     driver = relationship("Driver", back_populates="fuel_records")
+
+class MaintenanceAlert(Base):
+    __tablename__="maintenance_alerts"
+    alert_id=Column(Integer, primary_key=True, index=True)
+    vehicle_id=Column(Integer, ForeignKey("vehicles.vehicle_id"),nullable=False)
+    maintenance_id=Column(Integer, ForeignKey("maintenance.maintenance_id"),nullable=False)
+    alert_message=Column(String, nullable=False)
+    alert_type=Column(String, nullable=False)
+    alert_status = Column(Enum(AlertStatus),nullable=False,default=AlertStatus.PENDING)    
+    generated_date=Column(DateTime, default=datetime.utcnow)
+    next_service_date=Column(DateTime)
+    vehicle=relationship("Vehicle", back_populates="maintenance_alerts")
+    maintenance = relationship("Maintenance",back_populates="alerts")
