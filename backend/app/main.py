@@ -11,6 +11,7 @@ from backend.app.routers.driver_assignment import router as driver_assignment_ro
 from backend.app.routers.driver_attendance import router as driver_attendance_router
 from backend.app.routers.fuel_record import router as fuel_record_router
 from backend.app.routers.analytics import router as analytics_router
+from backend.app.routers.maintenance_alert import router as maintenance_alert_router
 from backend.app.models.shipment_history import ShipmentHistory
 
 from backend.app.dependencies import get_current_user
@@ -31,6 +32,7 @@ app.include_router(driver_assignment_router)
 app.include_router(driver_attendance_router)
 app.include_router(fuel_record_router)
 app.include_router(analytics_router)
+app.include_router(maintenance_alert_router)
 
 
 @app.get("/")
