@@ -13,6 +13,7 @@ from app.schemas.dashboard import (
     FleetManagerDashboardStats,
     DispatcherDashboardStats,
     DriverDashboardStats,
+    FleetPerformanceDashboardStats,
 )
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -130,4 +131,36 @@ def get_driver_stats(
         active_trip_id=active_trip.id if active_trip else None,
         vehicle_license_plate=plate,
     )
+
+
+@router.get("/fleet", response_model=FleetPerformanceDashboardStats)
+def get_fleet_dashboard_stats(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    total_vehicles = db.query(Vehicle).count()
+    active_vehicles = db.query(Vehicle).filter(Vehicle.current_status == "in_transit").count()
+    vehicles_under_maintenance = db.query(Vehicle).filter(Vehicle.current_status == "maintenance").count()
+
+    total_drivers = db.query(Driver).count()
+    available_drivers = db.query(Driver).filter(Driver.is_available == True).count()
+    # assigned_drivers: drivers who have an assigned_vehicle_id
+    assigned_drivers = db.query(Driver).filter(Driver.assigned_vehicle_id != None).count()
+
+    total_trips = db.query(Trip).count()
+    completed_trips = db.query(Trip).filter(Trip.status == "completed").count()
+    active_shipments = db.query(Shipment).filter(Shipment.status == "in_transit").count()
+
+    return FleetPerformanceDashboardStats(
+        total_vehicles=total_vehicles,
+        active_vehicles=active_vehicles,
+        vehicles_under_maintenance=vehicles_under_maintenance,
+        total_drivers=total_drivers,
+        available_drivers=available_drivers,
+        assigned_drivers=assigned_drivers,
+        total_trips=total_trips,
+        completed_trips=completed_trips,
+        active_shipments=active_shipments,
+    )
+
 

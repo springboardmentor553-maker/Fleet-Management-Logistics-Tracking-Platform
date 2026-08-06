@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 
 
 class DriverCreate(BaseModel):
@@ -43,10 +43,10 @@ class DriverResponse(BaseModel):
 
 class DriverAttendanceCreate(BaseModel):
     driver_id: int
-    date: str
-    status: str  # present, absent, on_leave
-    check_in: Optional[str] = "09:00 AM"
-    check_out: Optional[str] = "06:00 PM"
+    date: str  # YYYY-MM-DD string — matches the String column in the DB model
+    status: str = "present"      # present, absent, on_leave
+    check_in: Optional[str] = None
+    check_out: Optional[str] = None
 
 
 class DriverAttendanceResponse(BaseModel):
@@ -54,8 +54,8 @@ class DriverAttendanceResponse(BaseModel):
     driver_id: int
     date: str
     status: str
-    check_in: Optional[str] = None
-    check_out: Optional[str] = None
+    check_in: Optional[str]
+    check_out: Optional[str]
     created_at: datetime
 
     model_config = {"from_attributes": True}

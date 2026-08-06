@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.routers import auth, admin, fleet, dispatcher, driver, drivers, dashboard, shipment, trip, gps, route, maintenance
+from app.routers import (
+    auth, admin, fleet, dispatcher, driver, drivers, dashboard,
+    shipment, trip, gps, route, maintenance, driver_assignment,
+    fuel, analytics, maintenance_alert, reports, notifications, reports_export
+)
 from app.connection_manager import manager
 from app.database import init_db
 from fastapi import WebSocket, WebSocketDisconnect
+from app.routers.driver_assignment import router_driver
 
 app = FastAPI(
     title="FleetFlow API",
@@ -32,6 +37,15 @@ app.include_router(trip.router)
 app.include_router(gps.router)
 app.include_router(route.router)
 app.include_router(maintenance.router)
+app.include_router(maintenance_alert.router)
+app.include_router(reports.router)
+app.include_router(driver_assignment.router)
+app.include_router(router_driver)
+app.include_router(fuel.router)
+app.include_router(analytics.router)
+app.include_router(notifications.router)
+app.include_router(reports_export.router)
+
 
 
 @app.on_event("startup")

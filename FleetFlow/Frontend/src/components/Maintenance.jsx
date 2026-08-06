@@ -13,11 +13,11 @@ import {
 import { getVehicles } from '../api/vehicles'
 
 const CATEGORIES = [
-  'Oil Change',
-  'Tire Replacement',
-  'Engine Service',
-  'Brake Service',
-  'General Inspection',
+  "Oil Change",
+  "Tyre Replacement",
+  "Brake Service",
+  "Engine Service",
+  "General Inspection",
 ]
 
 const EMPTY_FORM = {
@@ -25,13 +25,17 @@ const EMPTY_FORM = {
   category: 'Oil Change',
   description: '',
   cost: 0,
+
   scheduled_date: '',
+  next_service_date: '',
+  service_provider: '',
+
   odometer_km: 0,
   health_score: 95,
   notes: '',
 }
 
-export default function Maintenance() {
+export default function Maintenance({ onNavigate }) {
   const [records,       setRecords]       = useState([])
   const [reports,       setReports]       = useState([])
   const [vehicles,      setVehicles]      = useState([])
@@ -72,11 +76,13 @@ const [overdue, setOverdue] = useState([]);
   function openScheduleModal() {
     setEditingId(null)
     setForm({
-      vehicle_id: vehicles[0]?.id || '',
+      vehicle_id: vehicles.find(v => v.current_status === "available")?.id || '',
       category: 'Oil Change',
       description: '',
       cost: 150,
       scheduled_date: '',
+      next_service_date: '',
+      service_provider: '',
       odometer_km: 15000,
       health_score: 95,
       notes: '',
@@ -123,6 +129,9 @@ const [overdue, setOverdue] = useState([]);
           category: form.category,
           description: form.description,
           cost: parseFloat(form.cost),
+          scheduled_date: form.scheduled_date,
+          next_service_date: form.next_service_date,
+          service_provider: form.service_provider,
           odometer_km: parseFloat(form.odometer_km),
           health_score: parseInt(form.health_score),
           notes: form.notes,
@@ -134,6 +143,8 @@ const [overdue, setOverdue] = useState([]);
           description: form.description,
           cost: parseFloat(form.cost),
           scheduled_date: form.scheduled_date,
+          next_service_date: form.next_service_date,
+          service_provider: form.service_provider,
           odometer_km: parseFloat(form.odometer_km),
           health_score: parseInt(form.health_score),
           notes: form.notes,
@@ -188,6 +199,9 @@ const [overdue, setOverdue] = useState([]);
           <p>Service History · Scheduled Maintenance · Inspection Tracking & Alerts</p>
         </div>
         <div className="page-actions">
+          <button className="btn-ghost" onClick={() => onNavigate && onNavigate('alerts')}>
+            🔔 Maintenance Alerts
+          </button>
           <button className="btn-primary" onClick={openScheduleModal}>
             + Schedule Maintenance
           </button>
@@ -378,7 +392,9 @@ const [overdue, setOverdue] = useState([]);
                 <th>Odometer</th>
                 <th>Health Score</th>
                 <th>Cost</th>
-                <th>Actions</th>
+                <th>Provider</th>
+                <th>Next Service</th>
+                <th style={{ minWidth: "140px" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -430,6 +446,15 @@ const [overdue, setOverdue] = useState([]);
     currency: "INR",
   }).format(r.cost)}
 </span>
+</td>
+<td>
+  {r.service_provider || "-"}
+</td>
+
+<td>
+  {r.next_service_date
+    ? new Date(r.next_service_date).toLocaleDateString()
+    : "-"}
 </td>
 <td className="actions">
   {r.status === "scheduled" && (
@@ -520,6 +545,17 @@ const [overdue, setOverdue] = useState([]);
                   />
                 </div>
                 <div className="field">
+                  <label>Service Provider</label>
+
+                  <input
+                    type="text"
+                    name="service_provider"
+                    value={form.service_provider}
+                    onChange={handleChange}
+                    placeholder="Example: Tata Service Center"
+                  />
+                </div>
+                <div className="field">
                   <label>Scheduled Date</label>
 
                   <input
@@ -530,7 +566,16 @@ const [overdue, setOverdue] = useState([]);
                     required
                   />
                 </div>
+                <div className="field">
+                  <label>Next Service Date</label>
 
+                  <input
+                    type="datetime-local"
+                    name="next_service_date"
+                    value={form.next_service_date}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="field">
                   <label>Current Odometer (km)</label>
                   <input

@@ -10,3 +10,7 @@ bcrypt
 python-jose[cryptography]
 alembic
 requests
+celery
+redis
+reportlab
+openpyxl

@@ -251,8 +251,8 @@ export default function Drivers() {
                       <div className="driver-name">
                         <span className="avatar">{d.name[0].toUpperCase()}</span>
                         <div>
-                          <strong style={{ color: '#f1f5f9' }}>{d.name}</strong>
-                          <div style={{ fontSize: 12, color: '#64748b' }}>{d.email} | {d.phone}</div>
+                          <span className="driver-strong">{d.name}</span>
+                          <div className="driver-meta">{d.email} | {d.phone}</div>
                         </div>
                       </div>
                     </td>
@@ -261,16 +261,9 @@ export default function Drivers() {
                     </td>
                     <td>
                       <select
+                        className="inline-select"
                         value={d.assigned_vehicle_id || ''}
                         onChange={(e) => handleAssignVehicle(d.id, e.target.value)}
-                        style={{
-                          background: '#0f172a',
-                          border: '1px solid #334155',
-                          borderRadius: 6,
-                          padding: '4px 8px',
-                          color: '#f1f5f9',
-                          fontSize: 12,
-                        }}
                       >
                         <option value="">Unassigned</option>
                         {vehicles.map((v) => (
@@ -293,49 +286,39 @@ export default function Drivers() {
                         >
                           {d.attendance_status.toUpperCase()}
                         </span>
-                        <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+                        <div className="att-btns">
                           <button
                             title="Mark Present"
-                            style={{ background: '#22c55e22', color: '#22c55e', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                            className={`att-btn present${d.attendance_status === 'present' ? ' active' : ''}`}
                             onClick={() => handleToggleAttendance(d.id, 'present')}
-                          >
-                            P
-                          </button>
+                          >P</button>
                           <button
                             title="Mark Absent"
-                            style={{ background: '#ef444422', color: '#ef4444', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                            className={`att-btn absent${d.attendance_status === 'absent' ? ' active' : ''}`}
                             onClick={() => handleToggleAttendance(d.id, 'absent')}
-                          >
-                            A
-                          </button>
+                          >A</button>
                           <button
                             title="Mark On Leave"
-                            style={{ background: '#f59e0b22', color: '#f59e0b', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                            className={`att-btn on_leave${d.attendance_status === 'on_leave' ? ' active' : ''}`}
                             onClick={() => handleToggleAttendance(d.id, 'on_leave')}
-                          >
-                            L
-                          </button>
+                          >L</button>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div>
-                        <strong>{d.completed_trips_count || 0} Trips</strong>
-                        <div style={{ fontSize: 12, color: '#38bdf8' }}>{d.total_distance_km || 0} km Total</div>
+                      <div className="driver-stats">
+                        <span className="driver-trips">{d.completed_trips_count || 0} Trips</span>
+                        <span className="driver-km">{d.total_distance_km || 0} km Total</span>
                       </div>
                     </td>
                     <td>
-                      <div>
-                        <span style={{ color: safetyColor, fontWeight: 700, fontSize: 13 }}>
-                          🛡️ {d.safety_score || 95}% Safety
-                        </span>
-                        <div style={{ fontSize: 12, color: '#f59e0b' }}>
-                          ★ {d.rating || 4.8} / 5.0
-                        </div>
+                      <div className="driver-stats">
+                        <span className="safety-score" style={{ color: safetyColor }}>🛡️ {d.safety_score || 95}% Safety</span>
+                        <span className="driver-rating">★ {d.rating || 4.8} / 5.0</span>
                       </div>
                     </td>
                     <td className="actions">
-                      <button className="btn-edit" style={{ background: '#6366f1' }} onClick={() => handleViewLogs(d)}>
+                      <button className="btn-primary" style={{ fontSize: 12, padding: '5px 12px' }} onClick={() => handleViewLogs(d)}>
                         📋 Logs
                       </button>
                       <button className="btn-edit" onClick={() => openEditModal(d)}>
@@ -442,18 +425,18 @@ export default function Drivers() {
               <h3>📋 Activity Logs — {selectedDriver.name}</h3>
               <button className="modal-close" onClick={() => setLogsModal(false)}>✕</button>
             </div>
-            <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+            <div className="modal-scroll">
               {logs.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748b', padding: 24 }}>No activity logs recorded yet.</div>
+                <div className="log-empty">No activity logs recorded yet.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="log-list">
                   {logs.map((l) => (
-                    <div key={l.id} style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: 12 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#818cf8', fontWeight: 600, fontSize: 13 }}>
-                        <span>{l.action}</span>
-                        <span style={{ color: '#64748b', fontSize: 11 }}>{new Date(l.timestamp).toLocaleString()}</span>
+                    <div key={l.id} className="log-entry">
+                      <div className="log-header">
+                        <span className="log-action">{l.action}</span>
+                        <span className="log-time">{new Date(l.timestamp).toLocaleString()}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: '#cbd5e1', marginTop: 4 }}>{l.details}</div>
+                      <div className="log-details">{l.details}</div>
                     </div>
                   ))}
                 </div>

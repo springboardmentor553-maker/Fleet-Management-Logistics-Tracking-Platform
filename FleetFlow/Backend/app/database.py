@@ -98,3 +98,33 @@ def init_db():
                         conn.execute(text(f"ALTER TABLE trips ADD COLUMN {col_name} {col_def}"))
                     except Exception as e:
                         print(f"Migration notice for trips.{col_name}: {e}")
+
+
+        # 5. Check and add missing columns for 'maintenance_records' table
+    if inspector.has_table("maintenance_records"):
+        existing_cols = {col["name"] for col in inspector.get_columns("maintenance_records")}
+        columns_to_add = [
+            ("service_provider", "VARCHAR"),
+            ("next_service_date", "TIMESTAMP"),
+        ]
+
+        with engine.begin() as conn:
+            for col_name, col_def in columns_to_add:
+                if col_name not in existing_cols:
+                    try:
+                        conn.execute(
+                            text(
+                                f"ALTER TABLE maintenance_records ADD COLUMN {col_name} {col_def}"
+                            )
+                        )
+                    except Exception as e:
+                        print(f"Migration notice for maintenance_records.{col_name}: {e}")
+
+
+# Dependency for FastAPI
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

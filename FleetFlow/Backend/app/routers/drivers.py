@@ -106,26 +106,44 @@ def record_driver_attendance(
     _: User = Depends(_mgmt),
 ):
     driver = db.query(Driver).filter(Driver.id == driver_id).first()
-    if not driver:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
-    driver.attendance_status = data.status
+    if not driver:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    valid_statuses = {"present", "absent", "leave", "on_leave"}
+    status_clean = data.status.lower().strip()
+    if status_clean not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail="Attendance status must be one of: Present, Absent, Leave"
+        )
+
+    normalized_status = "on_leave" if status_clean in ["leave", "on_leave"] else status_clean
+
+    driver.attendance_status = normalized_status
+
     record = DriverAttendance(
         driver_id=driver_id,
         date=data.date,
-        status=data.status,
+        status=normalized_status,
         check_in=data.check_in,
         check_out=data.check_out,
     )
+
     log = DriverActivityLog(
         driver_id=driver_id,
         action="Attendance Marked",
-        details=f"Marked {driver.name} as {data.status.upper()} for date {data.date}",
+        details=f"Marked {driver.name} as {data.status.upper()} for {data.date}",
     )
+
     db.add(record)
     db.add(log)
     db.commit()
     db.refresh(record)
+
     return record
 
 

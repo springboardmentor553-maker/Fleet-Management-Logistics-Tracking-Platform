@@ -7,7 +7,8 @@ from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.schemas.trip import TripCreate
-from app.services.maps import geocode_location
+from app.services.maps import geocode_location, haversine_distance, KNOWN_LOCATIONS
+import hashlib
 
 
 def get_all_trips(db: Session):
@@ -101,8 +102,46 @@ def update_trip_status(trip_id: int, new_status: str, db: Session):
         driver  = db.query(Driver).filter(Driver.id == trip.driver_id).first()
         vehicle = db.query(Vehicle).filter(Vehicle.id == trip.vehicle_id).first()
         shipment = db.query(Shipment).filter(Shipment.id == trip.shipment_id).first()
-        if driver:   driver.is_available = True
-        if vehicle:  vehicle.current_status = "available"
+
+        # --- Calculate and accumulate trip distance for the driver ---
+        lat1 = trip.pickup_latitude
+        lon1 = trip.pickup_longitude
+        lat2 = trip.destination_latitude
+        lon2 = trip.destination_longitude
+
+        # Fall back to geocoding if coordinates are missing
+        if lat1 is None or lon1 is None:
+            origin = shipment.origin if shipment else ''
+            norm = (origin or '').strip().lower()
+            if norm in KNOWN_LOCATIONS:
+                lat1, lon1 = KNOWN_LOCATIONS[norm]
+            else:
+                digest = hashlib.md5(norm.encode('utf-8')).hexdigest()
+                lat1 = 8.0 + (int(digest[:6], 16) % 2400) / 100.0
+                lon1 = 68.0 + (int(digest[6:12], 16) % 2400) / 100.0
+
+        if lat2 is None or lon2 is None:
+            destination = shipment.destination if shipment else ''
+            norm = (destination or '').strip().lower()
+            if norm in KNOWN_LOCATIONS:
+                lat2, lon2 = KNOWN_LOCATIONS[norm]
+            else:
+                digest = hashlib.md5(norm.encode('utf-8')).hexdigest()
+                lat2 = 8.0 + (int(digest[:6], 16) % 2400) / 100.0
+                lon2 = 68.0 + (int(digest[6:12], 16) % 2400) / 100.0
+
+        trip_distance_km = round(haversine_distance(lat1, lon1, lat2, lon2), 2)
+
+        if driver:
+            driver.is_available = True
+            driver.completed_trips_count += 1
+            driver.total_distance_km = round(
+                (driver.total_distance_km or 0.0) + trip_distance_km, 2
+            )
+
+        if vehicle:
+            vehicle.current_status = "available"
+
         if shipment:
             shipment.status = "delivered"
             shipment.delivered_at = datetime.utcnow()
@@ -110,15 +149,21 @@ def update_trip_status(trip_id: int, new_status: str, db: Session):
     if new_status == "cancelled":
         if trip.status == "completed":
             raise HTTPException(status_code=400, detail="Cannot cancel a completed trip")
+
         trip.end_time = datetime.utcnow()
-        driver  = db.query(Driver).filter(Driver.id == trip.driver_id).first()
+
+        driver = db.query(Driver).filter(Driver.id == trip.driver_id).first()
         vehicle = db.query(Vehicle).filter(Vehicle.id == trip.vehicle_id).first()
         shipment = db.query(Shipment).filter(Shipment.id == trip.shipment_id).first()
-        if driver:   driver.is_available = True
-        if vehicle:  vehicle.current_status = "available"
+
+        if driver:
+            driver.is_available = True
+
+        if vehicle:
+            vehicle.current_status = "available"
+
         if shipment:
             shipment.status = "cancelled"
-
     trip.status = new_status
     db.commit()
     db.refresh(trip)

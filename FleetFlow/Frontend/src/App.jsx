@@ -7,18 +7,27 @@ import Shipments from './components/Shipments'
 import Trips from './components/Trips'
 import LiveMap from './components/LiveMap'
 import Maintenance from './components/Maintenance'
+import MaintenanceAlerts from './components/MaintenanceAlerts'
+import Notifications from './components/Notifications'
+import ReportsExport from './components/ReportsExport'
+import Fuel from './components/Fuel'
+import DriverAssignment from './components/DriverAssignment'
 import { getMe } from './api/auth'
 
 import './App.css'
 
 const NAV = [
-  { id: 'dashboard',   label: 'Dashboard',   icon: '📊' },
-  { id: 'shipments',   label: 'Shipments',   icon: '📦' },
-  { id: 'trips',       label: 'Trips',       icon: '🛣️' },
-  { id: 'vehicles',    label: 'Vehicles',    icon: '🚛' },
-  { id: 'drivers',     label: 'Drivers',     icon: '👤' },
-  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
-  { id: 'map',         label: 'Live Map',    icon: '🗺️' },
+  { id: 'dashboard',    label: 'Dashboard',        icon: '📊' },
+  { id: 'shipments',    label: 'Shipments',        icon: '📦' },
+  { id: 'trips',        label: 'Trips',            icon: '🛣️' },
+  { id: 'vehicles',     label: 'Vehicles',         icon: '🚛' },
+  { id: 'drivers',      label: 'Drivers',          icon: '👤' },
+  { id: 'assignments',  label: 'Assignments',      icon: '📋' },
+  { id: 'maintenance',  label: 'Maintenance',      icon: '🔧' },
+  { id: 'fuel',         label: 'Fuel',             icon: '⛽' },
+  { id: 'notifications',label: 'Notifications',    icon: '🔕' },
+  { id: 'reports',      label: 'Reports',          icon: '📊' },
+  { id: 'map',          label: 'Live Map',         icon: '🗺️' },
 ]
 
 const FOOTER_ACTIONS = [
@@ -39,18 +48,23 @@ function getNavForRole(role) {
       { id: 'dashboard',   label: 'Fleet Overview', icon: '📊' },
       { id: 'vehicles',    label: 'Vehicles',       icon: '🚛' },
       { id: 'drivers',     label: 'Drivers',        icon: '👤' },
-      { id: 'maintenance', label: 'Maintenance',   icon: '🔧' },
-      { id: 'trips',       label: 'Trips',          icon: '🛣️' },
-      { id: 'map',         label: 'Live Map',       icon: '🗺️' },
+      { id: 'assignments', label: 'Assignments',    icon: '📋' },
+      { id: 'maintenance', label: 'Maintenance',    icon: '🔧' },
+      { id: 'fuel',          label: 'Fuel',           icon: '⛽' },
+      { id: 'trips',         label: 'Trips',          icon: '🛣️' },
+      { id: 'notifications', label: 'Notifications',  icon: '🔕' },
+      { id: 'reports',       label: 'Reports',        icon: '📊' },
+      { id: 'map',           label: 'Live Map',       icon: '🗺️' },
     ]
   }
   if (role === 'dispatcher') {
     return [
-      { id: 'dashboard', label: 'Dispatch Overview', icon: '📊' },
-      { id: 'shipments', label: 'Shipments',         icon: '📦' },
-      { id: 'trips',     label: 'Trips',             icon: '🛣️' },
-      { id: 'drivers',   label: 'Drivers',           icon: '👤' },
-      { id: 'map',       label: 'Live Map',          icon: '🗺️' },
+      { id: 'dashboard',   label: 'Dispatch Overview', icon: '📊' },
+      { id: 'shipments',   label: 'Shipments',         icon: '📦' },
+      { id: 'trips',       label: 'Trips',             icon: '🛣️' },
+      { id: 'drivers',     label: 'Drivers',           icon: '👤' },
+      { id: 'assignments', label: 'Assignments',       icon: '📋' },
+      { id: 'map',         label: 'Live Map',          icon: '🗺️' },
     ]
   }
   return NAV
@@ -287,7 +301,12 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
         {page === 'trips' && <Trips onViewTripMap={onViewTripMap} />}
         {page === 'vehicles' && <Vehicles />}
         {page === 'drivers' && <Drivers />}
-        {page === 'maintenance' && <Maintenance />}
+        {page === 'assignments' && <DriverAssignment />}
+        {page === 'maintenance' && <Maintenance onNavigate={setPage} />}
+        {page === 'alerts' && <MaintenanceAlerts />}
+        {page === 'notifications' && <Notifications />}
+        {page === 'reports' && <ReportsExport />}
+        {page === 'fuel' && <Fuel />}
         {page === 'map' && <LiveMap tripId={selectedTripId} user={user} />}
         {page === 'profile' && <ProfileDetails user={user} />}
         {page === 'settings' && <SettingsPage user={user} />}

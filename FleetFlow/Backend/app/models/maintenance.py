@@ -19,5 +19,7 @@ class MaintenanceRecord(Base):
     health_score = Column(Integer, default=100)  # 0 to 100 health score rating
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    service_provider = Column(String, nullable=True)
+    next_service_date = Column(DateTime, nullable=True)
 
     vehicle = relationship("Vehicle")

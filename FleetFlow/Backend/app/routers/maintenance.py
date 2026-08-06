@@ -33,6 +33,11 @@ def schedule_maintenance(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Vehicle not found"
         )
+    if vehicle.current_status == "in_transit":
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle is currently in transit. Maintenance cannot be scheduled."
+        )
 
     # Allow maintenance only if vehicle is available
     if vehicle.current_status != "available":
@@ -40,15 +45,45 @@ def schedule_maintenance(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Vehicle is currently '{vehicle.current_status}'. Maintenance can only be scheduled when the vehicle is available."
         )
+    # Check if there is already an active maintenance record
+    existing = (
+        db.query(MaintenanceRecord)
+        .filter(
+            MaintenanceRecord.vehicle_id == data.vehicle_id,
+            MaintenanceRecord.status.in_(["scheduled", "in_progress"])
+        )
+        .first()
+    )
 
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This vehicle already has a scheduled or in-progress maintenance."
+        )
+    existing_record = (
+        db.query(MaintenanceRecord)
+        .filter(
+          MaintenanceRecord.vehicle_id == data.vehicle_id,
+          MaintenanceRecord.status.in_(["scheduled", "in_progress"])
+        )
+        .first()
+    )
+
+    if existing_record:
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle already has an active maintenance record."
+        )
     # Create maintenance record
     record = MaintenanceRecord(
         vehicle_id=data.vehicle_id,
         category=data.category,
         description=data.description,
         cost=data.cost,
+        service_provider=data.service_provider,
         status="scheduled",
         scheduled_date=data.scheduled_date or datetime.utcnow(),
+        next_service_date=data.next_service_date,
         odometer_km=data.odometer_km or 0.0,
         health_score=data.health_score or 95,
         notes=data.notes,
@@ -91,7 +126,6 @@ def get_vehicle_maintenance_history(
         .all()
     )
 
-
 @router.patch("/{record_id}", response_model=MaintenanceResponse)
 def update_maintenance_record(
     record_id: int,
@@ -109,6 +143,10 @@ def update_maintenance_record(
         record.description = data.description
     if data.cost is not None:
         record.cost = data.cost
+    if data.service_provider is not None:
+        record.service_provider = data.service_provider
+    if data.next_service_date is not None:
+        record.next_service_date = data.next_service_date
     if data.status is not None:
         record.status = data.status
         if data.status == "completed":
@@ -131,18 +169,31 @@ def update_maintenance_record(
     return record
 
 
-@router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{record_id}", response_model=MaintenanceResponse)
 def delete_maintenance_record(
     record_id: int,
     db: Session = Depends(get_db),
     _: User = Depends(_manager_or_admin),
 ):
-    record = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == record_id).first()
-    if not record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Maintenance record not found")
-    db.delete(record)
-    db.commit()
+    record = (
+        db.query(MaintenanceRecord)
+        .filter(MaintenanceRecord.id == record_id)
+        .first()
+    )
 
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Maintenance record not found"
+        )
+
+    # Do not delete history
+    record.status = "cancelled"
+
+    db.commit()
+    db.refresh(record)
+
+    return record
 
 @router.get("/health-reports", response_model=List[VehicleHealthReport])
 def get_vehicle_health_reports(
@@ -322,5 +373,24 @@ def complete_maintenance(
 
     db.commit()
     db.refresh(record)
+
+    return record
+@router.get("/{record_id}", response_model=MaintenanceResponse)
+def get_maintenance_record(
+    record_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    record = (
+        db.query(MaintenanceRecord)
+        .filter(MaintenanceRecord.id == record_id)
+        .first()
+    )
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Maintenance record not found"
+        )
 
     return record
