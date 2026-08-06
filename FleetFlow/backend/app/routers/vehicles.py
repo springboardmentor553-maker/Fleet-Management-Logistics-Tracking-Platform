@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.core import RoleEnum, User, Vehicle
 from app.schemas.vehicle import VehicleCreate, VehicleRead, VehicleUpdate
-from app.services.security import get_current_user, require_roles
 from app.services.audit import log_audit_event
+from app.services.security import get_current_user, require_roles
 
 router = APIRouter()
 

@@ -33,11 +33,15 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
-  const canManage = ['ADMIN', 'FLEET_MANAGER'].includes(user?.role)
-  const isAdmin   = user?.role === 'ADMIN'
+  const canManage    = ['ADMIN', 'FLEET_MANAGER'].includes(user?.role)
+  const isAdmin      = user?.role === 'ADMIN'
+  const isDispatcher = user?.role === 'DISPATCHER'
+  const isDriver     = user?.role === 'DRIVER'
+  // Dispatchers can create/update shipments & trips but cannot manage fleet config
+  const canOperate   = canManage || isDispatcher
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, canManage, isAdmin }}>
+    <AuthContext.Provider value={{ user, login, register, logout, canManage, isAdmin, isDispatcher, isDriver, canOperate }}>
       {children}
     </AuthContext.Provider>
   )

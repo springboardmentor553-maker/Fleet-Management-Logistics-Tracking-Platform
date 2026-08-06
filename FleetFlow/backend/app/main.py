@@ -8,6 +8,7 @@ from app.database import test_connection
 
 # Import FuelRecord so SQLAlchemy/Alembic registers the table in Base.metadata
 from app.models import fuel_record as _fuel_record_model  # noqa: F401
+from app.routers.audit_log import router as audit_log_router
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.driver_management import router as driver_mgmt_router
@@ -21,7 +22,7 @@ from app.routers.tracking import router as tracking_router
 from app.routers.trips import router as trips_router
 from app.routers.vehicles import router as vehicles_router
 from app.routers.ws_tracking import router as ws_tracking_router
-from app.routers.audit_log import router as audit_log_router
+
 app = FastAPI(title="FleetFlow Backend", version="1.0.0")
 logger = logging.getLogger(__name__)
 

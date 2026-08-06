@@ -1,13 +1,15 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
+
 
 class AuditLogBase(BaseModel):
-    user_id: Optional[int] = None
+    user_id: int | None = None
     action: str
     resource_type: str
-    resource_id: Optional[int] = None
-    details: Optional[Dict[str, Any]] = None
+    resource_id: int | None = None
+    details: dict[str, Any] | None = None
 
 class AuditLogCreate(AuditLogBase):
     pass

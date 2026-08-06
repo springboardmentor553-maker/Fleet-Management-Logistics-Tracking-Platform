@@ -18,7 +18,7 @@ const EMPTY_FORM = {
 }
 
 export default function Shipments() {
-  const { canManage } = useAuth()
+  const { canManage, canOperate } = useAuth()
   const navigate = useNavigate()
   const [shipments, setShipments] = useState([])
   const [drivers,   setDrivers]   = useState([])
@@ -122,7 +122,7 @@ export default function Shipments() {
             <button className="btn btn-outline" onClick={exportToCSV} disabled={filtered.length === 0}>
               Export Excel
             </button>
-            {canManage && (
+            {canOperate && (
               <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
                 {showForm ? '✕ Cancel' : '+ New Shipment'}
               </button>
@@ -221,7 +221,7 @@ export default function Shipments() {
                       <th>Route</th>
                       <th>Weight</th>
                       <th>Status</th>
-                      {canManage && <th>Actions</th>}
+                      {canOperate && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -237,7 +237,7 @@ export default function Shipments() {
                         </td>
                         <td>{s.weight ? `${s.weight} kg` : '—'}</td>
                         <td><StatusBadge status={s.status} /></td>
-                        {canManage && (
+                        {canOperate && (
                           <td>
                             <div style={{ display: 'flex', gap: 6 }}>
                               <select
@@ -249,12 +249,14 @@ export default function Shipments() {
                                   <option key={opt} value={opt}>{opt}</option>
                                 )}
                               </select>
-                              <button
-                                className="btn btn-sm btn-outline"
-                                style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
-                                onClick={() => navigate(`/tracking/${s.trip_id || ''}`)}
-                                title="Live Track"
-                              >📡</button>
+                              {s.status === 'IN_TRANSIT' && s.trip_id && (
+                                <button
+                                  className="btn btn-sm btn-outline"
+                                  style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                                  onClick={() => navigate(`/tracking/${s.trip_id}`)}
+                                  title="Live Track"
+                                >📡</button>
+                              )}
                               <button
                                 className="btn btn-sm btn-outline"
                                 style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}

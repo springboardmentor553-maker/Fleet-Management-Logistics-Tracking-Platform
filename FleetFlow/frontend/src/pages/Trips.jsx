@@ -15,7 +15,7 @@ const EMPTY_FORM = {
 }
 
 export default function Trips() {
-  const { canManage } = useAuth()
+  const { canManage, canOperate } = useAuth()
   const navigate = useNavigate()
   const [trips,     setTrips]     = useState([])
   const [shipments, setShipments] = useState([])
@@ -83,6 +83,15 @@ export default function Trips() {
     }
   }
 
+  async function changeTripStatus(tripId, newStatus) {
+    try {
+      await tripApi.update(tripId, { status: newStatus })
+      setTrips(prev => prev.map(t => t.id === tripId ? { ...t, status: newStatus } : t))
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Status update failed')
+    }
+  }
+
   const shipmentMap = Object.fromEntries(shipments.map(s => [s.id, s]))
 
   const exportToCSV = () => {
@@ -119,7 +128,7 @@ export default function Trips() {
             <button className="btn btn-outline" onClick={exportToCSV} disabled={trips.length === 0}>
               Export Excel
             </button>
-            {canManage && (
+            {canOperate && (
               <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
                 {showForm ? '✕ Cancel' : '+ Schedule Trip'}
               </button>
@@ -161,7 +170,11 @@ export default function Trips() {
                     <select className="form-input" value={form.driver_id} required
                       onChange={e => setForm(p => ({ ...p, driver_id: e.target.value }))}>
                       <option value="">Select driver…</option>
-                      {drivers.map(d => <option key={d.id} value={d.id}>Driver #{d.id}</option>)}
+                      {drivers.filter(d => d.status === 'AVAILABLE').map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.name || `Driver #${d.id}`} ({d.license_details})
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
@@ -253,12 +266,14 @@ export default function Trips() {
                       </div>
                       <StatusBadge status={trip.status} />
                       <div style={{ display: 'flex', gap: 8, marginLeft: 8 }}>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
-                          onClick={e => { e.stopPropagation(); navigate(`/tracking/${trip.id}`) }}
-                          title="Live Track"
-                        >📡 Live</button>
+                        {trip.status === 'IN_PROGRESS' && (
+                          <button
+                            className="btn btn-sm btn-outline"
+                            style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                            onClick={e => { e.stopPropagation(); navigate(`/tracking/${trip.id}`) }}
+                            title="Live Track"
+                          >📡 Live</button>
+                        )}
                         <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>
                           {isOpen ? '▲' : '▼'}
                         </span>
@@ -297,6 +312,19 @@ export default function Trips() {
                           <InfoBox label="Dest Coords"
                             value={trip.destination_lat ? `${trip.destination_lat.toFixed(4)}, ${trip.destination_lng.toFixed(4)}` : '—'} />
                         </div>
+                        {canOperate && (
+                          <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Update Status:</label>
+                            <select
+                              className="form-input"
+                              value={trip.status}
+                              onChange={e => { e.stopPropagation(); changeTripStatus(trip.id, e.target.value) }}
+                              style={{ width: 180, fontSize: '0.8rem', padding: '6px 10px' }}
+                            >
+                              {TRIP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

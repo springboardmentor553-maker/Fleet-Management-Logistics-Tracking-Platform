@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
+
 from app.database import Base
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

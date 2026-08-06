@@ -21,6 +21,7 @@ from app.models.core import (
     Driver,
     RoleEnum,
     Shipment,
+    ShipmentStatusEnum,
     Trip,
     TripStatusEnum,
     User,
@@ -28,10 +29,10 @@ from app.models.core import (
 )
 from app.models.enums import DriverStatusEnum, VehicleStatusEnum
 from app.schemas.trip import RouteResponse, TripCreate, TripRead, TripUpdate
+from app.services.audit import log_audit_event
 from app.services.directions import DirectionsError, get_route
 from app.services.geocoding import GeocodingError, geocode_location
 from app.services.security import get_current_user, require_roles
-from app.services.audit import log_audit_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -294,6 +295,15 @@ def update_trip(
 
     for field, value in updates.items():
         setattr(trip, field, value)
+
+    # ── Auto-sync associated Shipment status if applicable ──
+    if "status" in updates and trip.shipment:
+        if trip.status == TripStatusEnum.IN_PROGRESS and trip.shipment.status != ShipmentStatusEnum.IN_TRANSIT:
+            trip.shipment.status = ShipmentStatusEnum.IN_TRANSIT
+            db.add(trip.shipment)
+        elif trip.status == TripStatusEnum.COMPLETED and trip.shipment.status != ShipmentStatusEnum.DELIVERED:
+            trip.shipment.status = ShipmentStatusEnum.DELIVERED
+            db.add(trip.shipment)
 
     db.commit()
     db.refresh(trip)

@@ -11,10 +11,10 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.core import RoleEnum, Shipment, User
+from app.models.core import RoleEnum, Shipment, ShipmentStatusEnum, TripStatusEnum, User
 from app.schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
-from app.services.security import get_current_user, require_roles
 from app.services.audit import log_audit_event
+from app.services.security import get_current_user, require_roles
 
 router = APIRouter()
 
@@ -137,6 +137,15 @@ def update_shipment(
     for field, value in updates.items():
         setattr(shipment, field, value)
 
+    # ── Auto-sync associated Trip status if applicable ──
+    if "status" in updates and shipment.trip:
+        if shipment.status == ShipmentStatusEnum.IN_TRANSIT and shipment.trip.status != TripStatusEnum.IN_PROGRESS:
+            shipment.trip.status = TripStatusEnum.IN_PROGRESS
+            db.add(shipment.trip)
+        elif shipment.status == ShipmentStatusEnum.DELIVERED and shipment.trip.status != TripStatusEnum.COMPLETED:
+            shipment.trip.status = TripStatusEnum.COMPLETED
+            db.add(shipment.trip)
+
     db.commit()
     db.refresh(shipment)
 
@@ -151,13 +160,18 @@ def update_shipment(
 
     # ── Task 4: push status change to all WebSocket clients watching the trip ──
     if "status" in updates and shipment.trip is not None:
-        asyncio.ensure_future(
-            broadcast_shipment_status(
-                trip_id=shipment.trip.id,
-                tracking_number=shipment.tracking_number,
-                new_status=shipment.status.value,
-            )
-        )
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(
+                    broadcast_shipment_status(
+                        trip_id=shipment.trip.id,
+                        tracking_number=shipment.tracking_number,
+                        new_status=shipment.status.value,
+                    )
+                )
+        except Exception:
+            pass  # best-effort WS broadcast; don't break the HTTP response
 
     return ShipmentRead.model_validate(shipment)
 

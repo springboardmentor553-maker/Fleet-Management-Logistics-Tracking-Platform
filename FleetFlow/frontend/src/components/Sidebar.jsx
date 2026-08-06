@@ -2,36 +2,40 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
+const ALL_ROLES = ['ADMIN', 'FLEET_MANAGER', 'DISPATCHER', 'DRIVER']
+const MGMT_ROLES = ['ADMIN', 'FLEET_MANAGER']
+const OPS_ROLES  = ['ADMIN', 'FLEET_MANAGER', 'DISPATCHER']
+
 const NAV = [
   {
     section: 'Overview',
     items: [
-      { to: '/dashboard', label: 'Dashboard', icon: <ChartIcon /> },
-      { to: '/audit-logs', label: 'Audit Logs', icon: <ShieldIcon /> },
+      { to: '/dashboard', label: 'Dashboard', icon: <ChartIcon />, roles: ALL_ROLES },
+      { to: '/audit-logs', label: 'Audit Logs', icon: <ShieldIcon />, roles: MGMT_ROLES },
     ],
   },
   {
     section: 'Fleet',
     items: [
-      { to: '/vehicles', label: 'Vehicles',  icon: <TruckIcon /> },
-      { to: '/drivers',  label: 'Drivers',   icon: <UserIcon /> },
-      { to: '/fuel',     label: 'Fuel Log',  icon: <FuelIcon /> },
-      { to: '/maintenance', label: 'Maintenance', icon: <ToolIcon /> },
+      { to: '/vehicles', label: 'Vehicles',  icon: <TruckIcon />, roles: MGMT_ROLES },
+      { to: '/drivers',  label: 'Drivers',   icon: <UserIcon />,  roles: MGMT_ROLES },
+      { to: '/fuel',     label: 'Fuel Log',  icon: <FuelIcon />,  roles: MGMT_ROLES },
+      { to: '/maintenance', label: 'Maintenance', icon: <ToolIcon />, roles: MGMT_ROLES },
     ],
   },
   {
     section: 'Driver Ops',
     items: [
-      { to: '/assignments', label: 'Assignments', icon: <ClipboardIcon /> },
-      { to: '/attendance',  label: 'Attendance',  icon: <CalendarIcon /> },
+      { to: '/assignments', label: 'Assignments', icon: <ClipboardIcon />, roles: OPS_ROLES },
+      { to: '/attendance',  label: 'Attendance',  icon: <CalendarIcon />,  roles: [...OPS_ROLES, 'DRIVER'] },
     ],
   },
   {
     section: 'Logistics',
     items: [
-      { to: '/shipments', label: 'Shipments',     icon: <BoxIcon /> },
-      { to: '/trips',     label: 'Trips',         icon: <RouteIcon /> },
-      { to: '/tracking',  label: 'Live Tracking', icon: <RadarIcon /> },
+      { to: '/shipments', label: 'Shipments',     icon: <BoxIcon />,   roles: [...OPS_ROLES, 'DRIVER'] },
+      { to: '/trips',     label: 'Trips',         icon: <RouteIcon />, roles: ALL_ROLES },
+      { to: '/tracking',  label: 'Live Tracking', icon: <RadarIcon />, roles: ALL_ROLES },
     ],
   },
 ]
@@ -43,6 +47,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'FF'
+  const userRole = user?.role || 'DRIVER'
 
   function handleLogout() {
     logout()
@@ -62,23 +67,27 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {NAV.map((section) => (
-          <div key={section.section}>
-            <div className="sidebar-section-label">{section.section}</div>
-            {section.items.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  'sidebar-link' + (isActive ? ' active' : '')
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        ))}
+        {NAV.map((section) => {
+          const visibleItems = section.items.filter(item => item.roles.includes(userRole))
+          if (visibleItems.length === 0) return null
+          return (
+            <div key={section.section}>
+              <div className="sidebar-section-label">{section.section}</div>
+              {visibleItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    'sidebar-link' + (isActive ? ' active' : '')
+                  }
+                >
+                  {item.icon}
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )
+        })}
       </nav>
 
       <div className="sidebar-footer">

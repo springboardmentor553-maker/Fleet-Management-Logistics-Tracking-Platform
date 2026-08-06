@@ -30,8 +30,8 @@ from app.models.enums import (
 from app.models.maintenance import MaintenanceRecord
 from app.models.user import User
 from app.models.vehicle import Vehicle
-from app.services.security import get_current_user
 from app.services.audit import log_audit_event
+from app.services.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
