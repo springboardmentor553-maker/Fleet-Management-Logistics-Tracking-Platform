@@ -140,4 +140,9 @@ export const maintenanceApi = {
   delete: (id)         => api.delete(`/maintenance/${id}`),
 }
 
+// ── Audit Logs ────────────────────────────────────────────────
+export const auditApi = {
+  list: (params) => api.get('/audit-logs', { params }),
+}
+
 export default api

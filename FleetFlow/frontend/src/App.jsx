@@ -14,6 +14,7 @@ import DriverAssignments from './pages/DriverAssignments'
 import DriverAttendance from './pages/DriverAttendance'
 import FuelRecords from './pages/FuelRecords'
 import Maintenance from './pages/Maintenance'
+import AuditLogs from './pages/AuditLogs'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/attendance"  element={<ProtectedRoute><DriverAttendance /></ProtectedRoute>} />
           <Route path="/fuel"        element={<ProtectedRoute><FuelRecords /></ProtectedRoute>} />
           <Route path="/maintenance" element={<ProtectedRoute><Maintenance /></ProtectedRoute>} />
+          <Route path="/audit-logs"  element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
