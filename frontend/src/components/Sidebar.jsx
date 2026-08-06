@@ -28,6 +28,16 @@ const Sidebar = () => {
             <span className="nav-icon">📊</span> Dashboard
           </NavLink>
         )}
+        {hasAccess(["Admin", "Fleet Manager"]) && (
+          <NavLink
+            to="/maintenance"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">🔧</span> Maintenance
+          </NavLink>
+        )}
         {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
           <NavLink
             to="/drivers"

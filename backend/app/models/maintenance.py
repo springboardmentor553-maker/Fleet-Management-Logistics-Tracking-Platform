@@ -21,3 +21,7 @@ class Maintenance(Base):
 
     # Relationships
     vehicle = relationship("Vehicle", back_populates="maintenances")
+    alerts = relationship(
+        "MaintenanceAlert",
+        back_populates="maintenance"
+    )

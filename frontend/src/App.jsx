@@ -12,6 +12,7 @@ import Shipments from "./pages/Shipments";
 import TripDetails from "./pages/TripDetails";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Maintenance from "./pages/Maintenance";
 
 // Layout wrapping the sidebar and navbar around protected routes
 const GeneralLayout = () => {
@@ -42,6 +43,7 @@ function App() {
               {/* Role Restricted Routes */}
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager"]} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/maintenance" element={<Maintenance />} />
               </Route>
               
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager", "Dispatcher"]} />}>
