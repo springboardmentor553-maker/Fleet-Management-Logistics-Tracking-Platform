@@ -31,6 +31,7 @@ from app.models.maintenance import MaintenanceRecord
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.services.security import get_current_user
+from app.services.audit import log_audit_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -162,6 +163,16 @@ def create_maintenance(
 
     db.commit()
     db.refresh(record)
+
+    log_audit_event(
+        db=db,
+        action="CREATE",
+        resource_type="Maintenance",
+        resource_id=record.id,
+        user_id=current_user.id,
+        details={"vehicle_id": record.vehicle_id, "category": record.category.value}
+    )
+
     logger.info("Maintenance record id=%s created for vehicle id=%s", record.id, vehicle.id)
     return _to_response(record)
 
@@ -244,6 +255,16 @@ def update_maintenance(
 
     db.commit()
     db.refresh(record)
+
+    log_audit_event(
+        db=db,
+        action="UPDATE",
+        resource_type="Maintenance",
+        resource_id=record.id,
+        user_id=current_user.id,
+        details={"updates": update_data}
+    )
+
     logger.info("Maintenance record id=%s updated", record_id)
     return _to_response(record)
 
@@ -278,6 +299,16 @@ def cancel_maintenance(
     _sync_vehicle_status(record.vehicle, MaintenanceStatusEnum.CANCELLED, db)
 
     db.commit()
+
+    log_audit_event(
+        db=db,
+        action="DELETE",
+        resource_type="Maintenance",
+        resource_id=record.id,
+        user_id=current_user.id,
+        details={"status": "CANCELLED"}
+    )
+
     logger.info("Maintenance record id=%s soft-cancelled (history preserved)", record_id)
     return {
         "detail": f"Maintenance record id={record_id} cancelled. History preserved.",

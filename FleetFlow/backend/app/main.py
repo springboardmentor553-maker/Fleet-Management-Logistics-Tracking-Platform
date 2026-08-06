@@ -21,7 +21,7 @@ from app.routers.tracking import router as tracking_router
 from app.routers.trips import router as trips_router
 from app.routers.vehicles import router as vehicles_router
 from app.routers.ws_tracking import router as ws_tracking_router
-
+from app.routers.audit_log import router as audit_log_router
 app = FastAPI(title="FleetFlow Backend", version="1.0.0")
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ app.include_router(dashboard_router, tags=["dashboard"])
 app.include_router(fuel_analytics_router, tags=["fuel", "analytics", "dashboard"])
 app.include_router(maintenance_alerts_router, prefix="/maintenance-alerts", tags=["maintenance-alerts"])
 app.include_router(reports_router, prefix="/reports", tags=["reports"])
-
+app.include_router(audit_log_router)
 
 @app.on_event("startup")
 def startup_database_check() -> None:

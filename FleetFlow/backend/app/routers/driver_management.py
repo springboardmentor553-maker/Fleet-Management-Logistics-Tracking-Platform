@@ -45,6 +45,7 @@ from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.services.security import get_current_user
+from app.services.audit import log_audit_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -193,6 +194,16 @@ def assign_driver(
 
     db.commit()
     db.refresh(asgn)
+
+    log_audit_event(
+        db=db,
+        action="CREATE",
+        resource_type="DriverAssignment",
+        resource_id=asgn.id,
+        user_id=current_user.id,
+        details={"driver_id": body.driver_id, "vehicle_id": body.vehicle_id, "trip_id": body.trip_id}
+    )
+
     logger.info("Assignment id=%s created — driver=%s vehicle=%s", asgn.id, body.driver_id, body.vehicle_id)
     return _asgn_to_resp(asgn)
 
@@ -262,6 +273,16 @@ def update_assignment(
 
     db.commit()
     db.refresh(asgn)
+
+    log_audit_event(
+        db=db,
+        action="UPDATE",
+        resource_type="DriverAssignment",
+        resource_id=asgn.id,
+        user_id=current_user.id,
+        details={"updates": update_data}
+    )
+
     return _asgn_to_resp(asgn)
 
 
@@ -285,6 +306,15 @@ def cancel_assignment(
     asgn.status = AssignmentStatusEnum.CANCELLED
     _sync_statuses(asgn.driver, asgn.vehicle, AssignmentStatusEnum.CANCELLED, db)
     db.commit()
+
+    log_audit_event(
+        db=db,
+        action="DELETE",
+        resource_type="DriverAssignment",
+        resource_id=asgn.id,
+        user_id=current_user.id,
+        details={"status": "CANCELLED"}
+    )
 
     return {
         "detail": f"Assignment id={assignment_id} cancelled.",

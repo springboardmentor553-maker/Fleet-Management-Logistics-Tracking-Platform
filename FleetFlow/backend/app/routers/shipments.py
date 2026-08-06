@@ -14,6 +14,7 @@ from app.database import get_db
 from app.models.core import RoleEnum, Shipment, User
 from app.schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.services.security import get_current_user, require_roles
+from app.services.audit import log_audit_event
 
 router = APIRouter()
 
@@ -63,6 +64,7 @@ def _generate_tracking_number(db: Session) -> str:
 def create_shipment(
     payload: ShipmentCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> ShipmentRead:
     tracking_number = _generate_tracking_number(db)
 
@@ -73,6 +75,16 @@ def create_shipment(
     db.add(shipment)
     db.commit()
     db.refresh(shipment)
+
+    log_audit_event(
+        db=db,
+        action="CREATE",
+        resource_type="Shipment",
+        resource_id=shipment.id,
+        user_id=current_user.id,
+        details={"tracking_number": shipment.tracking_number}
+    )
+
     return ShipmentRead.model_validate(shipment)
 
 
@@ -113,6 +125,7 @@ def update_shipment(
     shipment_id: int,
     payload: ShipmentUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> ShipmentRead:
     from app.routers.ws_tracking import (
         broadcast_shipment_status,  # avoid circular import
@@ -126,6 +139,15 @@ def update_shipment(
 
     db.commit()
     db.refresh(shipment)
+
+    log_audit_event(
+        db=db,
+        action="UPDATE",
+        resource_type="Shipment",
+        resource_id=shipment.id,
+        user_id=current_user.id,
+        details={"updates": updates}
+    )
 
     # ── Task 4: push status change to all WebSocket clients watching the trip ──
     if "status" in updates and shipment.trip is not None:
@@ -149,7 +171,17 @@ def update_shipment(
 def delete_shipment(
     shipment_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> None:
     shipment = _get_shipment_or_404(db, shipment_id)
     db.delete(shipment)
     db.commit()
+
+    log_audit_event(
+        db=db,
+        action="DELETE",
+        resource_type="Shipment",
+        resource_id=shipment_id,
+        user_id=current_user.id,
+        details=None
+    )

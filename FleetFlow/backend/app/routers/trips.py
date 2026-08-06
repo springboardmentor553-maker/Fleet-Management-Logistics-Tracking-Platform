@@ -31,6 +31,7 @@ from app.schemas.trip import RouteResponse, TripCreate, TripRead, TripUpdate
 from app.services.directions import DirectionsError, get_route
 from app.services.geocoding import GeocodingError, geocode_location
 from app.services.security import get_current_user, require_roles
+from app.services.audit import log_audit_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -183,6 +184,7 @@ def _check_vehicle_not_active(
 def create_trip(
     payload: TripCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> TripRead:
     # --- Validate referenced entities exist ---
     _validate_shipment(db, payload.shipment_id)
@@ -215,6 +217,16 @@ def create_trip(
     db.add(trip)
     db.commit()
     db.refresh(trip)
+
+    log_audit_event(
+        db=db,
+        action="CREATE",
+        resource_type="Trip",
+        resource_id=trip.id,
+        user_id=current_user.id,
+        details={"status": trip.status.value, "shipment_id": trip.shipment_id}
+    )
+
     return TripRead.model_validate(trip)
 
 
@@ -262,6 +274,7 @@ def update_trip(
     trip_id: int,
     payload: TripUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> TripRead:
     trip = _get_trip_or_404(db, trip_id)
     updates = payload.model_dump(exclude_unset=True)
@@ -284,6 +297,16 @@ def update_trip(
 
     db.commit()
     db.refresh(trip)
+
+    log_audit_event(
+        db=db,
+        action="UPDATE",
+        resource_type="Trip",
+        resource_id=trip.id,
+        user_id=current_user.id,
+        details={"updates": updates}
+    )
+
     return TripRead.model_validate(trip)
 
 
@@ -296,10 +319,20 @@ def update_trip(
 def delete_trip(
     trip_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> None:
     trip = _get_trip_or_404(db, trip_id)
     db.delete(trip)
     db.commit()
+
+    log_audit_event(
+        db=db,
+        action="DELETE",
+        resource_type="Trip",
+        resource_id=trip_id,
+        user_id=current_user.id,
+        details=None
+    )
 
 
 # ---------------------------------------------------------------------------

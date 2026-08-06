@@ -6,6 +6,9 @@ import StatCard from '../components/StatCard'
 import StatusBadge from '../components/StatusBadge'
 import { dashboardApi, vehicleApi, analyticsApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -40,6 +43,78 @@ export default function Dashboard() {
 
   const now = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
+  const handleExportExcel = () => {
+    if (!fleetStats || !fuelStats || !opStats) return;
+    const wb = XLSX.utils.book_new();
+
+    const fleetData = [
+      { Metric: "Total Vehicles", Value: fleetStats.total_vehicles },
+      { Metric: "Active Vehicles", Value: fleetStats.active_vehicles },
+      { Metric: "Maintenance Vehicles", Value: fleetStats.maintenance_vehicles },
+      { Metric: "Total Drivers", Value: fleetStats.total_drivers },
+      { Metric: "On Duty Drivers", Value: fleetStats.on_duty_drivers },
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fleetData), "Fleet Stats");
+
+    const opData = [
+      { Metric: "Active Shipments", Value: fleetStats.active_shipments },
+      { Metric: "Delivery Success Rate", Value: `${opStats.delivery_success_rate?.toFixed(1) || 0}%` },
+      { Metric: "Avg Trip Distance (km)", Value: opStats.avg_trip_distance_km?.toFixed(0) || 0 },
+      { Metric: "Delayed Shipments", Value: opStats.delayed_deliveries },
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(opData), "Logistics Stats");
+
+    const fuelData = [
+      { Metric: "Total Fuel Consumed (L)", Value: fuelStats.total_fuel_consumed_ltrs },
+      { Metric: "Total Fuel Cost (INR)", Value: fuelStats.total_fuel_cost },
+      { Metric: "Avg Cost Per Litre", Value: fuelStats.avg_cost_per_litre?.toFixed(1) || 0 },
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fuelData), "Fuel Stats");
+
+    XLSX.writeFile(wb, `Fleet_Analytics_Report.xlsx`);
+  }
+
+  const handleExportPDF = () => {
+    if (!fleetStats || !fuelStats || !opStats) return;
+    const doc = new jsPDF();
+    doc.text(`Fleet Analytics Report - ${now}`, 14, 15);
+
+    doc.autoTable({
+      startY: 25,
+      head: [['Fleet Metric', 'Value']],
+      body: [
+        ['Total Vehicles', fleetStats.total_vehicles],
+        ['Active Vehicles', fleetStats.active_vehicles],
+        ['Maintenance Vehicles', fleetStats.maintenance_vehicles],
+        ['Total Drivers', fleetStats.total_drivers],
+        ['On Duty Drivers', fleetStats.on_duty_drivers],
+      ],
+    });
+
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 15,
+      head: [['Logistics Metric', 'Value']],
+      body: [
+        ['Active Shipments', fleetStats.active_shipments],
+        ['Delivery Success Rate', `${opStats.delivery_success_rate?.toFixed(1) || 0}%`],
+        ['Avg Trip Distance (km)', opStats.avg_trip_distance_km?.toFixed(0) || 0],
+        ['Delayed Shipments', opStats.delayed_deliveries],
+      ],
+    });
+
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 15,
+      head: [['Fuel Metric', 'Value']],
+      body: [
+        ['Total Fuel Consumed (L)', fuelStats.total_fuel_consumed_ltrs],
+        ['Total Fuel Cost (INR)', fuelStats.total_fuel_cost],
+        ['Avg Cost Per Litre', fuelStats.avg_cost_per_litre?.toFixed(1) || 0],
+      ],
+    });
+
+    doc.save(`Fleet_Analytics_Report.pdf`);
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -64,6 +139,12 @@ export default function Dashboard() {
             <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
               Signed in as <strong>{user?.email}</strong>
             </span>
+            <button className="btn btn-outline btn-sm" onClick={handleExportExcel} disabled={loading}>
+              Export Excel
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={loading}>
+              Export PDF
+            </button>
           </div>
         </header>
 
