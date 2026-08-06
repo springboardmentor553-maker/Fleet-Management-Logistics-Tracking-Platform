@@ -30,7 +30,9 @@ export default function Drivers() {
     try {
       await driverApi.delete(id)
       setDrivers((d) => d.filter((x) => x.id !== id))
-    } catch {}
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete driver.')
+    }
     setDeleting(null)
   }
 

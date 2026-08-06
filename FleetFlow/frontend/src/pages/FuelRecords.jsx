@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
 import { fuelApi, vehicleApi, driverApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import * as XLSX from 'xlsx'
 
 export default function FuelRecords() {
   const { canManage } = useAuth()
@@ -145,6 +146,23 @@ export default function FuelRecords() {
     setDeletingId(null)
   }
 
+  const exportToCSV = () => {
+    if (!records.length) return;
+    const data = records.map(r => ({
+      Date: new Date(r.fuel_date).toLocaleDateString('en-IN'),
+      Vehicle: vehicleLabel(r.vehicle_id),
+      Driver: driverLabel(r.driver_id),
+      'Quantity (L)': r.fuel_quantity,
+      'Cost (INR)': r.fuel_cost,
+      Odometer: r.odometer_reading || '',
+      Station: r.fuel_station || '',
+      Remarks: r.remarks || ''
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Fuel Records");
+    XLSX.writeFile(wb, `Fuel_Records.xlsx`);
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -162,11 +180,16 @@ export default function FuelRecords() {
               <h1>Fuel Records</h1>
               <p>{records.length} total record{records.length !== 1 ? 's' : ''}</p>
             </div>
-            {canManage && (
-              <button className="btn btn-primary" onClick={openCreate}>
-                <PlusIcon /> Add Fuel Record
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn btn-outline" onClick={exportToCSV} disabled={records.length === 0}>
+                Export Excel
               </button>
-            )}
+              {canManage && (
+                <button className="btn btn-primary" onClick={openCreate}>
+                  <PlusIcon /> Add Fuel Record
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="card">

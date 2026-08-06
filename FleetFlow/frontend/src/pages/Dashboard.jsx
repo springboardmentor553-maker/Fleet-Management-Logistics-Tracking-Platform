@@ -49,16 +49,20 @@ export default function Dashboard() {
 
     const fleetData = [
       { Metric: "Total Vehicles", Value: fleetStats.total_vehicles },
-      { Metric: "Active Vehicles", Value: fleetStats.active_vehicles },
-      { Metric: "Maintenance Vehicles", Value: fleetStats.maintenance_vehicles },
+      { Metric: "Available Vehicles", Value: (fleetStats.total_vehicles || 0) - (fleetStats.active_vehicles || 0) - (fleetStats.maintenance_vehicles || 0) },
+      { Metric: "Vehicles On Trip", Value: fleetStats.active_vehicles },
+      { Metric: "Under Maintenance", Value: fleetStats.maintenance_vehicles },
       { Metric: "Total Drivers", Value: fleetStats.total_drivers },
-      { Metric: "On Duty Drivers", Value: fleetStats.on_duty_drivers },
+      { Metric: "Drivers On Duty", Value: fleetStats.on_duty_drivers },
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fleetData), "Fleet Stats");
 
     const opData = [
+      { Metric: "Total Shipments", Value: (fleetStats.active_shipments || 0) + (fleetStats.delivered_shipments || 0) },
       { Metric: "Active Shipments", Value: fleetStats.active_shipments },
+      { Metric: "Delivered Shipments", Value: fleetStats.delivered_shipments },
       { Metric: "Delivery Success Rate", Value: `${opStats.delivery_success_rate?.toFixed(1) || 0}%` },
+      { Metric: "Successful Deliveries", Value: opStats.successful_deliveries || 0 },
       { Metric: "Avg Trip Distance (km)", Value: opStats.avg_trip_distance_km?.toFixed(0) || 0 },
       { Metric: "Delayed Shipments", Value: opStats.delayed_deliveries },
     ];
@@ -68,6 +72,10 @@ export default function Dashboard() {
       { Metric: "Total Fuel Consumed (L)", Value: fuelStats.total_fuel_consumed_ltrs },
       { Metric: "Total Fuel Cost (INR)", Value: fuelStats.total_fuel_cost },
       { Metric: "Avg Cost Per Litre", Value: fuelStats.avg_cost_per_litre?.toFixed(1) || 0 },
+      { Metric: "Highest Consumer Vehicle", Value: fuelStats.vehicle_highest_usage?.registration_number || 'N/A' },
+      { Metric: "Highest Consumer Usage (L)", Value: fuelStats.vehicle_highest_usage?.total_litres || 0 },
+      { Metric: "Most Efficient Vehicle", Value: fuelStats.vehicle_lowest_usage?.registration_number || 'N/A' },
+      { Metric: "Most Efficient Usage (L)", Value: fuelStats.vehicle_lowest_usage?.total_litres || 0 },
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fuelData), "Fuel Stats");
 
@@ -84,10 +92,11 @@ export default function Dashboard() {
       head: [['Fleet Metric', 'Value']],
       body: [
         ['Total Vehicles', fleetStats.total_vehicles],
-        ['Active Vehicles', fleetStats.active_vehicles],
-        ['Maintenance Vehicles', fleetStats.maintenance_vehicles],
+        ['Available Vehicles', (fleetStats.total_vehicles || 0) - (fleetStats.active_vehicles || 0) - (fleetStats.maintenance_vehicles || 0)],
+        ['Vehicles On Trip', fleetStats.active_vehicles],
+        ['Under Maintenance', fleetStats.maintenance_vehicles],
         ['Total Drivers', fleetStats.total_drivers],
-        ['On Duty Drivers', fleetStats.on_duty_drivers],
+        ['Drivers On Duty', fleetStats.on_duty_drivers],
       ],
     });
 
@@ -95,8 +104,11 @@ export default function Dashboard() {
       startY: doc.lastAutoTable.finalY + 15,
       head: [['Logistics Metric', 'Value']],
       body: [
+        ['Total Shipments', (fleetStats.active_shipments || 0) + (fleetStats.delivered_shipments || 0)],
         ['Active Shipments', fleetStats.active_shipments],
+        ['Delivered Shipments', fleetStats.delivered_shipments],
         ['Delivery Success Rate', `${opStats.delivery_success_rate?.toFixed(1) || 0}%`],
+        ['Successful Deliveries', opStats.successful_deliveries || 0],
         ['Avg Trip Distance (km)', opStats.avg_trip_distance_km?.toFixed(0) || 0],
         ['Delayed Shipments', opStats.delayed_deliveries],
       ],
@@ -109,6 +121,10 @@ export default function Dashboard() {
         ['Total Fuel Consumed (L)', fuelStats.total_fuel_consumed_ltrs],
         ['Total Fuel Cost (INR)', fuelStats.total_fuel_cost],
         ['Avg Cost Per Litre', fuelStats.avg_cost_per_litre?.toFixed(1) || 0],
+        ['Highest Consumer Vehicle', fuelStats.vehicle_highest_usage?.registration_number || 'N/A'],
+        ['Highest Consumer Usage (L)', fuelStats.vehicle_highest_usage?.total_litres || 0],
+        ['Most Efficient Vehicle', fuelStats.vehicle_lowest_usage?.registration_number || 'N/A'],
+        ['Most Efficient Usage (L)', fuelStats.vehicle_lowest_usage?.total_litres || 0],
       ],
     });
 

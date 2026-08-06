@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import { auditApi } from '../api/client'
-
+import * as XLSX from 'xlsx'
 export default function AuditLogs() {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,6 +29,27 @@ export default function AuditLogs() {
   const formatDate = (isoString) => {
     const d = new Date(isoString)
     return d.toLocaleString()
+  }
+
+  const exportToCSV = () => {
+    if (!logs.length) return;
+    const data = logs.map(log => ({
+      'Timestamp': formatDate(log.timestamp),
+      'Action': log.action,
+      'Resource Type': log.resource_type,
+      'Resource ID': log.resource_id,
+      'User ID': log.user_id,
+      'Details': typeof log.details === 'object' ? JSON.stringify(log.details) : log.details
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "AuditLogs");
+    XLSX.writeFile(wb, `AuditLogs_Report.xlsx`);
+  }
+
+  const formatDetails = (details) => {
+    if (!details) return "None";
+    if (typeof details !== 'object') return details;
+    return Object.entries(details).map(([k, v]) => `${k}: ${v}`).join(', ');
   }
 
   return (
@@ -64,6 +85,9 @@ export default function AuditLogs() {
               <option value="DriverAssignment">Driver Assignment</option>
               <option value="Maintenance">Maintenance</option>
             </select>
+            <button className="btn btn-outline btn-sm" onClick={exportToCSV} disabled={logs.length === 0}>
+              📥 Export
+            </button>
             <button className="btn btn-outline btn-sm" onClick={loadLogs}>
               Refresh
             </button>
@@ -107,9 +131,9 @@ export default function AuditLogs() {
                         <td>{log.resource_id}</td>
                         <td>{log.user_id}</td>
                         <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          <pre style={{ margin: 0, fontSize: '0.75rem', background: 'transparent', padding: 0 }}>
-                            {JSON.stringify(log.details, null, 2)}
-                          </pre>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            {formatDetails(log.details)}
+                          </span>
                         </td>
                       </tr>
                     ))}

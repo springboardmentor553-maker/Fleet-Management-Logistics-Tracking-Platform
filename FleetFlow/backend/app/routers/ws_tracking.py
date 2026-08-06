@@ -63,6 +63,7 @@ from app.connection_manager import manager
 from app.database import SessionLocal
 from app.models.shipment import Shipment
 from app.models.trip import Trip
+from app.routers.tracking import _ensure_trip_coords
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -88,6 +89,9 @@ def _get_trip_snapshot(trip_id: int) -> dict | None:
         trip: Trip | None = db.get(Trip, trip_id)
         if trip is None:
             return None
+
+        # Ensure coords exist before generating snapshot
+        trip = _ensure_trip_coords(trip, db)
 
         shipment: Shipment | None = trip.shipment
         return {

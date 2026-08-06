@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
 import { maintenanceApi, maintenanceAlertsApi, reportsApi, vehicleApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import * as XLSX from 'xlsx'
 
 export default function Maintenance() {
   const { canManage } = useAuth()
@@ -39,7 +40,7 @@ export default function Maintenance() {
         reportsApi.maintenance(),
         maintenanceAlertsApi.list()
       ])
-      setRecords(mRes.data)
+      setRecords(mRes.data.filter(r => r.status !== 'CANCELLED'))
       setVehicles(vRes.data)
       setReport(rRes.data)
       setAlerts(aRes.data)
@@ -151,6 +152,36 @@ export default function Maintenance() {
     setDeletingId(null)
   }
 
+  const exportToCSV = () => {
+    if (activeTab === 'records') {
+      if (!records.length) return;
+      const data = records.map(r => ({
+        Date: new Date(r.service_date).toLocaleDateString('en-IN'),
+        Vehicle: vehicleLabel(r.vehicle_id),
+        Category: r.category,
+        Status: r.status,
+        Cost: r.service_cost || 0,
+        Provider: r.service_provider || '',
+        Notes: r.notes || ''
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Maintenance Records");
+      XLSX.writeFile(wb, `Maintenance_Records.xlsx`);
+    } else {
+      if (!alerts.length) return;
+      const data = alerts.map(a => ({
+        Generated: new Date(a.generated_date).toLocaleDateString('en-IN'),
+        Vehicle: vehicleLabel(a.vehicle_id),
+        'Alert Type': a.alert_type,
+        Message: a.alert_message,
+        Status: a.status
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Maintenance Alerts");
+      XLSX.writeFile(wb, `Maintenance_Alerts.xlsx`);
+    }
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -168,11 +199,16 @@ export default function Maintenance() {
               <h1 className="page-title">Maintenance</h1>
               <p className="page-subtitle">Manage maintenance logic, reports, and vehicle alerts.</p>
             </div>
-            {canManage && (
-              <button className="btn btn-primary" onClick={openCreate}>
-                <PlusIcon /> Record Maintenance
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn btn-outline" onClick={exportToCSV} disabled={(activeTab === 'records' && records.length === 0) || (activeTab === 'alerts' && alerts.length === 0)}>
+                Export Excel
               </button>
-            )}
+              {canManage && (
+                <button className="btn btn-primary" onClick={openCreate}>
+                  <PlusIcon /> Record Maintenance
+                </button>
+              )}
+            </div>
           </div>
 
           {report && (
@@ -358,7 +394,7 @@ export default function Maintenance() {
                                   className="btn btn-outline btn-sm"
                                   onClick={async () => {
                                     try {
-                                      await maintenanceAlertsApi.update(a.id, 'RESOLVED');
+                                      await maintenanceAlertsApi.update(a.id, 'COMPLETED');
                                       load();
                                     } catch(e) { console.error(e) }
                                   }}
@@ -431,10 +467,9 @@ export default function Maintenance() {
                     >
                       <option value="GENERAL_INSPECTION">General Inspection</option>
                       <option value="OIL_CHANGE">Oil Change</option>
-                      <option value="TIRE_REPLACEMENT">Tire Replacement</option>
-                      <option value="ENGINE_REPAIR">Engine Repair</option>
-                      <option value="BODY_WORK">Body Work</option>
-                      <option value="OTHER">Other</option>
+                      <option value="TYRE_REPLACEMENT">Tyre Replacement</option>
+                      <option value="ENGINE_SERVICE">Engine Service</option>
+                      <option value="BRAKE_SERVICE">Brake Service</option>
                     </select>
                   </div>
                   <div className="form-group">

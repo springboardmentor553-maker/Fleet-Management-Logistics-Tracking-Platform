@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import StatusBadge from '../components/StatusBadge'
 import { shipmentApi, driverApi, vehicleApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import * as XLSX from 'xlsx'
 
 const STATUS_OPTIONS = [
   'CREATED', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT',
@@ -92,6 +93,22 @@ export default function Shipments() {
     }
   }
 
+  const exportToCSV = () => {
+    if (!filtered.length) return;
+    const data = filtered.map(s => ({
+      'Tracking Number': s.tracking_number,
+      'Sender': s.sender_name,
+      'Receiver': s.receiver_name,
+      'Pickup': s.pickup_location,
+      'Delivery': s.delivery_location,
+      'Weight (kg)': s.weight || 0,
+      'Status': s.status
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Shipments");
+    XLSX.writeFile(wb, `Shipments_Report.xlsx`);
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -101,11 +118,16 @@ export default function Shipments() {
             <div className="top-bar-title">Shipments</div>
             <div className="top-bar-subtitle">{filtered.length} of {shipments.length} shipments</div>
           </div>
-          {canManage && (
-            <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-              {showForm ? '✕ Cancel' : '+ New Shipment'}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-outline" onClick={exportToCSV} disabled={filtered.length === 0}>
+              Export Excel
             </button>
-          )}
+            {canManage && (
+              <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
+                {showForm ? '✕ Cancel' : '+ New Shipment'}
+              </button>
+            )}
+          </div>
         </header>
 
         <main className="page-content">

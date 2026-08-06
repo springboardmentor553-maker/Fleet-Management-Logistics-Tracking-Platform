@@ -4,6 +4,7 @@ import StatusBadge from '../components/StatusBadge'
 import { tripApi, shipmentApi, driverApi, vehicleApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import * as XLSX from 'xlsx'
 
 const TRIP_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
 
@@ -84,6 +85,27 @@ export default function Trips() {
 
   const shipmentMap = Object.fromEntries(shipments.map(s => [s.id, s]))
 
+  const exportToCSV = () => {
+    if (!trips.length) return;
+    const data = trips.map(t => {
+      const s = shipmentMap[t.shipment_id];
+      return {
+        'Trip ID': t.id,
+        Status: t.status,
+        'Pickup': t.pickup_location,
+        'Destination': t.destination,
+        'Driver ID': t.driver_id,
+        'Vehicle ID': t.vehicle_id,
+        'Shipment Tracking': s?.tracking_number || '',
+        'Scheduled Start': t.scheduled_start_time ? new Date(t.scheduled_start_time).toLocaleString('en-IN') : '',
+        'Scheduled End': t.scheduled_end_time ? new Date(t.scheduled_end_time).toLocaleString('en-IN') : ''
+      };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Trips");
+    XLSX.writeFile(wb, `Trips_Report.xlsx`);
+  }
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -93,11 +115,16 @@ export default function Trips() {
             <div className="top-bar-title">Trips</div>
             <div className="top-bar-subtitle">{trips.length} scheduled / active trips</div>
           </div>
-          {canManage && (
-            <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-              {showForm ? '✕ Cancel' : '+ Schedule Trip'}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-outline" onClick={exportToCSV} disabled={trips.length === 0}>
+              Export Excel
             </button>
-          )}
+            {canManage && (
+              <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
+                {showForm ? '✕ Cancel' : '+ Schedule Trip'}
+              </button>
+            )}
+          </div>
         </header>
 
         <main className="page-content">

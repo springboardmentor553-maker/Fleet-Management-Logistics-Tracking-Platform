@@ -31,7 +31,9 @@ export default function Vehicles() {
     try {
       await vehicleApi.delete(id)
       setVehicles((v) => v.filter((x) => x.id !== id))
-    } catch {}
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete vehicle.')
+    }
     setDeleting(null)
   }
 

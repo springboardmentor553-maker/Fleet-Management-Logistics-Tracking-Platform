@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
 from app.models.core import Driver, RoleEnum, User
 from app.schemas.driver import DriverCreate, DriverRead, DriverUpdate
 from app.services.security import get_current_user, require_roles
+from app.services.audit import log_audit_event
 
 router = APIRouter()
 
@@ -23,7 +25,7 @@ def _get_driver_or_404(db: Session, driver_id: int) -> Driver:
     summary="Create a driver profile for an existing user",
     dependencies=[Depends(require_roles(RoleEnum.ADMIN, RoleEnum.FLEET_MANAGER))],
 )
-def create_driver(payload: DriverCreate, db: Session = Depends(get_db)) -> DriverRead:
+def create_driver(payload: DriverCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> DriverRead:
     # Make sure the referenced user actually exists
     user = db.get(User, payload.user_id)
     if user is None:
@@ -44,6 +46,16 @@ def create_driver(payload: DriverCreate, db: Session = Depends(get_db)) -> Drive
     db.add(driver)
     db.commit()
     db.refresh(driver)
+    
+    log_audit_event(
+        db,
+        action="CREATE",
+        resource_type="DRIVER",
+        resource_id=driver.id,
+        user_id=current_user.id,
+        details={"user_id": driver.user_id, "license_details": driver.license_details}
+    )
+    
     return DriverRead.model_validate(driver)
 
 
@@ -89,6 +101,7 @@ def update_driver(
     driver_id: int,
     payload: DriverUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> DriverRead:
     driver = _get_driver_or_404(db, driver_id)
     updates = payload.model_dump(exclude_unset=True)
@@ -96,6 +109,16 @@ def update_driver(
         setattr(driver, field, value)
     db.commit()
     db.refresh(driver)
+    
+    log_audit_event(
+        db,
+        action="UPDATE",
+        resource_type="DRIVER",
+        resource_id=driver.id,
+        user_id=current_user.id,
+        details={"updates": updates}
+    )
+    
     return DriverRead.model_validate(driver)
 
 
@@ -105,7 +128,21 @@ def update_driver(
     summary="Remove a driver profile",
     dependencies=[Depends(require_roles(RoleEnum.ADMIN))],
 )
-def delete_driver(driver_id: int, db: Session = Depends(get_db)) -> None:
+def delete_driver(driver_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> None:
     driver = _get_driver_or_404(db, driver_id)
-    db.delete(driver)
-    db.commit()
+    uid = driver.user_id
+    try:
+        db.delete(driver)
+        db.commit()
+        
+        log_audit_event(
+            db,
+            action="DELETE",
+            resource_type="DRIVER",
+            resource_id=driver_id,
+            user_id=current_user.id,
+            details={"user_id": uid}
+        )
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete driver profile because it is currently linked to assignments or trips.")
