@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Add backend to path
-sys.path.append(os.path.abspath("backend"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.database import Base, engine, SessionLocal
 from app.models.driver import Driver, DriverStatusEnum

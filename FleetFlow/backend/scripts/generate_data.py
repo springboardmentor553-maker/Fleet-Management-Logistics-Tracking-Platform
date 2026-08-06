@@ -3,7 +3,7 @@ import sys
 import random
 from datetime import date, datetime, timedelta
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from sqlalchemy.orm import Session
 from app.database import engine
