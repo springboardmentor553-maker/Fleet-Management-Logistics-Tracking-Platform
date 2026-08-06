@@ -5,3 +5,4 @@ from . import shipment
 from . import dashboard
 from . import trip
 from . import tracking
+from . import maintenance

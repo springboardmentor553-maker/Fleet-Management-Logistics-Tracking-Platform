@@ -5,3 +5,4 @@ from .shipment import Shipment
 from .notification import Notification
 from .settings import Settings
 from .trip import Trip
+from .maintenance import Maintenance
