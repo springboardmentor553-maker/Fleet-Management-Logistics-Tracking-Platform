@@ -9,9 +9,11 @@ from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 
+
 from app.enums import ShipmentStatus
 from app.services.google_maps import get_coordinates
 from app.services.directions import get_route
+from app.services.eta_service import calculate_eta
 
 from app.schemas.trip import (
     TripCreate,
@@ -233,6 +235,8 @@ def get_trip(
 
     return trip
 
+
+
 # -----------------------------
 # Update Trip
 # -----------------------------
@@ -262,6 +266,24 @@ def update_trip(
 
     for key, value in update_data.items():
         setattr(db_trip, key, value)
+
+    # -----------------------------
+    # Update Shipment Status
+    # -----------------------------
+    shipment = db.query(Shipment).filter(
+        Shipment.id == db_trip.shipment_id
+    ).first()
+
+    if shipment:
+
+        if db_trip.status == "ONGOING":
+            shipment.status = ShipmentStatus.IN_TRANSIT
+
+        elif db_trip.status == "COMPLETED":
+            shipment.status = ShipmentStatus.DELIVERED
+
+        elif db_trip.status == "CANCELLED":
+            shipment.status = ShipmentStatus.CANCELLED
 
     db.commit()
     db.refresh(db_trip)
@@ -337,6 +359,8 @@ def get_trip_route(
         trip.destination_longitude,
     )
 
+    eta = calculate_eta(route["duration_seconds"])
+
     print(route)
 
     return {
@@ -345,4 +369,48 @@ def get_trip_route(
     "distance": route["distance_text"],
     "estimated_travel_time": route["duration_text"],
     "route_summary": route.get("summary", "No route summary available"),
+    }
+
+# -----------------------------
+# Get ETA
+# -----------------------------
+@router.get("/{trip_id}/eta")
+def get_trip_eta(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_role(
+            "admin",
+            "fleet manager",
+            "dispatcher",
+            "driver",
+        )
+    ),
+):
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id
+    ).first()
+
+    if trip is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found."
+        )
+
+    route = get_route(
+        trip.pickup_latitude,
+        trip.pickup_longitude,
+        trip.destination_latitude,
+        trip.destination_longitude,
+    )
+
+    eta = calculate_eta(
+        route["duration_seconds"]
+    )
+
+    return {
+    "trip_id": trip.id,
+    "distance": route["distance_text"],
+    "estimated_travel_duration": eta["estimated_travel_duration"],
+    "estimated_arrival_time": eta["estimated_arrival_time"],
     }

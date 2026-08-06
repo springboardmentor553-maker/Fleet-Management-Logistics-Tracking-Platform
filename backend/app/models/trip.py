@@ -43,3 +43,9 @@ class Trip(Base):
         "Vehicle",
         back_populates="trips"
     )
+
+    assignment = relationship(
+        "DriverAssignment",
+        back_populates="trip",
+        uselist=False
+    )

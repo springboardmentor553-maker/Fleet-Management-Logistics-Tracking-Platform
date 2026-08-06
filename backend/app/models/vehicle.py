@@ -28,3 +28,18 @@ class Vehicle(Base):
         "Trip",
         back_populates="vehicle"
         )
+
+    maintenance_records = relationship(
+        "Maintenance",
+        back_populates="vehicle"
+        )
+
+    assignments = relationship(
+        "DriverAssignment",
+        back_populates="vehicle"
+        )
+
+    fuel_records = relationship(
+        "FuelRecord",
+        back_populates="vehicle"
+        )

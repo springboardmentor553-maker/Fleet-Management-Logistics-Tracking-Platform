@@ -9,12 +9,18 @@ from app.dependencies import (
 
 from app.models.user import User
 from app.models.shipment import Shipment
+from app.models.trip import Trip
+from app.models.driver import Driver
+from app.models.vehicle import Vehicle
 
 from app.schemas.shipment import (
     ShipmentCreate,
     ShipmentUpdate,
     ShipmentResponse,
+    ShipmentTrackingResponse,
 )
+
+from app.services.eta_service import calculate_eta
 
 from datetime import datetime
 
@@ -165,4 +171,63 @@ def delete_shipment(
 
     return {
         "message": "Shipment deleted successfully."
+    }
+
+# -----------------------------
+# Shipment Tracking
+# -----------------------------
+@router.get(
+    "/{tracking_number}/status",
+    response_model=ShipmentTrackingResponse
+)
+def track_shipment(
+    tracking_number: str,
+    db: Session = Depends(get_db),
+):
+    shipment = db.query(Shipment).filter(
+        Shipment.tracking_number == tracking_number
+    ).first()
+
+    if shipment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipment not found."
+        )
+
+    trip = db.query(Trip).filter(
+        Trip.shipment_id == shipment.id
+    ).first()
+
+    if trip is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found for this shipment."
+        )
+
+    driver = db.query(Driver).filter(
+        Driver.id == trip.driver_id
+    ).first()
+
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.id == trip.vehicle_id
+    ).first()
+
+    route = {
+        "distance_text": f"{trip.distance} km",
+        "duration_seconds": 0,
+    }
+
+    eta = calculate_eta(route["duration_seconds"])
+
+    return {
+        "tracking_number": shipment.tracking_number,
+        "current_status": shipment.status.value,
+        "driver_name": driver.name if driver else "Not Assigned",
+        "vehicle_registration_number": (
+            vehicle.vehicle_number
+            if vehicle else "Not Assigned"
+            ),
+        "pickup_location": shipment.pickup_location,
+        "destination": shipment.delivery_location,
+        "eta": eta["estimated_arrival_time"],
     }

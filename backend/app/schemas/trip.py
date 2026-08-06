@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.services.eta_service import calculate_eta
+
 
 class TripBase(BaseModel):
     shipment_id: int
@@ -45,4 +47,5 @@ class RouteResponse(BaseModel):
     destination: str
     distance: str
     estimated_travel_time: str
+    estimated_arrival_time: str
     route_summary: str

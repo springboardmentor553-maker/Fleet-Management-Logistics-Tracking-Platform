@@ -7,6 +7,12 @@ from app.driver import router as driver_router
 from app.shipment import router as shipment_router
 from app.dashboard import router as dashboard_router
 from app.trip import router as trip_router
+from app.maintenance import router as maintenance_router
+from app.driver_assignment import router as driver_assignment_router
+from app.fuel_record import router as fuel_record_router
+from app.analytics import router as analytics_router
+from app.maintenance_alert import router as maintenance_alert_router
+from app.report import router as report_router
 
 app = FastAPI(
     title="FleetFlow API",
@@ -55,6 +61,42 @@ app.include_router(
     trip_router,
     prefix="/trips",
     tags=["Trips"]
+)
+
+app.include_router(
+    maintenance_router,
+    prefix="/maintenance",
+    tags=["Maintenance"]
+)
+
+app.include_router(
+    driver_assignment_router,
+    prefix="/driver-assignments",
+    tags=["Driver Assignments"]
+)
+
+app.include_router(
+    fuel_record_router,
+    prefix="/fuel-records",
+    tags=["Fuel Records"]
+)
+
+app.include_router(
+    analytics_router,
+    prefix="/analytics",
+    tags=["Analytics"]
+)
+
+app.include_router(
+    maintenance_alert_router,
+    prefix="/maintenance-alerts",
+    tags=["Maintenance Alerts"]
+)
+
+app.include_router(
+    report_router,
+    prefix="/reports",
+    tags=["Reports"]
 )
 
 #Dashboard

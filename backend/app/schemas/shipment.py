@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
-from app.enums import ShipmentStatus
 
 from pydantic import BaseModel
+
+from app.enums import ShipmentStatus
 
 
 class ShipmentBase(BaseModel):
@@ -31,3 +32,16 @@ class ShipmentResponse(ShipmentBase):
 
     class Config:
         from_attributes = True
+
+
+# -----------------------------
+# Shipment Tracking Response
+# -----------------------------
+class ShipmentTrackingResponse(BaseModel):
+    tracking_number: str
+    current_status: str
+    driver_name: str
+    vehicle_registration_number: str
+    pickup_location: str
+    destination: str
+    eta: str

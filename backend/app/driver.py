@@ -9,11 +9,13 @@ from app.dependencies import (
 
 from app.models.user import User
 from app.models.driver import Driver
+from app.models.trip import Trip
 
 from app.schemas.driver import (
     DriverCreate,
     DriverUpdate,
     DriverResponse,
+    DriverPerformanceResponse,
 )
 
 router = APIRouter()
@@ -162,4 +164,62 @@ def delete_driver(
 
     return {
         "message": "Driver deleted successfully."
+    }
+
+# -----------------------------
+# Driver Performance
+# Admin + Fleet Manager + Dispatcher
+# -----------------------------
+@router.get(
+    "/{driver_id}/performance",
+    response_model=DriverPerformanceResponse
+)
+def driver_performance(
+    driver_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_role(
+            "admin",
+            "fleet manager",
+            "dispatcher"
+        )
+    )
+):
+    driver = db.query(Driver).filter(
+        Driver.id == driver_id
+    ).first()
+
+    if driver is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found."
+        )
+
+    trips = db.query(Trip).filter(
+        Trip.driver_id == driver_id
+    ).all()
+
+    total_trips = len(trips)
+
+    completed_trips = sum(
+        trip.status.upper() == "COMPLETED"
+        for trip in trips
+    )
+
+    active_trips = sum(
+        trip.status.upper() in ["ONGOING", "IN_PROGRESS"]
+        for trip in trips
+    )
+
+    cancelled_trips = sum(
+        trip.status.upper() == "CANCELLED"
+        for trip in trips
+    )
+
+    return {
+        "driver_id": driver_id,
+        "total_trips": total_trips,
+        "completed_trips": completed_trips,
+        "active_trips": active_trips,
+        "cancelled_trips": cancelled_trips
     }
