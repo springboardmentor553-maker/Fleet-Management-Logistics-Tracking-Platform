@@ -9,13 +9,13 @@ from app.services.driver_service import (
     get_driver,
     update_driver,
     delete_driver,
+    get_driver_performance,
 )
 
 router = APIRouter(
     prefix="/drivers",
     tags=["Driver Management"]
 )
-
 
 def get_db():
     db = SessionLocal()
@@ -38,6 +38,11 @@ def fetch_drivers(db: Session = Depends(get_db)):
 @router.get("/{driver_id}", response_model=DriverResponse)
 def fetch_driver(driver_id: int, db: Session = Depends(get_db)):
     return get_driver(driver_id, db)
+
+
+@router.get("/{driver_id}/performance")
+def fetch_driver_performance(driver_id: int, db: Session = Depends(get_db)):
+    return get_driver_performance(driver_id, db)
 
 
 @router.put("/{driver_id}", response_model=DriverResponse)

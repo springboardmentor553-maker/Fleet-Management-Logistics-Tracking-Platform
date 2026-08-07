@@ -6,3 +6,5 @@ from .notification import Notification
 from .settings import Settings
 from .trip import Trip
 from .maintenance import Maintenance
+from .driver_assignment import DriverAssignment
+from .driver_attendance import DriverAttendance

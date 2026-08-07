@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models.driver import Driver
 from app.schemas.driver import DriverCreate, DriverUpdate
+from app.models.trip import Trip
 
 from app.services.notification_service import create_notification
 
@@ -155,4 +156,28 @@ def delete_driver(
 
     return {
         "message": "Driver deleted successfully"
+    }
+# ==========================
+# Driver Performance
+# ==========================
+
+def get_driver_performance(driver_id: int, db: Session):
+
+    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    trips = db.query(Trip).filter(Trip.driver_id == driver_id).all()
+
+    total_trips = len(trips)
+    completed_trips = len([t for t in trips if t.status.lower() == "completed"])
+    active_trips = len([t for t in trips if t.status.lower() in ["scheduled", "in progress"]])
+    cancelled_trips = len([t for t in trips if t.status.lower() == "cancelled"])
+
+    return {
+        "driver_id": driver_id,
+        "total_trips": total_trips,
+        "completed_trips": completed_trips,
+        "active_trips": active_trips,
+        "cancelled_trips": cancelled_trips,
     }

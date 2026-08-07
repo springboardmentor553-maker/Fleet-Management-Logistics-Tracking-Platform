@@ -114,6 +114,11 @@ def update_trip(trip_id: int, trip: TripUpdate, db: Session):
     if not db_trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 
+    if trip.status.lower() in ["completed", "cancelled"]:
+        released_driver = db.query(Driver).filter(Driver.id == db_trip.driver_id).first()
+        if released_driver:
+            released_driver.status = "Available"
+
     if trip.driver_id != db_trip.driver_id:
         active_driver_trip = (
             db.query(Trip)
@@ -182,6 +187,8 @@ def delete_trip(trip_id: int, db: Session):
     db.commit()
 
     return {"message": "Trip deleted successfully"}
+
+
 # =====================================
 # Get Route For a Trip
 # =====================================

@@ -6,3 +6,5 @@ from . import dashboard
 from . import trip
 from . import tracking
 from . import maintenance
+from . import driver_assignment
+from . import driver_attendance
