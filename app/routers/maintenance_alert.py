@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.schemas.maintenance_alert import MaintenanceAlertResponse
+from app.schemas.maintenance_alert import MaintenanceAlertResponse, MaintenanceAlertUpdate
 from app.services.maintenance_alert_service import (
     generate_alert_for_maintenance,
     get_all_alerts,
-    resolve_alert,
+    get_alert,
+    update_alert_status,
+    delete_alert,
 )
 
 router = APIRouter(
@@ -33,6 +35,16 @@ def fetch_alerts(db: Session = Depends(get_db)):
     return get_all_alerts(db)
 
 
-@router.put("/{alert_id}/resolve", response_model=MaintenanceAlertResponse)
-def mark_alert_resolved(alert_id: int, db: Session = Depends(get_db)):
-    return resolve_alert(alert_id, db)
+@router.get("/{alert_id}", response_model=MaintenanceAlertResponse)
+def fetch_alert(alert_id: int, db: Session = Depends(get_db)):
+    return get_alert(alert_id, db)
+
+
+@router.put("/{alert_id}", response_model=MaintenanceAlertResponse)
+def edit_alert_status(alert_id: int, update: MaintenanceAlertUpdate, db: Session = Depends(get_db)):
+    return update_alert_status(alert_id, update, db)
+
+
+@router.delete("/{alert_id}")
+def remove_alert(alert_id: int, db: Session = Depends(get_db)):
+    return delete_alert(alert_id, db)

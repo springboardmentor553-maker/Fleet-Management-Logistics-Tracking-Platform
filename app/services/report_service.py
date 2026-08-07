@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from app.models.maintenance import Maintenance
@@ -18,9 +20,26 @@ def get_maintenance_report(db: Session):
     total_records = len(records)
     total_cost = round(sum(r.service_cost for r in records), 2)
 
+    vehicles_under_maintenance = (
+        db.query(Vehicle).filter(Vehicle.status == "Under Maintenance").count()
+    )
+
+    completed_services = len([r for r in records if r.maintenance_status == "Completed"])
+
+    overdue_services = len([
+        r for r in records
+        if r.maintenance_status != "Completed"
+        and r.next_service_date is not None
+        and r.next_service_date <= datetime.utcnow()
+    ])
+
     by_category = {}
     for r in records:
         by_category[r.maintenance_category] = by_category.get(r.maintenance_category, 0) + 1
+
+    most_frequent_category = (
+        max(by_category, key=by_category.get) if by_category else None
+    )
 
     by_status = {}
     for r in records:
@@ -28,7 +47,11 @@ def get_maintenance_report(db: Session):
 
     return {
         "total_maintenance_records": total_records,
+        "vehicles_under_maintenance": vehicles_under_maintenance,
+        "completed_services": completed_services,
+        "overdue_services": overdue_services,
         "total_maintenance_cost": total_cost,
+        "most_frequent_maintenance_category": most_frequent_category,
         "records_by_category": by_category,
         "records_by_status": by_status,
     }

@@ -13,9 +13,11 @@ class MaintenanceAlert(Base):
     maintenance_id = Column(Integer, ForeignKey("maintenance_records.id"), nullable=False)
 
     alert_message = Column(String(300), nullable=False)
-    alert_status = Column(String(50), default="Active")
+    alert_type = Column(String(50), default="Reminder")
+    alert_status = Column(String(50), default="Pending")
 
-    created_at = Column(DateTime, server_default=func.now())
+    generated_date = Column(DateTime, server_default=func.now())
+    next_service_date = Column(DateTime, nullable=True)
 
     vehicle = relationship("Vehicle")
     maintenance = relationship("Maintenance")
