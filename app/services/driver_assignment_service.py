@@ -30,10 +30,11 @@ def assign_driver(assignment: DriverAssignmentCreate, db: Session):
     trip = db.query(Trip).filter(Trip.id == assignment.trip_id).first()
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
+    if driver.status == "On Leave":
+        raise HTTPException(status_code=400, detail="Driver is on leave and cannot             be assigned")
 
     if driver.status != "Available":
         raise HTTPException(status_code=400, detail="Driver is not available")
-
     if vehicle.status != "Available":
         raise HTTPException(status_code=400, detail="Vehicle is not available")
 

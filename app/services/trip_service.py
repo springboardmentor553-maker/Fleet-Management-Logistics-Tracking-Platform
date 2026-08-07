@@ -30,6 +30,12 @@ def create_trip(trip: TripCreate, db: Session):
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
+    if vehicle.status == "Under Maintenance":
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle is under maintenance and cannot be assigned to a trip."
+        )
+
     existing_shipment_trip = (
         db.query(Trip)
         .filter(Trip.shipment_id == trip.shipment_id)

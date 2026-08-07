@@ -8,3 +8,5 @@ from . import tracking
 from . import maintenance
 from . import driver_assignment
 from . import driver_attendance
+from . import fuel_record
+from . import maintenance_alert
