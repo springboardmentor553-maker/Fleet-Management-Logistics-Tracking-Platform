@@ -27,3 +27,7 @@ frontend/dist/
 # Backend virtual environment
 backend/venv/
 freightflow.db
+
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
