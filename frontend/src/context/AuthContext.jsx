@@ -38,10 +38,14 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-  };
+  console.log("Saving Token:", newToken);
 
+  localStorage.setItem("token", newToken);
+
+  console.log("Saved:", localStorage.getItem("token"));
+
+  setToken(newToken);
+};
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);

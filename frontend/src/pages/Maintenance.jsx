@@ -31,6 +31,7 @@ function Maintenance() {
     setErrorMsg("");
     try {
       const res = await api.get("/maintenance/");
+      console.log("Maintenance Response:", res.data);
       setRecords(res.data);
     } catch (err) {
       console.error(err);
@@ -62,57 +63,69 @@ function Maintenance() {
   };
 
   const openEditForm = (record) => {
-    setVehicleId(record.vehicle_id.toString());
-    setMaintenanceCategory(record.maintenance_category);
-    setServiceDate(record.service_date ? record.service_date.substring(0, 10) : "");
-    setNextServiceDate(record.next_service_date ? record.next_service_date.substring(0, 10) : "");
-    setServiceCost(record.service_cost != null ? record.service_cost.toString() : "");
-    setServiceProvider(record.service_provider || "");
-    setMaintenanceStatus(record.maintenance_status);
-    setNotes(record.notes || "");
-    setEditingRecord(record);
-    setShowAddForm(true);
+    record.vehicle_id
+    record.maintenance_category
+    record.service_date
+    record.next_service_date
+    record.service_cost
+    record.service_provider
+    record.maintenance_status
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    if (!vehicleId || !maintenanceCategory || !serviceDate || !maintenanceStatus) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+ const handleFormSubmit = async (e) => {
+  e.preventDefault();
 
-    const payload = {
-      vehicle_id: parseInt(vehicleId),
-      maintenance_category: maintenanceCategory,
-      service_date: serviceDate,
-      next_service_date: nextServiceDate || null,
-      service_cost: serviceCost !== "" ? parseFloat(serviceCost) : null,
-      service_provider: serviceProvider || null,
-      maintenance_status: maintenanceStatus,
-      notes: notes || null,
-    };
+  if (
+    !vehicleId ||
+    !maintenanceCategory ||
+    !serviceDate ||
+    !maintenanceStatus
+  ) {
+    alert("Please fill in all required fields.");
+    return;
+  }
 
-    setSubmitting(true);
-    try {
-      if (editingRecord) {
-        await api.put(`/maintenance/${editingRecord.id}`, payload);
-        alert("Maintenance record updated successfully!");
-      } else {
-        await api.post("/maintenance/", payload);
-        alert("Maintenance record created successfully!");
-      }
-      setShowAddForm(false);
-      resetForm();
-      fetchRecords();
-    } catch (err) {
-      console.error(err);
-      const detail = err.response?.data?.detail || "Failed to save maintenance record.";
-      alert(`Error: ${detail}`);
-    } finally {
-      setSubmitting(false);
-    }
+  const payload = {
+    vehicle_id: parseInt(vehicleId),
+    maintenance_category: maintenanceCategory,
+    service_date: serviceDate,
+    next_service_date: nextServiceDate || null,
+    service_cost:
+      serviceCost !== "" ? parseFloat(serviceCost) : null,
+    service_provider: serviceProvider || null,
+    maintenance_status: maintenanceStatus,
+    notes: notes || null,
   };
 
+  setSubmitting(true);
+
+  try {
+    if (editingRecord) {
+      await api.put(`/maintenance/${editingRecord.id}`, payload);
+      alert("Maintenance record updated successfully!");
+    } else {
+      await api.post("/maintenance/", payload);
+      alert("Maintenance record created successfully!");
+    }
+
+    setShowAddForm(false);
+    resetForm();
+    fetchRecords();
+
+  } catch (err) {
+    console.error(err);
+
+    const detail =
+      err.response?.data?.detail ||
+      "Failed to save maintenance record.";
+
+    alert(`Error: ${detail}`);
+
+  } finally {
+    setSubmitting(false);
+  }
+};
+    
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId) return;
     try {

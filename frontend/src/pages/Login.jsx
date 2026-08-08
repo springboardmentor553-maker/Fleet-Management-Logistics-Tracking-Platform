@@ -23,31 +23,31 @@ function Login() {
   }, [token, user, navigate]);
 
   const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setErrorMsg("Please fill in all fields.");
-      return;
-    }
+  e.preventDefault();
 
-    setSubmitting(true);
-    setErrorMsg("");
+  console.log("Button clicked");
 
-    try {
-      const data = await loginUser(email, password);
-      if (data && data.access_token) {
-        login(data.access_token);
-        // Page redirect will be handled by useEffect
-      } else {
-        setErrorMsg("Authentication failed. Please try again.");
-      }
-    } catch (error) {
-      console.error(error);
-      const message = error.response?.data?.detail || "Invalid Email or Password";
-      setErrorMsg(message);
-    } finally {
-      setSubmitting(false);
+  if (!email || !password) {
+    console.log("Email or password missing");
+    return;
+  }
+
+  console.log("Calling login API...");
+
+  try {
+    const data = await loginUser(email, password);
+
+    console.log("API Response:", data);
+
+    if (data && data.access_token) {
+      login(data.access_token);
+    } else {
+      console.log("No access_token received");
     }
-  };
+  } catch (err) {
+    console.error("Login Error:", err);
+  }
+};
 
   return (
     <div className="login-container">

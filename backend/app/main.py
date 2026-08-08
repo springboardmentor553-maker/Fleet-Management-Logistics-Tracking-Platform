@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+
 from backend.app.routers.dashboard import router as dashboard_router
 from backend.app.routers.driver import router as driver_router
-
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.vehicle import router as vehicle_router
 from backend.app.routers.shipment import router as shipment_router
@@ -21,6 +22,27 @@ from backend.app.role_checker import role_required
 
 app = FastAPI(title="FleetFlow API")
 
+
+# ==============================
+# CORS CONFIGURATION
+# ==============================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ==============================
+# ROUTERS
+# ==============================
+
 app.include_router(auth_router)
 app.include_router(vehicle_router)
 app.include_router(dashboard_router)
@@ -37,10 +59,18 @@ app.include_router(maintenance_alert_router)
 app.include_router(reports_router)
 
 
+# ==============================
+# HOME
+# ==============================
+
 @app.get("/")
 def home():
     return {"message": "Welcome to FleetFlow"}
 
+
+# ==============================
+# PROFILE
+# ==============================
 
 @app.get("/profile")
 def profile(current_user=Depends(get_current_user)):
@@ -49,6 +79,10 @@ def profile(current_user=Depends(get_current_user)):
         "user": current_user
     }
 
+
+# ==============================
+# ADMIN
+# ==============================
 
 @app.get("/admin")
 def admin_dashboard(current_user=Depends(role_required(["Admin"]))):
