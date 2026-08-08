@@ -63,13 +63,17 @@ function Maintenance() {
   };
 
   const openEditForm = (record) => {
-    record.vehicle_id
-    record.maintenance_category
-    record.service_date
-    record.next_service_date
-    record.service_cost
-    record.service_provider
-    record.maintenance_status
+    setVehicleId(record.vehicle_id ? record.vehicle_id.toString() : "");
+    setMaintenanceCategory(record.maintenance_category || "");
+    // HTML date inputs require YYYY-MM-DD; strip the time portion
+    setServiceDate(record.service_date ? record.service_date.substring(0, 10) : "");
+    setNextServiceDate(record.next_service_date ? record.next_service_date.substring(0, 10) : "");
+    setServiceCost(record.service_cost != null ? record.service_cost.toString() : "");
+    setServiceProvider(record.service_provider || "");
+    setMaintenanceStatus(record.maintenance_status || "Scheduled");
+    setNotes(record.notes || "");
+    setEditingRecord(record);
+    setShowAddForm(true);
   };
 
  const handleFormSubmit = async (e) => {
@@ -200,13 +204,10 @@ function Maintenance() {
               >
                 <option value="">— Select Category —</option>
                 <option value="Oil Change">Oil Change</option>
-                <option value="Tire Rotation">Tire Rotation</option>
-                <option value="Brake Inspection">Brake Inspection</option>
-                <option value="Engine Repair">Engine Repair</option>
-                <option value="Transmission Service">Transmission Service</option>
-                <option value="Battery Replacement">Battery Replacement</option>
-                <option value="General Service">General Service</option>
-                <option value="Other">Other</option>
+                <option value="Tyre Replacement">Tyre Replacement</option>
+                <option value="Brake Service">Brake Service</option>
+                <option value="Engine Service">Engine Service</option>
+                <option value="General Inspection">General Inspection</option>
               </select>
             </div>
 
@@ -333,13 +334,18 @@ function Maintenance() {
                     </td>
                     <td>{record.service_provider || "—"}</td>
                     <td>
-                      <span
-                        className={`badge badge-${record.maintenance_status
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                      >
-                        {record.maintenance_status}
-                      </span>
+                      {(() => {
+                        const status = record.maintenance_status || "Unknown";
+                        return (
+                          <span
+                            className={`badge badge-${status
+                              .toLowerCase()
+                              .replace(/\s+/g, "-")}`}
+                          >
+                            {status}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td>{record.notes || "—"}</td>
                     {isManagementAllowed && (

@@ -46,6 +46,34 @@ export default defineConfig({
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
       },
+      "/maintenance": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/maintenance-alerts": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/driver-assignments": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/driver-attendance": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/fuel-records": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/analytics": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/reports": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
     },
   },
 });

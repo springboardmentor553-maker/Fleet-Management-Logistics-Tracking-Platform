@@ -68,6 +68,16 @@ const Sidebar = () => {
             <span className="nav-icon">📦</span> Shipments
           </NavLink>
         )}
+        {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
+          <NavLink
+            to="/trips"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">🗺️</span> Trips
+          </NavLink>
+        )}
         <NavLink
           to="/profile"
           className={({ isActive }) =>

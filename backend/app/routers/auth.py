@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -41,13 +41,16 @@ def login(
     ).first()
 
     if not db_user:
-        return {"message": "Invalid Email"}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email address",
+        )
 
-    if not verify_password(
-        form_data.password,
-        db_user.password
-    ):
-        return {"message": "Invalid Password"}
+    if not verify_password(form_data.password, db_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
 
     token = create_access_token(
         {

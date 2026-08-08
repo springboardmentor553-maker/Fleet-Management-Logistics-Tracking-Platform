@@ -23,31 +23,33 @@ function Login() {
   }, [token, user, navigate]);
 
   const handleLoginSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  console.log("Button clicked");
-
-  if (!email || !password) {
-    console.log("Email or password missing");
-    return;
-  }
-
-  console.log("Calling login API...");
-
-  try {
-    const data = await loginUser(email, password);
-
-    console.log("API Response:", data);
-
-    if (data && data.access_token) {
-      login(data.access_token);
-    } else {
-      console.log("No access_token received");
+    if (!email || !password) {
+      setErrorMsg("Please enter your email and password.");
+      return;
     }
-  } catch (err) {
-    console.error("Login Error:", err);
-  }
-};
+
+    setSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const data = await loginUser(email, password);
+
+      if (data && data.access_token) {
+        login(data.access_token);
+      } else {
+        // Backend returned 200 but with an error message (e.g. invalid credentials)
+        setErrorMsg(data?.message || "Authentication failed. Please check your credentials.");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      const detail = err.response?.data?.detail || err.response?.data?.message || "Login failed. Please try again.";
+      setErrorMsg(detail);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="login-container">

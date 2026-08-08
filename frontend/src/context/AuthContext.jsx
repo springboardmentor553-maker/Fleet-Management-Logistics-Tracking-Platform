@@ -10,6 +10,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      // Immediately mark loading so ProtectedRoute waits for resolution
+      setLoading(true);
+
       if (token) {
         try {
           const decoded = parseJwt(token);
@@ -22,6 +25,7 @@ export const AuthProvider = ({ children }) => {
               name: profileData.user?.name || "User",
             });
           } else {
+            // Token expired — clear it
             logout();
           }
         } catch (error) {
@@ -35,17 +39,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const login = (newToken) => {
-  console.log("Saving Token:", newToken);
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+    // Note: loading will be set to true by the useEffect above when token changes
+  };
 
-  localStorage.setItem("token", newToken);
-
-  console.log("Saved:", localStorage.getItem("token"));
-
-  setToken(newToken);
-};
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);

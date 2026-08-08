@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  // Empty baseURL: all requests go through the Vite dev proxy,
+  // avoiding cross-origin issues during development.
+  baseURL: "",
 });
 
 // Add a request interceptor to include the JWT token
