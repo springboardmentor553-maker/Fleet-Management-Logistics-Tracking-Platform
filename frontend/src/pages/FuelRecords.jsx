@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import { extractErrorMessage } from "../services/fuelRecordService";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -40,7 +41,7 @@ function FuelRecords() {
       setDrivers(Array.isArray(driversRes.data) ? driversRes.data : []);
     } catch (err) {
       console.error(err);
-      setErrorMsg("Failed to load fuel records. Please try again.");
+      setErrorMsg(extractErrorMessage(err, "Failed to load fuel records. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -71,17 +72,39 @@ function FuelRecords() {
     setDriverId(rec.driver_id ? rec.driver_id.toString() : "");
     setFuelQuantity(rec.fuel_quantity ? rec.fuel_quantity.toString() : "");
     setFuelCost(rec.fuel_cost ? rec.fuel_cost.toString() : "");
-    setRefuelDate(rec.refuel_date ? new Date(rec.refuel_date).toISOString().slice(0, 16) : "");
+    const dateVal = rec.fuel_date || rec.refuel_date;
+    setRefuelDate(dateVal ? new Date(dateVal).toISOString().slice(0, 10) : "");
     setOdometerReading(rec.odometer_reading ? rec.odometer_reading.toString() : "");
-    setNotes(rec.notes || "");
+    setNotes(rec.fuel_station || rec.remarks || rec.notes || "");
     setEditingRecord(rec);
     setShowForm(true);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!vehicleId || !fuelQuantity || !fuelCost) {
-      alert("Please specify Vehicle, Fuel Quantity, and Fuel Cost.");
+    if (!vehicleId) {
+      alert("Please select a vehicle.");
+      return;
+    }
+    if (!fuelQuantity || isNaN(parseFloat(fuelQuantity)) || parseFloat(fuelQuantity) <= 0) {
+      alert("Fuel quantity is required and must be greater than 0.");
+      return;
+    }
+    if (!fuelCost || isNaN(parseFloat(fuelCost)) || parseFloat(fuelCost) <= 0) {
+      alert("Total cost is required and must be greater than 0.");
+      return;
+    }
+    if (!refuelDate) {
+      alert("Refuel date/time is required.");
+      return;
+    }
+    if (
+      odometerReading === "" ||
+      odometerReading === null ||
+      isNaN(parseFloat(odometerReading)) ||
+      parseFloat(odometerReading) < 0
+    ) {
+      alert("Odometer reading is required.");
       return;
     }
 
@@ -90,9 +113,10 @@ function FuelRecords() {
       driver_id: driverId ? parseInt(driverId) : null,
       fuel_quantity: parseFloat(fuelQuantity),
       fuel_cost: parseFloat(fuelCost),
-      refuel_date: refuelDate ? new Date(refuelDate).toISOString() : new Date().toISOString(),
-      odometer_reading: odometerReading ? parseFloat(odometerReading) : null,
-      notes: notes || null,
+      odometer_reading: parseFloat(odometerReading),
+      fuel_date: refuelDate.slice(0, 10),
+      fuel_station: notes || null,
+      remarks: notes || null,
     };
 
     setSubmitting(true);
@@ -109,7 +133,8 @@ function FuelRecords() {
       fetchData();
     } catch (err) {
       console.error(err);
-      alert(`Error: ${err.response?.data?.detail || "Failed to save fuel record."}`);
+      const detail = extractErrorMessage(err, "Failed to save fuel record.");
+      alert(`Error: ${detail}`);
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +149,8 @@ function FuelRecords() {
       fetchData();
     } catch (err) {
       console.error(err);
-      alert(`Error: ${err.response?.data?.detail || "Failed to delete fuel record."}`);
+      const detail = extractErrorMessage(err, "Failed to delete fuel record.");
+      alert(`Error: ${detail}`);
     }
   };
 
@@ -207,22 +233,24 @@ function FuelRecords() {
             </div>
 
             <div className="form-group">
-              <label>Refuel Date/Time</label>
+              <label>Refuel Date/Time *</label>
               <input
-                type="datetime-local"
+                type="date"
                 value={refuelDate}
                 onChange={(e) => setRefuelDate(e.target.value)}
+                required
               />
             </div>
 
             <div className="form-group">
-              <label>Odometer Reading (km)</label>
+              <label>Odometer Reading (km) *</label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 45000"
                 value={odometerReading}
                 onChange={(e) => setOdometerReading(e.target.value)}
+                required
               />
             </div>
 
@@ -279,6 +307,8 @@ function FuelRecords() {
                 {records.map((rec) => {
                   const vehicle = vehicles.find((v) => v.id === rec.vehicle_id);
                   const driver = drivers.find((d) => d.id === rec.driver_id);
+                  const displayDate = rec.fuel_date || rec.refuel_date;
+                  const displayNotes = rec.fuel_station || rec.remarks || rec.notes;
                   return (
                     <tr key={rec.id}>
                       <td>#{rec.id}</td>
@@ -291,10 +321,10 @@ function FuelRecords() {
                         <strong>${rec.fuel_cost ? rec.fuel_cost.toFixed(2) : "0.00"}</strong>
                       </td>
                       <td style={{ fontSize: "13px" }}>
-                        {rec.refuel_date ? new Date(rec.refuel_date).toLocaleString() : "—"}
+                        {displayDate ? new Date(displayDate).toLocaleDateString() : "—"}
                       </td>
                       <td>{rec.odometer_reading ? `${rec.odometer_reading} km` : "—"}</td>
-                      <td>{rec.notes || "—"}</td>
+                      <td>{displayNotes || "—"}</td>
                       {isManagement && (
                         <td>
                           <div className="table-actions">

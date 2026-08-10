@@ -5,7 +5,7 @@ from typing import Optional
 
 class FuelRecordBase(BaseModel):
     vehicle_id: int
-    driver_id: int
+    driver_id: Optional[int] = None
     fuel_quantity: float
     fuel_cost: float
     odometer_reading: float

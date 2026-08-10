@@ -9,7 +9,7 @@ class FuelRecord(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
-    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     fuel_quantity = Column(Float, nullable=False)
     fuel_cost = Column(Float, nullable=False)
     odometer_reading = Column(Float, nullable=False)

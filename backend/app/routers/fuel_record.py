@@ -47,7 +47,8 @@ def create_fuel_record(
 ):
     """Create a new fuel record."""
     _get_vehicle_or_404(db, payload.vehicle_id)
-    _get_driver_or_404(db, payload.driver_id)
+    if payload.driver_id is not None:
+        _get_driver_or_404(db, payload.driver_id)
 
     record = FuelRecord(
         vehicle_id=payload.vehicle_id,
