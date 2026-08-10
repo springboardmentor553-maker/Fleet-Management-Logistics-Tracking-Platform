@@ -70,12 +70,42 @@ const Sidebar = () => {
         )}
         {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
           <NavLink
+            to="/driver-assignments"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">📋</span> Driver Assignments
+          </NavLink>
+        )}
+        {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
+          <NavLink
             to="/trips"
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
           >
             <span className="nav-icon">🗺️</span> Trips
+          </NavLink>
+        )}
+        {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
+          <NavLink
+            to="/fuel-records"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">⛽</span> Fuel Records
+          </NavLink>
+        )}
+        {hasAccess(["Admin", "Fleet Manager", "Dispatcher"]) && (
+          <NavLink
+            to="/analytics"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            <span className="nav-icon">📈</span> Analytics
           </NavLink>
         )}
         <NavLink

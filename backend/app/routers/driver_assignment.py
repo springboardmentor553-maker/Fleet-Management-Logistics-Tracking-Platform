@@ -150,6 +150,11 @@ def update_driver_assignment(
         if completed_driver:
             completed_driver.status = "Available"
             db.commit()
+    elif payload.assignment_status in ("Active", "Assigned"):
+        active_driver = db.query(Driver).filter(Driver.id == record.driver_id).first()
+        if active_driver:
+            active_driver.status = "Assigned"
+            db.commit()
 
     return record
 

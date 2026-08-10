@@ -14,6 +14,9 @@ import TripDetails from "./pages/TripDetails";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Maintenance from "./pages/Maintenance";
+import DriverAssignments from "./pages/DriverAssignments";
+import FuelRecords from "./pages/FuelRecords";
+import Analytics from "./pages/Analytics";
 
 // Layout wrapping the sidebar and navbar around protected routes
 const GeneralLayout = () => {
@@ -49,9 +52,12 @@ function App() {
               
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager", "Dispatcher"]} />}>
                 <Route path="/drivers" element={<Drivers />} />
+                <Route path="/driver-assignments" element={<DriverAssignments />} />
                 <Route path="/shipments" element={<Shipments />} />
                 <Route path="/trips" element={<Trips />} />
                 <Route path="/trips/:trip_id" element={<TripDetails />} />
+                <Route path="/fuel-records" element={<FuelRecords />} />
+                <Route path="/analytics" element={<Analytics />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={["Admin", "Fleet Manager", "Dispatcher", "Driver"]} />}>

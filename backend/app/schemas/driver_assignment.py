@@ -2,7 +2,7 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional
 
-ALLOWED_ASSIGNMENT_STATUSES = {"Assigned", "Completed", "Cancelled"}
+ALLOWED_ASSIGNMENT_STATUSES = {"Active", "Assigned", "Completed", "Cancelled"}
 
 
 class DriverAssignmentBase(BaseModel):

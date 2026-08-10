@@ -7,6 +7,7 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 function Maintenance() {
   const { user } = useAuth();
   const [records, setRecords] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -30,9 +31,12 @@ function Maintenance() {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await api.get("/maintenance/");
-      console.log("Maintenance Response:", res.data);
-      setRecords(res.data);
+      const [maintRes, alertsRes] = await Promise.all([
+        api.get("/maintenance/"),
+        api.get("/maintenance-alerts/").catch(() => ({ data: [] })),
+      ]);
+      setRecords(Array.isArray(maintRes.data) ? maintRes.data : []);
+      setAlerts(Array.isArray(alertsRes.data) ? alertsRes.data : []);
     } catch (err) {
       console.error(err);
       setErrorMsg("Failed to fetch maintenance records. Please try again.");
@@ -65,7 +69,6 @@ function Maintenance() {
   const openEditForm = (record) => {
     setVehicleId(record.vehicle_id ? record.vehicle_id.toString() : "");
     setMaintenanceCategory(record.maintenance_category || "");
-    // HTML date inputs require YYYY-MM-DD; strip the time portion
     setServiceDate(record.service_date ? record.service_date.substring(0, 10) : "");
     setNextServiceDate(record.next_service_date ? record.next_service_date.substring(0, 10) : "");
     setServiceCost(record.service_cost != null ? record.service_cost.toString() : "");
@@ -76,60 +79,44 @@ function Maintenance() {
     setShowAddForm(true);
   };
 
- const handleFormSubmit = async (e) => {
-  e.preventDefault();
-
-  if (
-    !vehicleId ||
-    !maintenanceCategory ||
-    !serviceDate ||
-    !maintenanceStatus
-  ) {
-    alert("Please fill in all required fields.");
-    return;
-  }
-
-  const payload = {
-    vehicle_id: parseInt(vehicleId),
-    maintenance_category: maintenanceCategory,
-    service_date: serviceDate,
-    next_service_date: nextServiceDate || null,
-    service_cost:
-      serviceCost !== "" ? parseFloat(serviceCost) : null,
-    service_provider: serviceProvider || null,
-    maintenance_status: maintenanceStatus,
-    notes: notes || null,
-  };
-
-  setSubmitting(true);
-
-  try {
-    if (editingRecord) {
-      await api.put(`/maintenance/${editingRecord.id}`, payload);
-      alert("Maintenance record updated successfully!");
-    } else {
-      await api.post("/maintenance/", payload);
-      alert("Maintenance record created successfully!");
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (!vehicleId || !maintenanceCategory || !serviceDate || !maintenanceStatus) {
+      alert("Please fill in all required fields.");
+      return;
     }
 
-    setShowAddForm(false);
-    resetForm();
-    fetchRecords();
+    const payload = {
+      vehicle_id: parseInt(vehicleId),
+      maintenance_category: maintenanceCategory,
+      service_date: serviceDate,
+      next_service_date: nextServiceDate || null,
+      service_cost: serviceCost !== "" ? parseFloat(serviceCost) : null,
+      service_provider: serviceProvider || null,
+      maintenance_status: maintenanceStatus,
+      notes: notes || null,
+    };
 
-  } catch (err) {
-    console.error(err);
+    setSubmitting(true);
+    try {
+      if (editingRecord) {
+        await api.put(`/maintenance/${editingRecord.id}`, payload);
+        alert("Maintenance record updated successfully!");
+      } else {
+        await api.post("/maintenance/", payload);
+        alert("Maintenance record created successfully!");
+      }
+      setShowAddForm(false);
+      resetForm();
+      fetchRecords();
+    } catch (err) {
+      console.error(err);
+      alert(`Error: ${err.response?.data?.detail || "Failed to save maintenance record."}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const detail =
-      err.response?.data?.detail ||
-      "Failed to save maintenance record.";
-
-    alert(`Error: ${detail}`);
-
-  } finally {
-    setSubmitting(false);
-  }
-};
-    
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId) return;
     try {
@@ -139,8 +126,18 @@ function Maintenance() {
       fetchRecords();
     } catch (err) {
       console.error(err);
-      const detail = err.response?.data?.detail || "Failed to delete maintenance record.";
-      alert(`Error: ${detail}`);
+      alert(`Error: ${err.response?.data?.detail || "Failed to delete maintenance record."}`);
+    }
+  };
+
+  const handleResolveAlert = async (alertId) => {
+    try {
+      await api.put(`/maintenance-alerts/${alertId}`, { alert_status: "Resolved" });
+      alert("Alert marked as Resolved!");
+      fetchRecords();
+    } catch (err) {
+      console.error(err);
+      alert(`Error resolving alert: ${err.response?.data?.detail || err.message}`);
     }
   };
 
@@ -159,8 +156,8 @@ function Maintenance() {
     <div className="page-container maintenance-page">
       <div className="page-header">
         <div>
-          <h2>Maintenance Records</h2>
-          <p className="page-subtitle">Track and manage vehicle service and maintenance schedules</p>
+          <h2>Maintenance & Fleet Service</h2>
+          <p className="page-subtitle">Track service schedules, manage alerts, and maintain vehicle health</p>
         </div>
         {isManagementAllowed && (
           <button className="btn btn-primary" onClick={openAddForm}>
@@ -175,13 +172,61 @@ function Maintenance() {
         </div>
       )}
 
+      {/* Maintenance Alerts Banner Section */}
+      {alerts.length > 0 && (
+        <div className="table-card" style={{ marginBottom: "24px", borderColor: "var(--warning-border, #f59e0b)" }}>
+          <h3>🔔 Active Maintenance Alerts ({alerts.filter((a) => a.alert_status === "Pending").length})</h3>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Alert ID</th>
+                  <th>Vehicle ID</th>
+                  <th>Type</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Next Service</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {alerts.map((alt) => (
+                  <tr key={alt.id}>
+                    <td>#{alt.id}</td>
+                    <td>
+                      <strong>Vehicle #{alt.vehicle_id}</strong>
+                    </td>
+                    <td>{alt.alert_type}</td>
+                    <td>{alt.alert_message}</td>
+                    <td>
+                      <span className={`badge badge-${alt.alert_status === "Pending" ? "danger" : "success"}`}>
+                        {alt.alert_status}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: "13px" }}>{formatDate(alt.next_service_date)}</td>
+                    <td>
+                      {alt.alert_status === "Pending" && (
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleResolveAlert(alt.id)}
+                        >
+                          ✓ Resolve
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Add / Edit Form Dialog */}
       {showAddForm && (
         <div className="form-card">
           <h3>
-            {editingRecord
-              ? `Edit Maintenance Record #${editingRecord.id}`
-              : "Add New Maintenance Record"}
+            {editingRecord ? `Edit Maintenance Record #${editingRecord.id}` : "Add New Maintenance Record"}
           </h3>
           <form onSubmit={handleFormSubmit} className="grid-form">
             <div className="form-group">
@@ -374,11 +419,10 @@ function Maintenance() {
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={deleteConfirmId !== null}
         title="Confirm Maintenance Record Deletion"
-        message="Are you sure you want to permanently delete this maintenance record? This action cannot be undone."
+        message="Are you sure you want to permanently delete this maintenance record?"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteConfirmId(null)}
       />
