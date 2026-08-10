@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
@@ -17,7 +18,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
     new_user = User(
         name=user.name,
-        email=user.email,
+        email=user.email.strip().lower(),
         password=hashed_password,
         role=user.role
     )
@@ -36,8 +37,9 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+    email_clean = form_data.username.strip().lower() if form_data.username else ""
     db_user = db.query(User).filter(
-        User.email == form_data.username
+        func.lower(User.email) == email_clean
     ).first()
 
     if not db_user:
