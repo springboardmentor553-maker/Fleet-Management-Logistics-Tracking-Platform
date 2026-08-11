@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
@@ -45,6 +46,13 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsMobileOpen(false)
+  }, [location.pathname])
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'FF'
   const userRole = user?.role || 'DRIVER'
@@ -55,16 +63,35 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <TruckIcon size={20} color="white" />
+    <>
+      <div className="mobile-header">
+        <div className="sidebar-logo" style={{ padding: 0 }}>
+          <div className="sidebar-logo-icon" style={{ width: 32, height: 32 }}>
+            <TruckIcon size={16} color="white" />
+          </div>
+          <div>
+            <div className="sidebar-logo-text" style={{ fontSize: '1.2rem' }}>FleetFlow</div>
+          </div>
         </div>
-        <div>
-          <div className="sidebar-logo-text">FleetFlow</div>
-          <div className="sidebar-logo-sub">Operations</div>
-        </div>
+        <button className="mobile-menu-toggle" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+          <MenuIcon size={24} />
+        </button>
       </div>
+
+      {isMobileOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)} />
+      )}
+
+      <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo desktop-only">
+          <div className="sidebar-logo-icon">
+            <TruckIcon size={20} color="white" />
+          </div>
+          <div>
+            <div className="sidebar-logo-text">FleetFlow</div>
+            <div className="sidebar-logo-sub">Operations</div>
+          </div>
+        </div>
 
       <nav className="sidebar-nav">
         {NAV.map((section) => {
@@ -109,6 +136,7 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   )
 }
 
@@ -131,6 +159,15 @@ function MoonIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  )
+}
+function MenuIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   )
 }

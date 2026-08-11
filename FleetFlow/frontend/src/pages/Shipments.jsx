@@ -118,7 +118,7 @@ export default function Shipments() {
             <div className="top-bar-title">Shipments</div>
             <div className="top-bar-subtitle">{filtered.length} of {shipments.length} shipments</div>
           </div>
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="top-bar-right">
             <button className="btn btn-outline" onClick={exportToCSV} disabled={filtered.length === 0}>
               Export Excel
             </button>
@@ -133,50 +133,55 @@ export default function Shipments() {
         <main className="page-content">
           {/* ── Create form ── */}
           {showForm && (
-            <div className="card" style={{ marginBottom: 20 }}>
-              <div className="card-header">
-                <div className="card-title">Create New Shipment</div>
+            <div className="modal-overlay">
+              <div className="modal">
+                <div className="modal-header">
+                  <div className="modal-title">Create New Shipment</div>
+                  <button className="modal-close" onClick={() => { setShowForm(false); setError(''); }}>&times;</button>
+                </div>
+                <form onSubmit={handleCreate}>
+                  <div className="modal-body">
+                    {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
+                    <div className="form-grid">
+                      <FormField label="Sender Name *" value={form.sender_name}
+                        onChange={v => setForm(p => ({ ...p, sender_name: v }))} required />
+                      <FormField label="Receiver Name *" value={form.receiver_name}
+                        onChange={v => setForm(p => ({ ...p, receiver_name: v }))} required />
+                      <FormField label="Pickup Location *" value={form.pickup_location}
+                        onChange={v => setForm(p => ({ ...p, pickup_location: v }))} required />
+                      <FormField label="Delivery Location *" value={form.delivery_location}
+                        onChange={v => setForm(p => ({ ...p, delivery_location: v }))} required />
+                      <FormField label="Weight (kg)" value={form.weight} type="number"
+                        onChange={v => setForm(p => ({ ...p, weight: v }))} />
+                      <div className="form-group">
+                        <label className="form-label">Assign Driver</label>
+                        <select className="form-input" value={form.driver_id}
+                          onChange={e => setForm(p => ({ ...p, driver_id: e.target.value }))}>
+                          <option value="">— Unassigned —</option>
+                          {drivers.map(d => <option key={d.id} value={d.id}>Driver #{d.id}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Assign Vehicle</label>
+                        <select className="form-input" value={form.vehicle_id}
+                          onChange={e => setForm(p => ({ ...p, vehicle_id: e.target.value }))}>
+                          <option value="">— Unassigned —</option>
+                          {vehicles.filter(v => v.current_status === 'AVAILABLE').map(v =>
+                            <option key={v.id} value={v.id}>{v.registration_number}</option>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-outline"
+                      onClick={() => { setShowForm(false); setError('') }}>Cancel</button>
+                    <button type="submit" className="btn btn-primary" disabled={submitting}>
+                      {submitting ? 'Creating…' : 'Create Shipment'}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <form onSubmit={handleCreate} style={{ padding: '0 24px 20px' }}>
-                {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
-                <div className="form-grid">
-                  <FormField label="Sender Name *" value={form.sender_name}
-                    onChange={v => setForm(p => ({ ...p, sender_name: v }))} required />
-                  <FormField label="Receiver Name *" value={form.receiver_name}
-                    onChange={v => setForm(p => ({ ...p, receiver_name: v }))} required />
-                  <FormField label="Pickup Location *" value={form.pickup_location}
-                    onChange={v => setForm(p => ({ ...p, pickup_location: v }))} required />
-                  <FormField label="Delivery Location *" value={form.delivery_location}
-                    onChange={v => setForm(p => ({ ...p, delivery_location: v }))} required />
-                  <FormField label="Weight (kg)" value={form.weight} type="number"
-                    onChange={v => setForm(p => ({ ...p, weight: v }))} />
-                  <div className="form-group">
-                    <label className="form-label">Assign Driver</label>
-                    <select className="form-input" value={form.driver_id}
-                      onChange={e => setForm(p => ({ ...p, driver_id: e.target.value }))}>
-                      <option value="">— Unassigned —</option>
-                      {drivers.map(d => <option key={d.id} value={d.id}>Driver #{d.id}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Assign Vehicle</label>
-                    <select className="form-input" value={form.vehicle_id}
-                      onChange={e => setForm(p => ({ ...p, vehicle_id: e.target.value }))}>
-                      <option value="">— Unassigned —</option>
-                      {vehicles.filter(v => v.current_status === 'AVAILABLE').map(v =>
-                        <option key={v.id} value={v.id}>{v.registration_number}</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-                <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? 'Creating…' : 'Create Shipment'}
-                  </button>
-                  <button type="button" className="btn btn-outline"
-                    onClick={() => { setShowForm(false); setError('') }}>Cancel</button>
-                </div>
-              </form>
             </div>
           )}
 

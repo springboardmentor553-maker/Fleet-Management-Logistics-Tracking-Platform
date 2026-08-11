@@ -41,37 +41,19 @@ def dashboard(
     current_user: User = Depends(get_current_user),
 ) -> DashboardSummary:
     # ── Vehicles ──────────────────────────────────────────────────────────────
-    total_vehicles = db.query(func.count(Vehicle.id)).scalar() or 0
-    active_vehicles = (
-        db.query(func.count(Vehicle.id))
-        .filter(Vehicle.current_status == VehicleStatusEnum.IN_USE)
-        .scalar() or 0
-    )
-    maintenance = (
-        db.query(func.count(Vehicle.id))
-        .filter(Vehicle.current_status == VehicleStatusEnum.MAINTENANCE)
-        .scalar() or 0
-    )
-    available = (
-        db.query(func.count(Vehicle.id))
-        .filter(Vehicle.current_status == VehicleStatusEnum.AVAILABLE)
-        .scalar() or 0
-    )
+    vehicle_counts = db.query(Vehicle.current_status, func.count(Vehicle.id)).group_by(Vehicle.current_status).all()
+    v_stats = dict(vehicle_counts)
+    total_vehicles = sum(v_stats.values())
+    active_vehicles = v_stats.get(VehicleStatusEnum.IN_USE, 0)
+    maintenance = v_stats.get(VehicleStatusEnum.MAINTENANCE, 0)
+    available = v_stats.get(VehicleStatusEnum.AVAILABLE, 0)
 
     # ── Shipments ─────────────────────────────────────────────────────────────
-    total_shipments = db.query(func.count(Shipment.id)).scalar() or 0
-
-    active_deliveries = (
-        db.query(func.count(Shipment.id))
-        .filter(Shipment.status.in_(_ACTIVE_DELIVERY_STATUSES))
-        .scalar() or 0
-    )
-
-    delivered = (
-        db.query(func.count(Shipment.id))
-        .filter(Shipment.status == ShipmentStatusEnum.DELIVERED)
-        .scalar() or 0
-    )
+    shipment_counts = db.query(Shipment.status, func.count(Shipment.id)).group_by(Shipment.status).all()
+    s_stats = dict(shipment_counts)
+    total_shipments = sum(s_stats.values())
+    active_deliveries = sum(s_stats.get(st, 0) for st in _ACTIVE_DELIVERY_STATUSES)
+    delivered = s_stats.get(ShipmentStatusEnum.DELIVERED, 0)
 
     from datetime import datetime
     delayed = (
@@ -86,12 +68,11 @@ def dashboard(
     # ── Drivers ───────────────────────────────────────────────────────────────
     from app.models.driver import Driver
     from app.models.enums import DriverStatusEnum
-    total_drivers = db.query(func.count(Driver.id)).scalar() or 0
-    on_duty_drivers = (
-        db.query(func.count(Driver.id))
-        .filter(Driver.status == DriverStatusEnum.ON_DUTY)
-        .scalar() or 0
-    )
+    
+    driver_counts = db.query(Driver.status, func.count(Driver.id)).group_by(Driver.status).all()
+    d_stats = dict(driver_counts)
+    total_drivers = sum(d_stats.values())
+    on_duty_drivers = d_stats.get(DriverStatusEnum.ON_DUTY, 0)
 
     return DashboardSummary(
         # vehicles

@@ -199,7 +199,7 @@ export default function Maintenance() {
               <h1 className="page-title">Maintenance</h1>
               <p className="page-subtitle">Manage maintenance logic, reports, and vehicle alerts.</p>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div className="top-bar-right">
               <button className="btn btn-outline" onClick={exportToCSV} disabled={(activeTab === 'records' && records.length === 0) || (activeTab === 'alerts' && alerts.length === 0)}>
                 Export Excel
               </button>

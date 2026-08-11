@@ -124,7 +124,7 @@ export default function Trips() {
             <div className="top-bar-title">Trips</div>
             <div className="top-bar-subtitle">{trips.length} scheduled / active trips</div>
           </div>
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="top-bar-right">
             <button className="btn btn-outline" onClick={exportToCSV} disabled={trips.length === 0}>
               Export Excel
             </button>
@@ -139,87 +139,92 @@ export default function Trips() {
         <main className="page-content">
           {/* ── Create form ── */}
           {showForm && (
-            <div className="card" style={{ marginBottom: 20 }}>
-              <div className="card-header">
-                <div className="card-title">Schedule New Trip</div>
+            <div className="modal-overlay">
+              <div className="modal">
+                <div className="modal-header">
+                  <div className="modal-title">Schedule New Trip</div>
+                  <button className="modal-close" onClick={() => { setShowForm(false); setError(''); }}>&times;</button>
+                </div>
+                <form onSubmit={handleCreate}>
+                  <div className="modal-body">
+                    {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label className="form-label">Shipment *</label>
+                        <select className="form-input" value={form.shipment_id} required
+                          onChange={e => {
+                            const s = shipments.find(s => s.id === parseInt(e.target.value))
+                            setForm(p => ({
+                              ...p, shipment_id: e.target.value,
+                              pickup_location: s?.pickup_location || '',
+                              destination: s?.delivery_location || '',
+                            }))
+                          }}>
+                          <option value="">Select shipment…</option>
+                          {shipments.filter(s => !['DELIVERED','CANCELLED'].includes(s.status)).map(s =>
+                            <option key={s.id} value={s.id}>
+                              {s.tracking_number} — {s.sender_name} → {s.receiver_name}
+                            </option>
+                          )}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Driver *</label>
+                        <select className="form-input" value={form.driver_id} required
+                          onChange={e => setForm(p => ({ ...p, driver_id: e.target.value }))}>
+                          <option value="">Select driver…</option>
+                          {drivers.filter(d => d.status === 'AVAILABLE').map(d => (
+                            <option key={d.id} value={d.id}>
+                              {d.name || `Driver #${d.id}`} ({d.license_details})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Vehicle *</label>
+                        <select className="form-input" value={form.vehicle_id} required
+                          onChange={e => setForm(p => ({ ...p, vehicle_id: e.target.value }))}>
+                          <option value="">Select vehicle…</option>
+                          {vehicles.filter(v => v.current_status === 'AVAILABLE').map(v =>
+                            <option key={v.id} value={v.id}>{v.registration_number} ({v.vehicle_type})</option>
+                          )}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Pickup Location *</label>
+                        <input className="form-input" required value={form.pickup_location}
+                          placeholder="City, State"
+                          onChange={e => setForm(p => ({ ...p, pickup_location: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Destination *</label>
+                        <input className="form-input" required value={form.destination}
+                          placeholder="City, State"
+                          onChange={e => setForm(p => ({ ...p, destination: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Scheduled Start *</label>
+                        <input className="form-input" type="datetime-local" required
+                          value={form.scheduled_start_time}
+                          onChange={e => setForm(p => ({ ...p, scheduled_start_time: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Scheduled End *</label>
+                        <input className="form-input" type="datetime-local" required
+                          value={form.scheduled_end_time}
+                          onChange={e => setForm(p => ({ ...p, scheduled_end_time: e.target.value }))} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-outline"
+                      onClick={() => { setShowForm(false); setError('') }}>Cancel</button>
+                    <button type="submit" className="btn btn-primary" disabled={submitting}>
+                      {submitting ? 'Scheduling…' : 'Schedule Trip'}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <form onSubmit={handleCreate} style={{ padding: '0 24px 20px' }}>
-                {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label className="form-label">Shipment *</label>
-                    <select className="form-input" value={form.shipment_id} required
-                      onChange={e => {
-                        const s = shipments.find(s => s.id === parseInt(e.target.value))
-                        setForm(p => ({
-                          ...p, shipment_id: e.target.value,
-                          pickup_location: s?.pickup_location || '',
-                          destination: s?.delivery_location || '',
-                        }))
-                      }}>
-                      <option value="">Select shipment…</option>
-                      {shipments.filter(s => !['DELIVERED','CANCELLED'].includes(s.status)).map(s =>
-                        <option key={s.id} value={s.id}>
-                          {s.tracking_number} — {s.sender_name} → {s.receiver_name}
-                        </option>
-                      )}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Driver *</label>
-                    <select className="form-input" value={form.driver_id} required
-                      onChange={e => setForm(p => ({ ...p, driver_id: e.target.value }))}>
-                      <option value="">Select driver…</option>
-                      {drivers.filter(d => d.status === 'AVAILABLE').map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.name || `Driver #${d.id}`} ({d.license_details})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Vehicle *</label>
-                    <select className="form-input" value={form.vehicle_id} required
-                      onChange={e => setForm(p => ({ ...p, vehicle_id: e.target.value }))}>
-                      <option value="">Select vehicle…</option>
-                      {vehicles.filter(v => v.current_status === 'AVAILABLE').map(v =>
-                        <option key={v.id} value={v.id}>{v.registration_number} ({v.vehicle_type})</option>
-                      )}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Pickup Location *</label>
-                    <input className="form-input" required value={form.pickup_location}
-                      placeholder="City, State"
-                      onChange={e => setForm(p => ({ ...p, pickup_location: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Destination *</label>
-                    <input className="form-input" required value={form.destination}
-                      placeholder="City, State"
-                      onChange={e => setForm(p => ({ ...p, destination: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Scheduled Start *</label>
-                    <input className="form-input" type="datetime-local" required
-                      value={form.scheduled_start_time}
-                      onChange={e => setForm(p => ({ ...p, scheduled_start_time: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Scheduled End *</label>
-                    <input className="form-input" type="datetime-local" required
-                      value={form.scheduled_end_time}
-                      onChange={e => setForm(p => ({ ...p, scheduled_end_time: e.target.value }))} />
-                  </div>
-                </div>
-                <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? 'Scheduling…' : 'Schedule Trip'}
-                  </button>
-                  <button type="button" className="btn btn-outline"
-                    onClick={() => { setShowForm(false); setError('') }}>Cancel</button>
-                </div>
-              </form>
             </div>
           )}
 

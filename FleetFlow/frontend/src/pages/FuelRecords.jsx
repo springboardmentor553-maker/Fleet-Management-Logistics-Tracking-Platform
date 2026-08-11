@@ -180,7 +180,7 @@ export default function FuelRecords() {
               <h1>Fuel Records</h1>
               <p>{records.length} total record{records.length !== 1 ? 's' : ''}</p>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div className="top-bar-right">
               <button className="btn btn-outline" onClick={exportToCSV} disabled={records.length === 0}>
                 Export Excel
               </button>

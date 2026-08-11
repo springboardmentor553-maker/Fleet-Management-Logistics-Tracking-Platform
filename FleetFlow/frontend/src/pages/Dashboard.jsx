@@ -140,7 +140,7 @@ export default function Dashboard() {
             <div className="top-bar-title">Fleet Dashboard</div>
             <div className="top-bar-subtitle">{now}</div>
           </div>
-          <div className="top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div className="top-bar-right">
             <select 
               className="form-select" 
               style={{ width: '160px', padding: '6px 12px', fontSize: '0.85rem' }}
@@ -263,7 +263,7 @@ export default function Dashboard() {
           </div>
 
           <h2 style={{ fontSize: '1.2rem', marginBottom: '-10px', marginTop: '10px' }}>Visualizations</h2>
-          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
             
             {/* 1. Fleet Status (Donut) */}
             <div className="card">

@@ -270,7 +270,7 @@ export default function LiveTracking() {
             <div className="top-bar-title">Live Tracking</div>
             <div className="top-bar-subtitle">OSRM road routing · WebSocket GPS stream</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="top-bar-right">
             <div style={{
               width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
               background: connected ? '#22c55e' : '#94a3b8',
@@ -284,15 +284,7 @@ export default function LiveTracking() {
           </div>
         </header>
 
-        <main style={{
-          display: 'grid',
-          gridTemplateRows: 'auto 1fr',
-          gap: 14,
-          padding: '16px 20px',
-          height: 'calc(100vh - 72px)',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-        }}>
+        <main className="live-tracking-main">
 
           {/* ── Connect controls ── */}
           <div className="card" style={{ flexShrink: 0 }}>
@@ -329,12 +321,7 @@ export default function LiveTracking() {
           </div>
 
           {/* ── Map + side panels ── */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 290px',
-            gap: 14,
-            minHeight: 0,
-          }}>
+          <div className="live-tracking-grid">
 
             {/* Map */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>

@@ -61,7 +61,7 @@ export default function AuditLogs() {
             <div className="top-bar-title">Audit Logs</div>
             <div className="top-bar-subtitle">System-wide event tracking</div>
           </div>
-          <div className="top-bar-right" style={{ gap: '12px' }}>
+          <div className="top-bar-right">
             <select
               className="form-select"
               style={{ width: '150px' }}
