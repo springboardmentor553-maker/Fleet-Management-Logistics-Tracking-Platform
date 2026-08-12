@@ -4,6 +4,7 @@ import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
 from app.database import test_connection
 
 # Import FuelRecord so SQLAlchemy/Alembic registers the table in Base.metadata
@@ -26,9 +27,18 @@ from app.routers.ws_tracking import router as ws_tracking_router
 app = FastAPI(title="FleetFlow Backend", version="1.0.0")
 logger = logging.getLogger(__name__)
 
+origins = [
+    origin.strip() 
+    for origin in settings.allowed_origins.split(",") 
+    if origin.strip()
+]
+# Fallback for local dev if empty
+if not origins:
+    origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

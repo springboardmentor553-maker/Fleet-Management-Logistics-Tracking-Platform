@@ -1,38 +1,39 @@
-import os
-from dataclasses import dataclass
+from pydantic import computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from dotenv import load_dotenv
+class Settings(BaseSettings):
+    postgres_user: str
+    postgres_password: str
+    postgres_host: str
+    postgres_port: int
+    postgres_db: str
+    
+    jwt_algorithm: str = "HS256"
+    jwt_secret_key: str
+    jwt_refresh_secret_key: str
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+    google_maps_api_key: str = ""
+    
+    allowed_origins: str = ""
+    
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    db_pool_timeout: int = 30
+    db_pool_recycle: int = 1800
+    
+    @computed_field
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
 
-load_dotenv()
-
-
-@dataclass(frozen=True)
-class Settings:
-    postgres_user: str = os.getenv("POSTGRES_USER", "postgres")
-    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    postgres_host: str = os.getenv("POSTGRES_HOST", "localhost")
-    postgres_port: int = int(os.getenv("POSTGRES_PORT", "5432"))
-    postgres_db: str = os.getenv("POSTGRES_DB", "fleetflow_db")
-    jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
-    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "fleetflow-access-secret-key")
-    jwt_refresh_secret_key: str = os.getenv(
-        "JWT_REFRESH_SECRET_KEY",
-        "fleetflow-refresh-secret-key",
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
     )
-    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-    refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-    google_maps_api_key: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
-    database_url: str = os.getenv(
-        "DATABASE_URL",
-        (
-            "postgresql+psycopg2://"
-            f"{os.getenv('POSTGRES_USER', 'postgres')}:"
-            f"{os.getenv('POSTGRES_PASSWORD', 'postgres')}@"
-            f"{os.getenv('POSTGRES_HOST', 'localhost')}:"
-            f"{int(os.getenv('POSTGRES_PORT', '5432'))}/"
-            f"{os.getenv('POSTGRES_DB', 'fleetflow_db')}"
-        ),
-    )
-
 
 settings = Settings()
