@@ -96,7 +96,7 @@ export const tripApi = {
 }
 
 // ── Tracking (WS helper) ──────────────────────────────────────
-export const WS_BASE = 'ws://localhost:8000'
+export const WS_BASE = import.meta.env.VITE_WS_BASE || 'ws://localhost:8000'
 export const trackingWsUrl = (tripId) => `${WS_BASE}/ws/tracking/${tripId}`
 
 // ── Driver Assignments ────────────────────────────────────────
