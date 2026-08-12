@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.models.shipment import Shipment
+from app.services.maps import get_route
+from app.services.eta_service import calculate_eta
 
 from app.database import get_db
 from app.schemas.shipment import (
@@ -32,6 +35,50 @@ def get_shipments(
     current_user=Depends(get_current_admin),
 ):
     return shipment_service.get_all_shipments(db)
+
+@router.get("/{tracking_number}/status")
+def get_shipment_tracking(
+    tracking_number: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_admin),
+):
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.tracking_number == tracking_number
+        )
+        .first()
+    )
+
+    if not shipment:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipment not found"
+        )
+
+    route = get_route(
+        shipment.pickup_location,
+        shipment.delivery_location
+    )
+
+    eta = calculate_eta(
+        route["duration_minutes"]
+    )
+
+    return {
+        "tracking_number": shipment.tracking_number,
+        "current_status": shipment.current_status,
+        "driver_name": shipment.driver.name if shipment.driver else None,
+        "vehicle_registration_number": (
+            shipment.vehicle.registration_number
+            if shipment.vehicle
+            else None
+        ),
+        "pickup_location": shipment.pickup_location,
+        "destination": shipment.delivery_location,
+        "eta": eta
+    }
 
 @router.get("/{shipment_id}", response_model=ShipmentResponse)
 def get_shipment(

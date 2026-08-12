@@ -57,3 +57,11 @@ class Shipment(Base):
         "Vehicle",
         back_populates="shipments"
     )
+
+    trip = relationship(
+        "Trip",
+        back_populates="shipment",
+        uselist=False
+    )
+
+

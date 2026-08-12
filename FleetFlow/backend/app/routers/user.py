@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.user import (
     UserCreate,
     UserResponse,
-    UserLogin,
     Token,
 )
 from app.services.user import (

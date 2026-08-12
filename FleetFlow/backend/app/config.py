@@ -9,3 +9,5 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 )
+
+ORS_API_KEY = os.getenv("ORS_API_KEY")

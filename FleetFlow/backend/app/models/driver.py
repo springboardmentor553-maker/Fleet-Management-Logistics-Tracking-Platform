@@ -33,3 +33,8 @@ class Driver(Base):
         back_populates="driver",
         uselist=False
     )
+
+    trips = relationship(
+        "Trip",
+        back_populates="driver"
+    )
