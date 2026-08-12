@@ -248,13 +248,36 @@ function SettingsPage({ user }) {
 
 function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }) {
   const navItems = getNavForRole(user?.role)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  function navigate(id) {
+    setPage(id)
+    setSidebarOpen(false)   // auto-close drawer on mobile after navigation
+  }
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {/* ── Mobile overlay backdrop ─────────────────── */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Sidebar / drawer ────────────────────────── */}
+      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
         <div className="sidebar-brand">
           <span>🚚</span>
           <span className="brand-name">FleetFlow</span>
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -262,7 +285,7 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
             <button
               key={n.id}
               className={`nav-item ${page === n.id ? 'active' : ''}`}
-              onClick={() => setPage(n.id)}
+              onClick={() => navigate(n.id)}
             >
               <span className="nav-icon">{n.icon}</span>
               {n.label}
@@ -275,7 +298,7 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
             <button
               key={action.id}
               className={`sidebar-action ${page === action.id ? 'active' : ''}`}
-              onClick={() => setPage(action.id)}
+              onClick={() => navigate(action.id)}
             >
               <span>{action.icon}</span>
               {action.label}
@@ -288,7 +311,22 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
         </div>
       </aside>
 
+      {/* ── Main content area ────────────────────────── */}
       <main className="main-area">
+        {/* Mobile-only top bar with hamburger */}
+        <div className="mobile-topbar">
+          <button
+            className="hamburger-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <span className="mobile-brand">🚚 FleetFlow</span>
+        </div>
+
         {page === 'dashboard' && (
           <Dashboard
             user={user}

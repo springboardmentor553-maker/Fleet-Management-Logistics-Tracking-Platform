@@ -298,7 +298,7 @@ export default function Notifications() {
             <form onSubmit={handleCreate} className="modal-form">
               <div className="form-grid">
 
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Title *</label>
                   <input name="title" value={form.title} onChange={handleChange}
                     placeholder="e.g. Vehicle KA01 service overdue" required />
@@ -320,14 +320,14 @@ export default function Notifications() {
                   </select>
                 </div>
 
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Message *</label>
                   <textarea name="message" value={form.message} onChange={handleChange}
                     rows={3} placeholder="Notification message body…" required />
                 </div>
 
                 {/* Channels */}
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Delivery Channels</label>
                   <div className="notif-channel-row">
                     <label className="notif-channel-chk">
@@ -335,12 +335,12 @@ export default function Notifications() {
                       🔔 Push
                     </label>
                     <label className="notif-channel-chk">
-                      <input type="checkbox" name="channel_email" checked={form.channel_email} onChange={handleChange} />
-                      📧 Email
-                    </label>
-                    <label className="notif-channel-chk">
                       <input type="checkbox" name="channel_sms" checked={form.channel_sms} onChange={handleChange} />
                       💬 SMS
+                    </label>
+                    <label className="notif-channel-chk">
+                      <input type="checkbox" name="channel_email" checked={form.channel_email} onChange={handleChange} />
+                      📧 Email
                     </label>
                   </div>
                 </div>

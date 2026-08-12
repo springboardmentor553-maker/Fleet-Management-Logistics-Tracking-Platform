@@ -17,8 +17,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.main import app
-from app.database import Base, get_db
-from app.utils.dependencies import get_current_user
+from app.database import Base
+from app.utils.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.maintenance import MaintenanceRecord
@@ -46,12 +46,11 @@ def override_get_current_user():
     return User(id=1, name="Admin Verifier", email="admin_test@fleetflow.com", role="admin")
 
 
-app.dependency_overrides[get_db] = override_get_db
-app.dependency_overrides[get_current_user] = override_get_current_user
-
-
 @pytest.fixture(scope="module", autouse=True)
 def setup_db():
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
 
@@ -119,6 +118,7 @@ def setup_db():
 
     yield
 
+    app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
 
 

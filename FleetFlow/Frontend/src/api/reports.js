@@ -9,34 +9,62 @@ export const getMaintenanceReport   = () => api.get('/reports/maintenance').then
 
 /* ── PDF Export ──────────────────────────────────────── */
 export const downloadPDF = async (reportName) => {
-  const token = localStorage.getItem('ff_token')
-  const res = await fetch(
-    `http://localhost:8000/reports/export/pdf/${reportName}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  if (!res.ok) throw new Error('PDF export failed')
-  const blob = await res.blob()
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href = url
-  a.download = `fleetflow_${reportName}_${new Date().toISOString().slice(0,10)}.pdf`
-  a.click()
-  URL.revokeObjectURL(url)
+  try {
+    const res = await api.get(`/reports/export/pdf/${reportName}`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `fleetflow_${reportName}_${new Date().toISOString().slice(0, 10)}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    let msg = err.message
+    if (err.response && err.response.data) {
+      try {
+        const errorText = err.response.data instanceof Blob ? await err.response.data.text() : JSON.stringify(err.response.data)
+        const parsed = JSON.parse(errorText)
+        if (parsed.detail) msg = typeof parsed.detail === 'string' ? parsed.detail : JSON.stringify(parsed.detail)
+      } catch {
+        // use default msg
+      }
+    }
+    throw new Error(msg || 'PDF export failed')
+  }
 }
 
 /* ── Excel Export ────────────────────────────────────── */
 export const downloadExcel = async (reportName) => {
-  const token = localStorage.getItem('ff_token')
-  const res = await fetch(
-    `http://localhost:8000/reports/export/excel/${reportName}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  if (!res.ok) throw new Error('Excel export failed')
-  const blob = await res.blob()
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href = url
-  a.download = `fleetflow_${reportName}_${new Date().toISOString().slice(0,10)}.xlsx`
-  a.click()
-  URL.revokeObjectURL(url)
+  try {
+    const res = await api.get(`/reports/export/excel/${reportName}`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `fleetflow_${reportName}_${new Date().toISOString().slice(0, 10)}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    let msg = err.message
+    if (err.response && err.response.data) {
+      try {
+        const errorText = err.response.data instanceof Blob ? await err.response.data.text() : JSON.stringify(err.response.data)
+        const parsed = JSON.parse(errorText)
+        if (parsed.detail) msg = typeof parsed.detail === 'string' ? parsed.detail : JSON.stringify(parsed.detail)
+      } catch {
+        // use default msg
+      }
+    }
+    throw new Error(msg || 'Excel export failed')
+  }
 }

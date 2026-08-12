@@ -23,15 +23,13 @@ def get_maintenance_report(
     Returns a dynamic maintenance report including:
     - Total maintenance records
     - Vehicles currently under maintenance
-    - Completed services count
-    - Overdue services count
+    - Completed, Scheduled, In-Progress, and Overdue services counts
     - Total maintenance cost
     - Most frequent maintenance category
     - Alert counts by status
     """
     # All records
     all_records = db.query(MaintenanceRecord).all()
-
     total_records = len(all_records)
 
     # Vehicles under maintenance (vehicle status = 'maintenance')
@@ -41,12 +39,14 @@ def get_maintenance_report(
         .count()
     )
 
-    # Completed services
-    completed_services = sum(1 for r in all_records if r.status == "completed")
+    # Status counts
+    completed = sum(1 for r in all_records if r.status == "completed")
+    scheduled = sum(1 for r in all_records if r.status == "scheduled")
+    in_progress = sum(1 for r in all_records if r.status == "in_progress")
 
     # Overdue: scheduled or in_progress with scheduled_date < today
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    overdue_services = sum(
+    overdue = sum(
         1 for r in all_records
         if r.status in ("scheduled", "in_progress") and r.scheduled_date and r.scheduled_date < today
     )
@@ -70,10 +70,18 @@ def get_maintenance_report(
     return MaintenanceReportResponse(
         total_records=total_records,
         vehicles_under_maintenance=vehicles_under_maintenance,
-        completed_services=completed_services,
-        overdue_services=overdue_services,
+        completed_services=completed,
+        scheduled_services=scheduled,
+        in_progress_services=in_progress,
+        overdue_services=overdue,
         total_maintenance_cost=round(total_cost, 2),
         most_frequent_category=most_frequent_category,
+        completed=completed,
+        scheduled=scheduled,
+        in_progress=in_progress,
+        overdue=overdue,
+        total_cost=round(total_cost, 2),
+        top_category=most_frequent_category,
         pending_alerts=pending_alerts,
         sent_alerts=sent_alerts,
         completed_alerts=completed_alerts,

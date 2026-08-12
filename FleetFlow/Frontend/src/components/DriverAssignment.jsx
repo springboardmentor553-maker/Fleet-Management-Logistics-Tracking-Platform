@@ -285,10 +285,14 @@ export default function DriverAssignment() {
         <h3>🏆 Driver Performance Lookup</h3>
         <p>View trip statistics for any driver — total, completed, active, and cancelled trips.</p>
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div className="field" style={{ flex: '1 1 220px', margin: 0 }}>
+        <div className="perf-lookup-row" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', maxWidth: '100%' }}>
+          <div className="field perf-select-field" style={{ flex: '1 1 200px', margin: 0, minWidth: 0, maxWidth: '100%' }}>
             <label>Select Driver</label>
-            <select value={perfDriverId} onChange={(e) => { setPerfDriverId(e.target.value); setPerfData(null); setPerfError('') }}>
+            <select
+              value={perfDriverId}
+              onChange={(e) => { setPerfDriverId(e.target.value); setPerfData(null); setPerfError('') }}
+              style={{ width: '100%', maxWidth: '100%', textOverflow: 'ellipsis' }}
+            >
               <option value="">-- Choose Driver --</option>
               {drivers.map((d) => (
                 <option key={d.id} value={d.id}>👤 {d.name} ({d.email})</option>
@@ -296,7 +300,7 @@ export default function DriverAssignment() {
             </select>
           </div>
           <button
-            className="btn-primary"
+            className="btn-primary perf-view-btn"
             style={{ height: 42, paddingTop: 0, paddingBottom: 0 }}
             onClick={fetchPerformance}
             disabled={perfLoading}

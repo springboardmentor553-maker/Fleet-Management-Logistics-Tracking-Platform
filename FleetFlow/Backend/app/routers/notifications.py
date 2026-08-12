@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from typing import List, Optional
 from datetime import datetime
-from collections import defaultdict
 
 from app.utils.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -85,16 +85,25 @@ def get_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    all_notifs = db.query(Notification).filter(
+    base = db.query(Notification).filter(
         (Notification.user_id == current_user.id) | (Notification.user_id == None)
-    ).all()
-    by_cat = defaultdict(int)
-    for n in all_notifs:
-        by_cat[n.category] += 1
+    )
+    total, unread_count = base.with_entities(
+        func.count(Notification.id),
+        func.count(case((Notification.is_read == False, 1))),
+    ).first()
+
+    rows = (
+        base.with_entities(Notification.category, func.count(Notification.id))
+        .group_by(Notification.category)
+        .all()
+    )
+    by_cat = {cat: cnt for cat, cnt in rows}
+
     return NotificationSummary(
-        total=len(all_notifs),
-        unread=sum(1 for n in all_notifs if not n.is_read),
-        by_category=dict(by_cat),
+        total=total or 0,
+        unread=unread_count or 0,
+        by_category=by_cat,
     )
 
 
@@ -135,15 +144,16 @@ def mark_all_read(
     current_user: User = Depends(get_current_user),
 ):
     now = datetime.utcnow()
-    updated = db.query(Notification).filter(
-        (Notification.user_id == current_user.id) | (Notification.user_id == None),
-        Notification.is_read == False,
-    ).all()
-    for n in updated:
-        n.is_read = True
-        n.read_at = now
+    updated = (
+        db.query(Notification)
+        .filter(
+            (Notification.user_id == current_user.id) | (Notification.user_id == None),
+            Notification.is_read == False,
+        )
+        .update({"is_read": True, "read_at": now}, synchronize_session=False)
+    )
     db.commit()
-    return {"message": f"Marked {len(updated)} notification(s) as read"}
+    return {"message": f"Marked {updated} notification(s) as read"}
 
 
 # ── DELETE /notifications/{id} ───────────────────────────────────────────────
@@ -167,11 +177,12 @@ def clear_all(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    deleted = db.query(Notification).filter(
-        (Notification.user_id == current_user.id) | (Notification.user_id == None)
-    ).all()
-    count = len(deleted)
-    for n in deleted:
-        db.delete(n)
+    deleted = (
+        db.query(Notification)
+        .filter(
+            (Notification.user_id == current_user.id) | (Notification.user_id == None)
+        )
+        .delete(synchronize_session=False)
+    )
     db.commit()
-    return {"message": f"Cleared {count} notification(s)"}
+    return {"message": f"Cleared {deleted} notification(s)"}

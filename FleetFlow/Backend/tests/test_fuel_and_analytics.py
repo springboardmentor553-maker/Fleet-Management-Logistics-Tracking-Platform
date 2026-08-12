@@ -274,6 +274,8 @@ def test_operational_analytics(client):
     v = db.query(Vehicle).filter(Vehicle.plate_number == "TN-01-XX-9999").first()
     d = db.query(Driver).filter(Driver.email == "testdriver@fleetflow.com").first()
 
+    from app.models.driver_assignment import DriverAssignment
+    db.query(DriverAssignment).delete()
     db.query(Trip).delete()
     db.query(Shipment).delete()
 

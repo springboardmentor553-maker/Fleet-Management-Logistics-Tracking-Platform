@@ -24,7 +24,7 @@
   background-attachment: fixed;
 }
 .login-card {
-  width: 420px;
+  width: min(420px, 92vw);   /* never wider than viewport on mobile */
   padding: 45px;
   border-radius: 22px;
   background: rgba(255,255,255,.08);
@@ -33,6 +33,7 @@
   border: 1px solid rgba(255,255,255,.15);
   box-shadow: 0 20px 45px rgba(0,0,0,.45);
   animation: fadeUp .8s ease;
+  box-sizing: border-box;
 }
 .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
 .login-brand span { font-size: 32px; }
@@ -101,6 +102,8 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
+  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 200;
 }
 .sidebar-brand {
   display: flex;
@@ -111,9 +114,33 @@
   font-size: 18px;
   font-weight: 700;
   color: #f1f5f9;
+  position: relative;
 }
 .sidebar-brand span:first-child { font-size: 26px; }
 .brand-name { color: #f1f5f9; }
+/* Close button — hidden on desktop, shown on mobile via media query */
+.sidebar-close-btn {
+  display: none;
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.sidebar-close-btn:hover { color: #f1f5f9; }
+/* Mobile overlay backdrop */
+.sidebar-overlay {
+  display: none;
+}
+/* Mobile-only top bar — hidden on desktop */
+.mobile-topbar {
+  display: none;
+}
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -287,7 +314,9 @@
 
 /* ─── Table ──────────────────────────────────────── */
 .table-wrap {
-  background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden;
+  background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+  overflow-x: auto;   /* tables scroll horizontally instead of overflowing */
+  overflow-y: hidden;
 }
 .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .data-table thead { background: #0f172a; }
@@ -1438,3 +1467,245 @@ textarea:focus-visible {
 .rpt-bar-track { flex: 1; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; }
 .rpt-bar-fill  { height: 100%; border-radius: 5px; transition: width 0.6s ease; min-width: 2px; }
 .rpt-bar-val   { width: 40px; font-size: 13px; font-weight: 700; color: #f1f5f9; text-align: right; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS — Full FleetFlow Mobile/Tablet Fix
+   Covers all 13 issues identified in Phase 2 audit
+═══════════════════════════════════════════════════════════ */
+
+/* ── Tablet & below: 768px ─────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Issue #1 + #2: Sidebar becomes a slide-in drawer */
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    top: 0;
+    height: 100%;
+    width: 240px;
+    box-shadow: none;
+  }
+  .sidebar.sidebar-open {
+    left: 0;
+    box-shadow: 6px 0 32px rgba(0, 0, 0, 0.55);
+  }
+  .sidebar-close-btn { display: flex; }  /* show X on mobile */
+
+  /* Overlay backdrop behind open drawer */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.52);
+    backdrop-filter: blur(2px);
+    z-index: 150;
+  }
+
+  /* Mobile top bar with hamburger */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .hamburger-btn:hover { border-color: #6366f1; }
+  .hamburger-btn span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #94a3b8;
+    border-radius: 2px;
+    transition: background 0.15s;
+  }
+  .hamburger-btn:hover span { background: #f1f5f9; }
+  .mobile-brand {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+
+  /* Main area now takes full width (sidebar is off-canvas) */
+  .app-shell { overflow: visible; }
+  .main-area { width: 100%; }
+
+  /* Issue #4: Reduce page padding on tablet */
+  .page-content { padding: 20px 16px; }
+
+  /* Issue #10: Page header wraps on tablet */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .page-actions { flex-wrap: wrap; }
+
+  /* Issue #8: Hero banner shrinks on tablet */
+  .hero-banner {
+    padding: 28px 24px;
+    min-height: 240px;
+  }
+  .hero-text h1 { font-size: 30px; }
+  .hero-text h3 { font-size: 18px; }
+  .hero-text p  { font-size: 14px; }
+  .hero-btn     { padding: 12px 20px; font-size: 14px; }
+  .hero-btn-group { flex-direction: column; gap: 10px; }
+
+  /* Issue #9: Dispatch widget goes full width */
+  .dispatch-quick-widget { width: 100%; box-sizing: border-box; }
+
+  /* Issue #11: Reports selector goes single column */
+  .rpt-selector-row { grid-template-columns: 1fr; }
+
+  /* Login card inner padding reduces a bit */
+  .login-card { padding: 32px 28px; }
+}
+
+/* ── Mobile: 480px ─────────────────────────────────────── */
+@media (max-width: 480px) {
+
+  /* Issue #3: Login card compact padding on small phones */
+  .login-card {
+    padding: 26px 20px;
+    border-radius: 16px;
+  }
+  .login-brand h1 { font-size: 26px; }
+
+  /* Issue #4: Even tighter padding on small phones */
+  .page-content { padding: 14px 12px; }
+
+  /* Issue #7: Form grids collapse to single column */
+  .form-grid,
+  .field-group-2 { grid-template-columns: 1fr; }
+
+  /* Modals go nearly full width on small phones */
+  .modal,
+  .modal-lg {
+    max-width: calc(100vw - 24px);
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  /* Issue #12: Notification top row wraps */
+  .notif-top { flex-wrap: wrap; gap: 4px; }
+  .notif-meta-row { flex-wrap: wrap; }
+
+  /* Summary pills stack */
+  .notif-summary-row { gap: 8px; }
+  .notif-summary-pill { flex: 1 1 140px; }
+
+  /* Alert breakdown 2 columns on phone */
+  .alert-breakdown-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Issue #13: Alert msg cell shrinks */
+  .alert-msg-cell { max-width: 160px; }
+
+  /* Alerts filter row stacks */
+  .alerts-filter-row { flex-direction: column; align-items: stretch; }
+  .alerts-filter-row .search-input { min-width: unset; width: 100%; }
+
+  /* Search bar full width */
+  .search-bar input { max-width: 100%; }
+
+  /* Buttons in page actions wrap */
+  .page-actions { gap: 8px; }
+  .btn-primary, .btn-cancel { padding: 9px 14px; font-size: 13px; }
+}
+
+/* ── Extra-small phones: 400px ─────────────────────────── */
+@media (max-width: 400px) {
+
+  /* Issue #6: Stats grid single column on tiny phones */
+  .stats-grid { grid-template-columns: 1fr; }
+
+  .stat-value { font-size: 24px; }
+  .hero-text h1 { font-size: 24px; }
+  .hero-banner { padding: 20px 16px; min-height: 200px; }
+
+  /* Table font slightly smaller so more columns fit */
+  .data-table { font-size: 12px; }
+  .data-table th { padding: 10px 10px; font-size: 11px; }
+  .data-table td { padding: 10px 10px; }
+}
+
+/* ── Full width field class for 2-column grid forms ────── */
+.full-width-field {
+  grid-column: span 2;
+}
+
+/* ── Performance panel & lookup row ─────────────────────── */
+.perf-panel {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+}
+.perf-lookup-row {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Modal overlay and modal scrolling ──────────────────── */
+.modal-overlay {
+  padding: 16px;
+  box-sizing: border-box;
+}
+.modal, .modal-lg {
+  box-sizing: border-box;
+  max-width: min(600px, calc(100vw - 24px));
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-form {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.field input, .field select, .field textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* ── Issue #6: Stats grid 2-col at 600px (before full collapse) */
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .alert-report-grid { grid-template-columns: repeat(2, 1fr); }
+  .perf-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .rpt-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  
+  .full-width-field {
+    grid-column: span 1 !important;
+  }
+  
+  .perf-lookup-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .perf-select-field {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+  .perf-view-btn {
+    width: 100% !important;
+  }
+  
+  .notif-channel-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

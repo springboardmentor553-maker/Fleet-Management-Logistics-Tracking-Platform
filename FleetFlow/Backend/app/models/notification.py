@@ -8,20 +8,20 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id            = Column(Integer, primary_key=True, index=True)
-    user_id       = Column(Integer, ForeignKey("users.id"), nullable=True)   # None = broadcast
+    user_id       = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)   # None = broadcast
     title         = Column(String,  nullable=False)
     message       = Column(Text,    nullable=False)
 
     # Category: maintenance_alert | delivery | driver_assignment |
     #           shipment_status   | route_change | email | sms | push
-    category      = Column(String,  nullable=False, default="push")
+    category      = Column(String,  nullable=False, default="push", index=True)
 
     # Channels (flags)
     channel_email = Column(Boolean, default=False)
     channel_sms   = Column(Boolean, default=False)
     channel_push  = Column(Boolean, default=True)
 
-    is_read       = Column(Boolean, default=False)
+    is_read       = Column(Boolean, default=False, index=True)
     priority      = Column(String,  default="normal")  # low | normal | high | critical
     reference_id  = Column(Integer, nullable=True)     # FK to related entity (trip, shipment, etc.)
     reference_type= Column(String,  nullable=True)     # "trip" | "shipment" | "driver" | "maintenance"

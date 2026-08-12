@@ -43,10 +43,18 @@ def auth_headers():
 
 def test_driver_assignment_without_trip_id(client, auth_headers):
     db = SessionLocal()
-    d = Driver(name="Test Driver Assignment", email="testdriver_assign@fleetflow.com", phone="1234567890", license_number="LIC-ASSIGN-01", is_available=True)
-    v = Vehicle(plate_number="TN-99-ASSN-1", vehicle_type="Truck", model="Volvo", capacity_kg=5000.0, fuel_type="Diesel", current_status="available")
-    db.add(d)
-    db.add(v)
+    d = db.query(Driver).filter(Driver.email == "testdriver_assign@fleetflow.com").first()
+    if not d:
+        d = Driver(name="Test Driver Assignment", email="testdriver_assign@fleetflow.com", phone="1234567890", license_number="LIC-ASSIGN-01", is_available=True)
+        db.add(d)
+    else:
+        d.is_available = True
+    v = db.query(Vehicle).filter(Vehicle.plate_number == "TN-99-ASSN-1").first()
+    if not v:
+        v = Vehicle(plate_number="TN-99-ASSN-1", vehicle_type="Truck", model="Volvo", capacity_kg=5000.0, fuel_type="Diesel", current_status="available")
+        db.add(v)
+    else:
+        v.current_status = "available"
     db.commit()
     d_id = d.id
     v_id = v.id
@@ -93,10 +101,14 @@ def test_driver_assignment_without_trip_id(client, auth_headers):
 
 def test_driver_performance_endpoint(client, auth_headers):
     db = SessionLocal()
-    d = Driver(name="Perf Driver", email="perfdriver@fleetflow.com", phone="9998887776", license_number="LIC-PERF-01", is_available=True)
-    v = Vehicle(plate_number="TN-99-PERF-1", vehicle_type="Van", model="Tata", capacity_kg=2000.0, fuel_type="Diesel", current_status="available")
-    db.add(d)
-    db.add(v)
+    d = db.query(Driver).filter(Driver.email == "perfdriver@fleetflow.com").first()
+    if not d:
+        d = Driver(name="Perf Driver", email="perfdriver@fleetflow.com", phone="9998887776", license_number="LIC-PERF-01", is_available=True)
+        db.add(d)
+    v = db.query(Vehicle).filter(Vehicle.plate_number == "TN-99-PERF-1").first()
+    if not v:
+        v = Vehicle(plate_number="TN-99-PERF-1", vehicle_type="Van", model="Tata", capacity_kg=2000.0, fuel_type="Diesel", current_status="available")
+        db.add(v)
     db.commit()
     d_id = d.id
     v_id = v.id

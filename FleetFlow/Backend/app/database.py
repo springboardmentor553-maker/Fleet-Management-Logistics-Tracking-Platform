@@ -100,7 +100,17 @@ def init_db():
                         print(f"Migration notice for trips.{col_name}: {e}")
 
 
-        # 5. Check and add missing columns for 'maintenance_records' table
+    # 5. Make driver_assignments.trip_id nullable (in case DB was created with NOT NULL)
+    if inspector.has_table("driver_assignments"):
+        cols = {col["name"]: col for col in inspector.get_columns("driver_assignments")}
+        if "trip_id" in cols and not cols["trip_id"].get("nullable", True):
+            with engine.begin() as conn:
+                try:
+                    conn.execute(text("ALTER TABLE driver_assignments ALTER COLUMN trip_id DROP NOT NULL"))
+                except Exception as e:
+                    print(f"Migration notice for driver_assignments.trip_id nullable: {e}")
+
+        # 6. Check and add missing columns for 'maintenance_records' table
     if inspector.has_table("maintenance_records"):
         existing_cols = {col["name"] for col in inspector.get_columns("maintenance_records")}
         columns_to_add = [

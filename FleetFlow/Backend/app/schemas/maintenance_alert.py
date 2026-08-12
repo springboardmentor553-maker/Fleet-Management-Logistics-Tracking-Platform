@@ -49,9 +49,17 @@ class MaintenanceReportResponse(BaseModel):
     total_records:                  int
     vehicles_under_maintenance:     int
     completed_services:             int
+    scheduled_services:             int = 0
+    in_progress_services:           int = 0
     overdue_services:               int
     total_maintenance_cost:         float
     most_frequent_category:         Optional[str] = None
-    pending_alerts:                 int
-    sent_alerts:                    int
-    completed_alerts:               int
+    completed:                      int = 0
+    scheduled:                      int = 0
+    in_progress:                    int = 0
+    overdue:                        int = 0
+    total_cost:                     float = 0.0
+    top_category:                   Optional[str] = None
+    pending_alerts:                 int = 0
+    sent_alerts:                    int = 0
+    completed_alerts:               int = 0

@@ -8,16 +8,16 @@ class Trip(Base):
     __tablename__ = "trips"
 
     id          = Column(Integer, primary_key=True, index=True)
-    shipment_id = Column(Integer, ForeignKey("shipments.id"), nullable=False)
-    driver_id   = Column(Integer, ForeignKey("drivers.id"),   nullable=False)
-    vehicle_id  = Column(Integer, ForeignKey("vehicles.id"),  nullable=False)
+    shipment_id = Column(Integer, ForeignKey("shipments.id"), nullable=False, index=True)
+    driver_id   = Column(Integer, ForeignKey("drivers.id"),   nullable=False, index=True)
+    vehicle_id  = Column(Integer, ForeignKey("vehicles.id"),  nullable=False, index=True)
     start_time  = Column(DateTime, nullable=True)
     end_time    = Column(DateTime, nullable=True)
     pickup_latitude = Column(Float, nullable=True)
     pickup_longitude = Column(Float, nullable=True)
     destination_latitude = Column(Float, nullable=True)
     destination_longitude = Column(Float, nullable=True)
-    status      = Column(String, default="scheduled")  # scheduled, started, completed, cancelled
+    status      = Column(String, default="scheduled", index=True)  # scheduled, started, completed, cancelled
     created_at  = Column(DateTime, default=datetime.utcnow)
 
     shipment = relationship("Shipment")

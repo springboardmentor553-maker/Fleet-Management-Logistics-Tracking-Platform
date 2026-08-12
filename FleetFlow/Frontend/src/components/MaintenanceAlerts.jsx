@@ -483,7 +483,7 @@ export default function MaintenanceAlerts() {
                 </div>
 
                 {/* Next Service Date */}
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Next Service Date (optional)</label>
                   <input
                     type="datetime-local"
@@ -494,7 +494,7 @@ export default function MaintenanceAlerts() {
                 </div>
 
                 {/* Alert Message */}
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Alert Message *</label>
                   <textarea
                     name="alert_message"

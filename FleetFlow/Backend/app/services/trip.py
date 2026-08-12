@@ -1,6 +1,6 @@
 from datetime import datetime
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.trip import Trip
 from app.models.shipment import Shipment
@@ -12,7 +12,16 @@ import hashlib
 
 
 def get_all_trips(db: Session):
-    return db.query(Trip).order_by(Trip.id).all()
+    return (
+        db.query(Trip)
+        .options(
+            joinedload(Trip.shipment),
+            joinedload(Trip.driver),
+            joinedload(Trip.vehicle),
+        )
+        .order_by(Trip.id)
+        .all()
+    )
 
 
 def get_trip(trip_id: int, db: Session):

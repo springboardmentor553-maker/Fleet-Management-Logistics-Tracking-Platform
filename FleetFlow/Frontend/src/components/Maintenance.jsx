@@ -599,7 +599,7 @@ const [overdue, setOverdue] = useState([]);
                   />
                 </div>
 
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Service Description & Work Details</label>
                   <input
                     name="description"
@@ -610,7 +610,7 @@ const [overdue, setOverdue] = useState([]);
                   />
                 </div>
 
-                <div className="field" style={{ gridColumn: 'span 2' }}>
+                <div className="field full-width-field">
                   <label>Inspection Notes & Diagnostic Observations</label>
                   <input
                     name="notes"

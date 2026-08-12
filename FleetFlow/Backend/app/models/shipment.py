@@ -15,9 +15,9 @@ class Shipment(Base):
     origin_lng = Column(Float, nullable=True)
     destination_lat = Column(Float, nullable=True)
     destination_lng = Column(Float, nullable=True)
-    status = Column(String, default="pending")  # pending, in_transit, delivered, cancelled
-    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
-    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+    status = Column(String, default="pending", index=True)  # pending, in_transit, delivered, cancelled
+    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True, index=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     delivered_at = Column(DateTime, nullable=True)
 

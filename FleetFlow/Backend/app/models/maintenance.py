@@ -8,11 +8,11 @@ class MaintenanceRecord(Base):
     __tablename__ = "maintenance_records"
 
     id = Column(Integer, primary_key=True, index=True)
-    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False, index=True)
     category = Column(String, nullable=False)  # Oil Change, Tire Replacement, Engine Service, Brake Service, General Inspection
     description = Column(Text, nullable=True)
     cost = Column(Float, default=0.0)
-    status = Column(String, default="scheduled")  # scheduled, in_progress, completed, cancelled
+    status = Column(String, default="scheduled", index=True)  # scheduled, in_progress, completed, cancelled
     scheduled_date = Column(DateTime, default=datetime.utcnow)
     completed_date = Column(DateTime, nullable=True)
     odometer_km = Column(Float, default=0.0)

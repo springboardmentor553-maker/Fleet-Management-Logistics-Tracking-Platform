@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.utils.dependencies import get_db, get_current_user
 from app.models.driver_assignment import DriverAssignment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle

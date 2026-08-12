@@ -13,7 +13,7 @@ Full reports & export router:
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
@@ -37,8 +37,12 @@ router = APIRouter(prefix="/reports", tags=["Reports & Export"])
 #  HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _fmt_inr(val: float) -> str:
-    return f"₹{val:,.2f}"
+import html
+
+def _fmt_inr(val: Optional[float]) -> str:
+    if val is None:
+        return "Rs. 0.00"
+    return f"Rs. {val:,.2f}"
 
 def _fleet_data(db: Session) -> dict:
     vehicles   = db.query(Vehicle).all()
@@ -164,6 +168,7 @@ def _maintenance_data(db: Session) -> dict:
     total_cost = sum(r.cost or 0 for r in records)
     cats = Counter(r.category for r in records if r.category)
     top_cat = cats.most_common(1)[0][0] if cats else None
+    vehicles_under_maint = db.query(Vehicle).filter(Vehicle.current_status == "maintenance").count()
     return {
         "total_records": total,
         "completed": completed,
@@ -172,6 +177,13 @@ def _maintenance_data(db: Session) -> dict:
         "overdue": overdue,
         "total_cost": round(total_cost, 2),
         "top_category": top_cat,
+        "vehicles_under_maintenance": vehicles_under_maint,
+        "completed_services": completed,
+        "scheduled_services": scheduled,
+        "in_progress_services": in_progress,
+        "overdue_services": overdue,
+        "total_maintenance_cost": round(total_cost, 2),
+        "most_frequent_category": top_cat,
     }
 
 
@@ -240,7 +252,13 @@ def _build_pdf(report_name: str, data: dict) -> bytes:
     story.append(Spacer(1, 0.3*cm))
 
     def kv_table(rows):
-        tdata = [[Paragraph(f"<b>{k}</b>", normal), Paragraph(str(v), normal)] for k, v in rows]
+        tdata = [
+            [
+                Paragraph(f"<b>{html.escape(str(k))}</b>", normal),
+                Paragraph(html.escape(str(v if v is not None else "N/A")), normal),
+            ]
+            for k, v in rows
+        ]
         t = Table(tdata, colWidths=[7*cm, 9*cm])
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), ACCENT),
@@ -254,8 +272,10 @@ def _build_pdf(report_name: str, data: dict) -> bytes:
         return t
 
     def list_table(headers, rows_data):
-        tdata = [headers] + rows_data
-        col_w = [16*cm / len(headers)] * len(headers)
+        esc_headers = [html.escape(str(h)) for h in headers]
+        esc_rows = [[html.escape(str(c if c is not None else "N/A")) for c in r] for r in rows_data]
+        tdata = [esc_headers] + esc_rows
+        col_w = [16*cm / max(len(headers), 1)] * len(headers)
         t = Table(tdata, colWidths=col_w, repeatRows=1)
         t.setStyle(TableStyle([
             ("BACKGROUND",   (0, 0), (-1, 0), DARK),
@@ -300,7 +320,7 @@ def _build_pdf(report_name: str, data: dict) -> bytes:
             story.append(Spacer(1, 0.4*cm))
             story.append(Paragraph("Per-Vehicle Breakdown", h2_style))
             story.append(list_table(
-                ["Plate", "Litres", "Cost (₹)", "Fill-ups"],
+                ["Plate", "Litres", "Cost (Rs.)", "Fill-ups"],
                 [[r["plate_number"], str(r["total_liters"]), _fmt_inr(r["total_cost"]), str(r["fill_count"])]
                  for r in data["vehicle_breakdown"]]
             ))
@@ -366,18 +386,29 @@ def export_pdf(
     if report_name not in VALID_REPORTS:
         raise HTTPException(400, f"Unknown report. Valid: {', '.join(sorted(VALID_REPORTS))}")
     try:
-        from reportlab.lib.pagesizes import A4  # noqa: F401 — import check
+        from reportlab.lib.pagesizes import A4  # noqa: F401
     except ImportError:
         raise HTTPException(500, "reportlab not installed. Run: pip install reportlab")
 
-    data = _get_report_data(report_name, db)
-    pdf_bytes = _build_pdf(report_name, data)
-    filename = f"fleetflow_{report_name}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
-    return StreamingResponse(
-        io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
-    )
+    try:
+        data = _get_report_data(report_name, db)
+        pdf_bytes = _build_pdf(report_name, data)
+        filename = f"fleetflow_{report_name}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Access-Control-Expose-Headers": "Content-Disposition",
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Export PDF Error] {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, detail=f"PDF export failed: {str(e)}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -482,7 +513,7 @@ def _build_excel(report_name: str, data: dict) -> bytes:
             ("Total Fill-ups",    data["total_fill_count"]),
         ])
         table_section(
-            ["Plate Number", "Total Litres", "Total Cost (₹)", "Fill-ups"],
+            ["Plate Number", "Total Litres", "Total Cost (Rs.)", "Fill-ups"],
             [[r["plate_number"], r["total_liters"], r["total_cost"], r["fill_count"]]
              for r in data["vehicle_breakdown"]]
         )
@@ -521,7 +552,7 @@ def _build_excel(report_name: str, data: dict) -> bytes:
             ("Scheduled",       data["scheduled"]),
             ("In Progress",     data["in_progress"]),
             ("Overdue",         data["overdue"]),
-            ("Total Cost (₹)",  data["total_cost"]),
+            ("Total Cost (Rs.)", data["total_cost"]),
             ("Top Category",    data["top_category"] or "N/A"),
         ])
 
@@ -544,14 +575,25 @@ def export_excel(
     except ImportError:
         raise HTTPException(500, "openpyxl not installed. Run: pip install openpyxl")
 
-    data = _get_report_data(report_name, db)
-    excel_bytes = _build_excel(report_name, data)
-    filename = f"fleetflow_{report_name}_{datetime.utcnow().strftime('%Y%m%d')}.xlsx"
-    return StreamingResponse(
-        io.BytesIO(excel_bytes),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
-    )
+    try:
+        data = _get_report_data(report_name, db)
+        excel_bytes = _build_excel(report_name, data)
+        filename = f"fleetflow_{report_name}_{datetime.utcnow().strftime('%Y%m%d')}.xlsx"
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Access-Control-Expose-Headers": "Content-Disposition",
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Export Excel Error] {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, detail=f"Excel export failed: {str(e)}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

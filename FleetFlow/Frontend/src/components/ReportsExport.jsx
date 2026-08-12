@@ -238,24 +238,33 @@ function DeliveryReport({ data }) {
 
 function MaintenanceRpt({ data }) {
   const total = data.total_records || 1
+  const completed = data.completed ?? data.completed_services ?? 0
+  const scheduled = data.scheduled ?? data.scheduled_services ?? 0
+  const inProgress = data.in_progress ?? data.in_progress_services ?? 0
+  const overdue = data.overdue ?? data.overdue_services ?? 0
+  const vehiclesUnderMaint = data.vehicles_under_maintenance ?? 0
+  const totalCost = data.total_cost ?? data.total_maintenance_cost ?? 0
+  const topCategory = data.top_category || data.most_frequent_category || 'N/A'
+
   return (
     <>
       <div className="rpt-stat-grid">
-        <StatBox icon="📋" label="Total Records"  value={data.total_records}         color="#6366f1" />
-        <StatBox icon="✅" label="Completed"      value={data.completed}             color="#22c55e" />
-        <StatBox icon="📅" label="Scheduled"      value={data.scheduled}             color="#3b82f6" />
-        <StatBox icon="🔄" label="In Progress"    value={data.in_progress}           color="#f59e0b" />
-        <StatBox icon="⚠️" label="Overdue"        value={data.overdue}              color="#ef4444" />
-        <StatBox icon="💰" label="Total Cost"     value={fmtInr(data.total_cost)}   color="#22c55e" />
-        <StatBox icon="🏆" label="Top Category"   value={data.top_category || 'N/A'} color="#8b5cf6" />
+        <StatBox icon="📋" label="Total Records"     value={data.total_records || 0}       color="#6366f1" />
+        <StatBox icon="✅" label="Completed"         value={completed}                     color="#22c55e" />
+        <StatBox icon="📅" label="Scheduled"         value={scheduled}                     color="#3b82f6" />
+        <StatBox icon="🔄" label="In Progress"       value={inProgress}                    color="#f59e0b" />
+        <StatBox icon="⚠️" label="Overdue"           value={overdue}                       color="#ef4444" />
+        <StatBox icon="🚛" label="Under Maintenance" value={vehiclesUnderMaint}            color="#eab308" />
+        <StatBox icon="💰" label="Total Cost"        value={fmtInr(totalCost)}             color="#22c55e" />
+        <StatBox icon="🏆" label="Top Category"      value={topCategory}                   color="#8b5cf6" />
       </div>
       <SectionTitle>Status Breakdown</SectionTitle>
       <div className="rpt-bar-list">
         {[
-          { label: 'Completed',   val: data.completed,   color: '#22c55e' },
-          { label: 'Scheduled',   val: data.scheduled,   color: '#3b82f6' },
-          { label: 'In Progress', val: data.in_progress, color: '#f59e0b' },
-          { label: 'Overdue',     val: data.overdue,     color: '#ef4444' },
+          { label: 'Completed',   val: completed,   color: '#22c55e' },
+          { label: 'Scheduled',   val: scheduled,   color: '#3b82f6' },
+          { label: 'In Progress', val: inProgress,  color: '#f59e0b' },
+          { label: 'Overdue',     val: overdue,     color: '#ef4444' },
         ].map(row => (
           <div key={row.label} className="rpt-bar-row">
             <span className="rpt-bar-label">{row.label}</span>
