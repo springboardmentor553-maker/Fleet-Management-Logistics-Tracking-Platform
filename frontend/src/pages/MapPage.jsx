@@ -2,18 +2,20 @@ import LiveMap from "../components/LiveMap";
 
 import "./MapPage.css";
 
+
 function MapPage() {
 
-    return (
+  return (
 
-        <div className="map-wrapper">
+    <div className="map-wrapper">
 
-            <LiveMap />
+      <LiveMap />
 
-        </div>
+    </div>
 
-    );
+  );
 
 }
+
 
 export default MapPage;

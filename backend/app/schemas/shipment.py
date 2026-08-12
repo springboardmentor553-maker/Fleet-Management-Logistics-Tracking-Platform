@@ -1,21 +1,13 @@
 from datetime import datetime
-from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
-
-class ShipmentStatus(str, Enum):
-    CREATED = "Created"
-    ASSIGNED = "Assigned"
-    IN_TRANSIT = "In Transit"
-    DELAYED = "Delayed"
-    DELIVERED = "Delivered"
-    CANCELLED = "Cancelled"
+# Import the SAME enum used by the model
+from app.models.shipment_status import ShipmentStatus
 
 
 class ShipmentBase(BaseModel):
 
-    # Tracking Number will be generated automatically
     tracking_number: str | None = None
 
     sender_name: str
@@ -39,8 +31,23 @@ class ShipmentCreate(ShipmentBase):
     pass
 
 
-class ShipmentUpdate(ShipmentBase):
-    pass
+class ShipmentUpdate(BaseModel):
+
+    sender_name: str | None = None
+
+    receiver_name: str | None = None
+
+    pickup_location: str | None = None
+
+    delivery_location: str | None = None
+
+    current_status: ShipmentStatus | None = None
+
+    weight: float | None = None
+
+    assigned_driver_id: int | None = None
+
+    assigned_vehicle_id: int | None = None
 
 
 class ShipmentResponse(ShipmentBase):

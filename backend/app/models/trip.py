@@ -65,7 +65,7 @@ class Trip(Base):
     )
 
     # ==========================================================
-    # Google Maps Coordinates
+    # Pickup Coordinates
     # ==========================================================
 
     pickup_latitude = Column(
@@ -78,12 +78,83 @@ class Trip(Base):
         nullable=True
     )
 
+    # ==========================================================
+    # Destination Coordinates
+    # ==========================================================
+
     destination_latitude = Column(
         Float,
         nullable=True
     )
 
     destination_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    # ==========================================================
+    # LIVE VEHICLE LOCATION
+    # ==========================================================
+    #
+    # These fields store the LAST KNOWN position of the vehicle.
+    #
+    # This is important because when the frontend is refreshed,
+    # the vehicle can be loaded from the database at its previous
+    # location instead of starting again from pickup.
+    #
+    # ==========================================================
+
+    current_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    current_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    # ==========================================================
+    # TRIP PROGRESS
+    # ==========================================================
+    #
+    # Example:
+    # 0.0   = trip not started
+    # 50.0  = halfway
+    # 100.0 = destination reached
+    #
+    # ==========================================================
+
+    progress = Column(
+        Float,
+        nullable=False,
+        default=0.0
+    )
+
+    # ==========================================================
+    # REMAINING DISTANCE
+    # ==========================================================
+    #
+    # Distance from current vehicle location
+    # to destination.
+    #
+    # ==========================================================
+
+    remaining_distance_km = Column(
+        Float,
+        nullable=True
+    )
+
+    # ==========================================================
+    # REMAINING ETA
+    # ==========================================================
+    #
+    # Remaining travel time from current vehicle
+    # location to destination.
+    #
+    # ==========================================================
+
+    remaining_duration_minutes = Column(
         Float,
         nullable=True
     )
