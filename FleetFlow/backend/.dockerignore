@@ -11,3 +11,4 @@ venv/
 .ruff_cache/
 fleet.db
 celerybeat-schedule*
+.venv/
