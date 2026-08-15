@@ -1,45 +1,119 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState,
+} from "react";
+
 import api from "../../services/api";
+
 
 function RecentActiveDeliveries() {
 
-    const [shipments, setShipments] = useState([]);
+    const [
+        shipments,
+        setShipments,
+    ] = useState([]);
+
+
+    const load = async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    "/shipments"
+                );
+
+            const data =
+                Array.isArray(
+                    response.data
+                )
+                    ? response.data
+                    : [];
+
+
+            const activeStatuses = [
+
+                "Assigned",
+
+                "Picked Up",
+
+                "In Transit",
+
+                "Out for Delivery",
+
+            ];
+
+
+            const activeShipments =
+                data
+                    .filter(
+                        shipment =>
+                            activeStatuses.includes(
+                                shipment.current_status
+                            )
+                    )
+                    .sort(
+                        (a, b) =>
+                            Number(b.id) -
+                            Number(a.id)
+                    )
+                    .slice(
+                        0,
+                        5
+                    );
+
+
+            setShipments(
+                activeShipments
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load active deliveries:",
+                error
+            );
+
+        }
+
+    };
+
 
     useEffect(() => {
 
         load();
 
+
+        const interval =
+            setInterval(
+                () => {
+
+                    load();
+
+                },
+                10000
+            );
+
+
+        return () => {
+
+            clearInterval(
+                interval
+            );
+
+        };
+
     }, []);
 
-    const load = async () => {
-
-        const res = await api.get("/shipments");
-
-        setShipments(
-
-            res.data.filter(
-
-                s =>
-
-                    s.current_status === "Assigned" ||
-
-                    s.current_status === "Picked Up" ||
-
-                    s.current_status === "In Transit" ||
-
-                    s.current_status === "Out for Delivery"
-
-            ).slice(-5).reverse()
-
-        );
-
-    };
 
     return (
 
         <div className="dashboard-table">
 
-            <h3>Recent Active Deliveries</h3>
+            <h3>
+                Recent Active Deliveries
+            </h3>
+
 
             <table>
 
@@ -47,27 +121,60 @@ function RecentActiveDeliveries() {
 
                     <tr>
 
-                        <th>Tracking</th>
+                        <th>
+                            Tracking
+                        </th>
 
-                        <th>Status</th>
+                        <th>
+                            Status
+                        </th>
 
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    {shipments.map((item)=>(
+                    {shipments.length === 0 ? (
 
-                        <tr key={item.id}>
+                        <tr>
 
-                            <td>{item.tracking_number}</td>
-
-                            <td>{item.current_status}</td>
+                            <td
+                                colSpan="2"
+                            >
+                                No Active Deliveries
+                            </td>
 
                         </tr>
 
-                    ))}
+                    ) : (
+
+                        shipments.map(
+                            (item) => (
+
+                                <tr
+                                    key={item.id}
+                                >
+
+                                    <td>
+                                        {
+                                            item.tracking_number
+                                        }
+                                    </td>
+
+                                    <td>
+                                        {
+                                            item.current_status
+                                        }
+                                    </td>
+
+                                </tr>
+
+                            )
+                        )
+
+                    )}
 
                 </tbody>
 
@@ -76,7 +183,7 @@ function RecentActiveDeliveries() {
         </div>
 
     );
-
 }
+
 
 export default RecentActiveDeliveries;

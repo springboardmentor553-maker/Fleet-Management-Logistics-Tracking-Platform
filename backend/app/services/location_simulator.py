@@ -17,20 +17,15 @@ OSRM_URL = (
     "https://router.project-osrm.org/route/v1/driving"
 )
 
-# Slow and smooth movement
 SIMULATION_INTERVAL = 5
 
-# Maximum route points
 MAX_SIMULATION_POINTS = 100
 
-# Vehicle speed used only for simulation timing.
-# 35 km/h gives slower, easier-to-see movement.
 SIMULATION_SPEED_KMH = 35.0
 
 
 # ==========================================================
-# IMPORTANT:
-# ONLY ONE SIMULATION MAY RUN FOR ONE TRIP
+# ONLY ONE SIMULATION PER TRIP
 # ==========================================================
 
 _running_simulations: Dict[int, asyncio.Task] = {}
@@ -61,11 +56,11 @@ def haversine_distance(
         math.sin(delta_lat / 2) ** 2
         +
         math.cos(lat1_rad)
-        *
-        math.cos(lat2_rad)
-        *
-        math.sin(delta_lon / 2) ** 2
+        * math.cos(lat2_rad)
+        * math.sin(delta_lon / 2) ** 2
     )
+
+    a = max(0.0, min(1.0, a))
 
     c = 2 * math.atan2(
         math.sqrt(a),
@@ -104,7 +99,7 @@ def calculate_route_distance(
 
 
 # ==========================================================
-# DISTANCE FROM INDEX TO DESTINATION
+# REMAINING DISTANCE
 # ==========================================================
 
 def calculate_remaining_distance(
@@ -345,13 +340,11 @@ async def get_road_route(
             "Unable to create route points."
         )
 
-    # Exact pickup
     route_points[0] = (
         float(pickup_latitude),
         float(pickup_longitude),
     )
 
-    # Exact destination
     route_points[-1] = (
         float(destination_latitude),
         float(destination_longitude),
@@ -475,22 +468,51 @@ async def broadcast_location(
                 2,
             ),
 
-            "pickup_latitude": (
-                pickup_latitude
-            ),
+            "pickup_latitude": pickup_latitude,
 
-            "pickup_longitude": (
-                pickup_longitude
-            ),
+            "pickup_longitude": pickup_longitude,
 
-            "destination_latitude": (
-                destination_latitude
-            ),
+            "destination_latitude": destination_latitude,
 
-            "destination_longitude": (
-                destination_longitude
-            ),
+            "destination_longitude": destination_longitude,
         },
+    )
+
+
+# ==========================================================
+# CHECK WHETHER TRIP STILL EXISTS
+# ==========================================================
+
+def trip_exists(
+    db,
+    trip_id: int,
+) -> bool:
+
+    return (
+        db.query(Trip.id)
+        .filter(
+            Trip.id == trip_id
+        )
+        .first()
+        is not None
+    )
+
+
+# ==========================================================
+# GET FRESH TRIP
+# ==========================================================
+
+def get_trip(
+    db,
+    trip_id: int,
+):
+
+    return (
+        db.query(Trip)
+        .filter(
+            Trip.id == trip_id
+        )
+        .first()
     )
 
 
@@ -502,11 +524,11 @@ async def simulate_vehicle_location(
     trip_id: int,
 ):
 
-    # ------------------------------------------------------
-    # PROTECTION AGAINST DUPLICATE SIMULATORS
-    # ------------------------------------------------------
-
     current_task = asyncio.current_task()
+
+    # ------------------------------------------------------
+    # DUPLICATE PROTECTION
+    # ------------------------------------------------------
 
     async with _simulation_lock:
 
@@ -537,15 +559,12 @@ async def simulate_vehicle_location(
     try:
 
         # ==================================================
-        # GET TRIP
+        # INITIAL TRIP
         # ==================================================
 
-        trip = (
-            db.query(Trip)
-            .filter(
-                Trip.id == trip_id
-            )
-            .first()
+        trip = get_trip(
+            db,
+            trip_id,
         )
 
         if trip is None:
@@ -604,7 +623,7 @@ async def simulate_vehicle_location(
         )
 
         # ==================================================
-        # GET ACTUAL OSRM ROAD ROUTE
+        # GET ROAD ROUTE
         # ==================================================
 
         route_data = await get_road_route(
@@ -614,9 +633,7 @@ async def simulate_vehicle_location(
             destination_longitude,
         )
 
-        route_points = route_data[
-            "points"
-        ]
+        route_points = route_data["points"]
 
         total_route_distance_km = float(
             route_data["distance_km"]
@@ -639,8 +656,7 @@ async def simulate_vehicle_location(
         )
 
         # ==================================================
-        # IMPORTANT:
-        # RESUME FROM SAVED LOCATION
+        # RESUME SAVED LOCATION
         # ==================================================
 
         if (
@@ -648,8 +664,7 @@ async def simulate_vehicle_location(
             and trip.current_longitude is not None
             and trip.progress is not None
             and float(trip.progress) > 0
-            and trip.trip_status
-            in (
+            and trip.trip_status in (
                 "In Transit",
                 "In Progress",
             )
@@ -663,15 +678,12 @@ async def simulate_vehicle_location(
                 trip.current_longitude
             )
 
-            start_index = (
-                find_nearest_route_index(
-                    route_points,
-                    current_latitude,
-                    current_longitude,
-                )
+            start_index = find_nearest_route_index(
+                route_points,
+                current_latitude,
+                current_longitude,
             )
 
-            # Never move backwards.
             saved_progress = float(
                 trip.progress
             )
@@ -687,7 +699,6 @@ async def simulate_vehicle_location(
 
             if saved_progress > calculated_progress:
 
-                # Find index based on saved progress
                 start_index = min(
                     len(route_points) - 1,
                     max(
@@ -718,7 +729,6 @@ async def simulate_vehicle_location(
 
         else:
 
-            # New trip starts at pickup
             start_index = 0
 
             current_latitude = (
@@ -729,26 +739,43 @@ async def simulate_vehicle_location(
                 pickup_longitude
             )
 
-            # Save initial position
-            trip.current_latitude = (
+            # --------------------------------------------------
+            # Save initial location
+            # --------------------------------------------------
+
+            fresh_trip = get_trip(
+                db,
+                trip_id,
+            )
+
+            if fresh_trip is None:
+
+                print(
+                    f"Trip {trip_id} was deleted "
+                    "before simulation started."
+                )
+
+                return
+
+            fresh_trip.current_latitude = (
                 pickup_latitude
             )
 
-            trip.current_longitude = (
+            fresh_trip.current_longitude = (
                 pickup_longitude
             )
 
-            trip.progress = 0.0
+            fresh_trip.progress = 0.0
 
-            trip.remaining_distance_km = (
+            fresh_trip.remaining_distance_km = (
                 total_route_distance_km
             )
 
-            trip.remaining_duration_minutes = (
+            fresh_trip.remaining_duration_minutes = (
                 total_route_duration_minutes
             )
 
-            trip.trip_status = "Scheduled"
+            fresh_trip.trip_status = "Scheduled"
 
             db.commit()
 
@@ -758,7 +785,7 @@ async def simulate_vehicle_location(
             )
 
         # ==================================================
-        # CALCULATE GEOMETRY TOTAL
+        # TOTAL GEOMETRY DISTANCE
         # ==================================================
 
         geometry_total_distance_km = (
@@ -768,7 +795,7 @@ async def simulate_vehicle_location(
         )
 
         # ==================================================
-        # START / RESUME BROADCAST
+        # INITIAL BROADCAST
         # ==================================================
 
         remaining_distance = (
@@ -802,8 +829,6 @@ async def simulate_vehicle_location(
 
         if start_index >= len(route_points) - 1:
 
-            remaining_distance_km = 0.0
-            remaining_duration_minutes = 0.0
             progress = 100.0
 
         else:
@@ -827,30 +852,14 @@ async def simulate_vehicle_location(
                 else "At Pickup"
             ),
             progress=progress,
-            remaining_distance_km=(
-                remaining_distance_km
-            ),
-            remaining_duration_minutes=(
-                remaining_duration_minutes
-            ),
-            total_distance_km=(
-                total_route_distance_km
-            ),
-            total_duration_minutes=(
-                total_route_duration_minutes
-            ),
-            pickup_latitude=(
-                pickup_latitude
-            ),
-            pickup_longitude=(
-                pickup_longitude
-            ),
-            destination_latitude=(
-                destination_latitude
-            ),
-            destination_longitude=(
-                destination_longitude
-            ),
+            remaining_distance_km=remaining_distance_km,
+            remaining_duration_minutes=remaining_duration_minutes,
+            total_distance_km=total_route_distance_km,
+            total_duration_minutes=total_route_duration_minutes,
+            pickup_latitude=pickup_latitude,
+            pickup_longitude=pickup_longitude,
+            destination_latitude=destination_latitude,
+            destination_longitude=destination_longitude,
         )
 
         # ==================================================
@@ -862,13 +871,59 @@ async def simulate_vehicle_location(
             len(route_points),
         ):
 
+            # --------------------------------------------------
+            # IMPORTANT:
+            # Re-query Trip every iteration.
+            # This prevents using a deleted SQLAlchemy object.
+            # --------------------------------------------------
+
+            trip = get_trip(
+                db,
+                trip_id,
+            )
+
+            if trip is None:
+
+                print(
+                    f"Trip {trip_id} was deleted. "
+                    "Stopping simulation."
+                )
+
+                await manager.broadcast_trip(
+                    trip_id,
+                    {
+                        "type": "trip_unavailable",
+                        "trip_id": trip_id,
+                        "status": "Deleted",
+                    },
+                )
+
+                break
+
+            # --------------------------------------------------
+            # Stop if trip has already completed/cancelled
+            # --------------------------------------------------
+
+            if trip.trip_status in (
+                "Cancelled",
+                "Completed",
+            ):
+
+                print(
+                    f"Trip {trip_id}: "
+                    f"status is {trip.trip_status}. "
+                    "Stopping simulation."
+                )
+
+                break
+
             latitude, longitude = (
                 route_points[index]
             )
 
-            # ----------------------------------------------
+            # ==================================================
             # PROGRESS
-            # ----------------------------------------------
+            # ==================================================
 
             if len(route_points) <= 1:
 
@@ -884,9 +939,9 @@ async def simulate_vehicle_location(
                     )
                 ) * 100.0
 
-            # ----------------------------------------------
+            # ==================================================
             # REMAINING DISTANCE
-            # ----------------------------------------------
+            # ==================================================
 
             remaining_geometry_distance_km = (
                 calculate_remaining_distance(
@@ -915,9 +970,9 @@ async def simulate_vehicle_location(
 
                 remaining_distance_km = 0.0
 
-            # ----------------------------------------------
+            # ==================================================
             # ETA
-            # ----------------------------------------------
+            # ==================================================
 
             if (
                 total_route_distance_km > 0
@@ -939,10 +994,6 @@ async def simulate_vehicle_location(
 
                 remaining_duration_minutes = 0.0
 
-            # ----------------------------------------------
-            # NEVER ALLOW NEGATIVE VALUES
-            # ----------------------------------------------
-
             remaining_distance_km = max(
                 0.0,
                 remaining_distance_km,
@@ -953,19 +1004,15 @@ async def simulate_vehicle_location(
                 remaining_duration_minutes,
             )
 
-            # ----------------------------------------------
-            # DESTINATION
-            # ----------------------------------------------
+            # ==================================================
+            # STATUS
+            # ==================================================
 
             if index == len(route_points) - 1:
 
-                latitude = (
-                    destination_latitude
-                )
+                latitude = destination_latitude
 
-                longitude = (
-                    destination_longitude
-                )
+                longitude = destination_longitude
 
                 progress = 100.0
 
@@ -973,9 +1020,7 @@ async def simulate_vehicle_location(
 
                 remaining_duration_minutes = 0.0
 
-                status = (
-                    "Arrived at Destination"
-                )
+                status = "Arrived at Destination"
 
             elif index == 0:
 
@@ -989,52 +1034,42 @@ async def simulate_vehicle_location(
             # SAVE CURRENT LOCATION
             # ==================================================
 
-            trip.current_latitude = (
-                float(latitude)
+            trip.current_latitude = float(
+                latitude
             )
 
-            trip.current_longitude = (
-                float(longitude)
+            trip.current_longitude = float(
+                longitude
             )
 
             trip.progress = float(
                 progress
             )
 
-            trip.remaining_distance_km = (
-                float(
-                    remaining_distance_km
-                )
+            trip.remaining_distance_km = float(
+                remaining_distance_km
             )
 
-            trip.remaining_duration_minutes = (
-                float(
-                    remaining_duration_minutes
-                )
+            trip.remaining_duration_minutes = float(
+                remaining_duration_minutes
             )
 
             if status == "Arrived at Destination":
 
-                trip.trip_status = (
-                    "Completed"
-                )
+                trip.trip_status = "Completed"
 
             elif status == "At Pickup":
 
-                trip.trip_status = (
-                    "Scheduled"
-                )
+                trip.trip_status = "Scheduled"
 
             else:
 
-                trip.trip_status = (
-                    "In Transit"
-                )
+                trip.trip_status = "In Transit"
 
             db.commit()
 
             # ==================================================
-            # SEND LIVE UPDATE
+            # BROADCAST
             # ==================================================
 
             await broadcast_location(
@@ -1043,30 +1078,14 @@ async def simulate_vehicle_location(
                 longitude=longitude,
                 status=status,
                 progress=progress,
-                remaining_distance_km=(
-                    remaining_distance_km
-                ),
-                remaining_duration_minutes=(
-                    remaining_duration_minutes
-                ),
-                total_distance_km=(
-                    total_route_distance_km
-                ),
-                total_duration_minutes=(
-                    total_route_duration_minutes
-                ),
-                pickup_latitude=(
-                    pickup_latitude
-                ),
-                pickup_longitude=(
-                    pickup_longitude
-                ),
-                destination_latitude=(
-                    destination_latitude
-                ),
-                destination_longitude=(
-                    destination_longitude
-                ),
+                remaining_distance_km=remaining_distance_km,
+                remaining_duration_minutes=remaining_duration_minutes,
+                total_distance_km=total_route_distance_km,
+                total_duration_minutes=total_route_duration_minutes,
+                pickup_latitude=pickup_latitude,
+                pickup_longitude=pickup_longitude,
+                destination_latitude=destination_latitude,
+                destination_longitude=destination_longitude,
             )
 
             print(
@@ -1085,11 +1104,7 @@ async def simulate_vehicle_location(
             # FINISHED
             # ==================================================
 
-            if (
-                index
-                ==
-                len(route_points) - 1
-            ):
+            if index == len(route_points) - 1:
 
                 await manager.broadcast_trip(
                     trip_id,
@@ -1098,13 +1113,9 @@ async def simulate_vehicle_location(
 
                         "trip_id": trip_id,
 
-                        "latitude": (
-                            destination_latitude
-                        ),
+                        "latitude": destination_latitude,
 
-                        "longitude": (
-                            destination_longitude
-                        ),
+                        "longitude": destination_longitude,
 
                         "status": "Completed",
 
@@ -1183,7 +1194,7 @@ async def simulate_vehicle_location(
         db.close()
 
         # --------------------------------------------------
-        # Remove task from registry
+        # Remove simulation from registry
         # --------------------------------------------------
 
         async with _simulation_lock:
@@ -1203,7 +1214,7 @@ async def simulate_vehicle_location(
 
 
 # ==========================================================
-# SAFE START FUNCTION
+# SAFE START
 # ==========================================================
 
 async def start_vehicle_simulation(
@@ -1214,7 +1225,7 @@ async def start_vehicle_simulation(
     Start exactly one simulation for a trip.
 
     If the trip is already running, the existing
-    simulation is kept alive.
+    simulation is returned.
     """
 
     async with _simulation_lock:

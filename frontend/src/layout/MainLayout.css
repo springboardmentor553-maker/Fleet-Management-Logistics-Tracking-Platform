@@ -1,131 +1,95 @@
-/* =========================================
-   MAIN LAYOUT
-========================================= */
+/* =========================================================
+   FLEETFLOW - MAIN LAYOUT
+   ========================================================= */
 
-.layout{
-
-    display:flex;
-
-    width:100%;
-
-    min-height:100vh;
-
-    background:#f5f7fb;
-
+.layout {
+    min-height: 100vh;
+    width: 100%;
+    background: #f4f7fb;
 }
 
-/* =========================================
-   MAIN CONTENT
-========================================= */
+/* =========================================================
+   MAIN AREA
+   ========================================================= */
 
-.main-container{
+.main-container {
+    margin-left: 300px;
+    width: calc(100% - 300px);
+    min-height: 100vh;
 
-    flex:1;
+    display: flex;
+    flex-direction: column;
 
-    margin-left:260px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    min-height:100vh;
-
-    transition:.35s ease;
-
+    background: #f4f7fb;
 }
 
-/* =========================================
-   PAGE
-========================================= */
+/* =========================================================
+   PAGE CONTENT
+   ========================================================= */
 
-.page-container{
+.page-container {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
 
-    flex:1;
+    padding: 28px 32px 40px;
 
-    padding:30px;
+    background: #f4f7fb;
 
-    overflow-x:hidden;
-
-    overflow-y:auto;
-
+    overflow-x: hidden;
 }
 
-/* =========================================
-   DESKTOP
-========================================= */
+/* =========================================================
+   LARGE SCREEN
+   ========================================================= */
 
-@media(max-width:1200px){
+@media (min-width: 1600px) {
+    .main-container {
+        margin-left: 310px;
+        width: calc(100% - 310px);
+    }
 
-.main-container{
-
-margin-left:220px;
-
+    .page-container {
+        padding: 30px 38px 45px;
+    }
 }
 
-.page-container{
-
-padding:25px;
-
-}
-
-}
-
-/* =========================================
+/* =========================================================
    TABLET
-========================================= */
+   ========================================================= */
 
-@media(max-width:992px){
+@media (max-width: 1100px) {
+    .main-container {
+        margin-left: 270px;
+        width: calc(100% - 270px);
+    }
 
-.main-container{
-
-margin-left:90px;
-
+    .page-container {
+        padding: 25px;
+    }
 }
 
-.page-container{
-
-padding:22px;
-
-}
-
-}
-
-/* =========================================
+/* =========================================================
    MOBILE
-========================================= */
+   ========================================================= */
 
-@media(max-width:768px){
+@media (max-width: 768px) {
+    .main-container {
+        margin-left: 0;
+        width: 100%;
+    }
 
-.main-container{
-
-margin-left:0;
-
-width:100%;
-
+    .page-container {
+        padding: 20px 16px 30px;
+    }
 }
 
-.page-container{
-
-padding:20px;
-
-padding-top:90px;
-
-}
-
-}
-
-/* =========================================
+/* =========================================================
    SMALL MOBILE
-========================================= */
+   ========================================================= */
 
-@media(max-width:480px){
-
-.page-container{
-
-padding:15px;
-
-padding-top:85px;
-
-}
-
+@media (max-width: 480px) {
+    .page-container {
+        padding: 16px 12px 25px;
+    }
 }

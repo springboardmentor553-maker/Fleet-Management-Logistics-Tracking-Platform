@@ -1,23 +1,34 @@
 import "./DashboardCard.css";
 
 function DashboardCard({ title, value, icon }) {
-  return (
-    <div className="dashboard-card">
+    const safeValue =
+        value === null ||
+        value === undefined ||
+        value === ""
+            ? 0
+            : Number(value);
 
-      <div className="card-icon">
-        {icon}
-      </div>
+    return (
+        <div className="dashboard-card">
 
-      <div className="card-content">
+            <div className="dashboard-card-icon">
+                {icon}
+            </div>
 
-        <h3>{title}</h3>
+            <div className="dashboard-card-content">
 
-        <h1>{value}</h1>
+                <h3>
+                    {title}
+                </h3>
 
-      </div>
+                <p>
+                    {Number.isNaN(safeValue) ? 0 : safeValue}
+                </p>
 
-    </div>
-  );
+            </div>
+
+        </div>
+    );
 }
 
 export default DashboardCard;

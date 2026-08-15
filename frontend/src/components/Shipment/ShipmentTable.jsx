@@ -1,104 +1,195 @@
 import "./Shipment.css";
 
 import {
-
     FaEdit,
-
-    FaTrash
-
+    FaTrash,
 } from "react-icons/fa";
 
+import {
+    getShipmentStatusClass,
+    getShipmentStatusText,
+} from "../../constants/shipmentStatus";
+
+
 function ShipmentTable({
-
-    shipments,
-
+    shipments = [],
     onEdit,
-
-    onDelete
-
+    onDelete,
 }) {
+
+    // ==========================================================
+    // SAFE SHIPMENT ARRAY
+    // ==========================================================
+
+    const shipmentList =
+        Array.isArray(shipments)
+            ? shipments
+            : [];
+
+
+    // ==========================================================
+    // EDIT
+    // ==========================================================
+
+    const handleEdit = (
+        shipment
+    ) => {
+
+        if (
+            typeof onEdit === "function"
+        ) {
+
+            onEdit(shipment);
+
+        }
+
+    };
+
+
+    // ==========================================================
+    // DELETE
+    // ==========================================================
+
+    const handleDelete = (
+        shipmentId
+    ) => {
+
+        if (
+            typeof onDelete === "function"
+        ) {
+
+            onDelete(shipmentId);
+
+        }
+
+    };
+
+
+    // ==========================================================
+    // JSX
+    // ==========================================================
 
     return (
 
         <div className="table-card">
 
+            {/* ==================================================
+                TABLE HEADER
+            ================================================== */}
+
             <div className="table-header">
 
                 <h2>
-
                     Shipment List
-
                 </h2>
 
             </div>
+
+
+            {/* ==================================================
+                RESPONSIVE TABLE
+            ================================================== */}
 
             <div className="table-responsive">
 
                 <table className="shipment-table">
 
+                    {/* ==================================================
+                        TABLE HEAD
+                    ================================================== */}
+
                     <thead>
 
                         <tr>
 
-                            <th>#</th>
+                            <th>
+                                #
+                            </th>
 
-                            <th>Tracking No.</th>
+                            <th>
+                                Tracking No.
+                            </th>
 
-                            <th>Sender</th>
+                            <th>
+                                Sender
+                            </th>
 
-                            <th>Receiver</th>
+                            <th>
+                                Receiver
+                            </th>
 
-                            <th>Pickup</th>
+                            <th>
+                                Pickup
+                            </th>
 
-                            <th>Delivery</th>
+                            <th>
+                                Delivery
+                            </th>
 
-                            <th>Status</th>
+                            <th>
+                                Status
+                            </th>
 
-                            <th>Weight</th>
+                            <th>
+                                Weight
+                            </th>
 
-                            <th>Driver ID</th>
+                            <th>
+                                Driver ID
+                            </th>
 
-                            <th>Vehicle ID</th>
+                            <th>
+                                Vehicle ID
+                            </th>
 
-                            <th>Actions</th>
+                            <th>
+                                Actions
+                            </th>
 
                         </tr>
 
                     </thead>
 
+
+                    {/* ==================================================
+                        TABLE BODY
+                    ================================================== */}
+
                     <tbody>
 
-                        {
+                        {shipmentList.length === 0 ? (
 
-                            shipments.length === 0 ?
+                            <tr>
 
-                            (
+                                <td
+                                    colSpan="11"
+                                    className="no-data"
+                                >
 
-                                <tr>
+                                    No Shipments Available
 
-                                    <td
+                                </td>
 
-                                        colSpan="11"
+                            </tr>
 
-                                        className="no-data"
+                        ) : (
 
+                            shipmentList.map(
+                                (
+                                    shipment,
+                                    index
+                                ) => (
+
+                                    <tr
+                                        key={
+                                            shipment.id ??
+                                            `shipment-${index}`
+                                        }
                                     >
 
-                                        No Shipments Available
-
-                                    </td>
-
-                                </tr>
-
-                            )
-
-                            :
-
-                            (
-
-                                shipments.map((shipment, index) => (
-
-                                    <tr key={shipment.id}>
+                                        {/* ==================================================
+                                            ID
+                                        ================================================== */}
 
                                         <td>
 
@@ -106,138 +197,181 @@ function ShipmentTable({
 
                                         </td>
 
-                                        <td>
 
-                                            {shipment.tracking_number}
-
-                                        </td>
-
-                                        <td>
-
-                                            {shipment.sender_name}
-
-                                        </td>
+                                        {/* ==================================================
+                                            TRACKING NUMBER
+                                        ================================================== */}
 
                                         <td>
 
-                                            {shipment.receiver_name}
+                                            {shipment.tracking_number ||
+                                                "-"}
 
                                         </td>
+
+
+                                        {/* ==================================================
+                                            SENDER
+                                        ================================================== */}
 
                                         <td>
 
-                                            {shipment.pickup_location}
+                                            {shipment.sender_name ||
+                                                "-"}
 
                                         </td>
+
+
+                                        {/* ==================================================
+                                            RECEIVER
+                                        ================================================== */}
 
                                         <td>
 
-                                            {shipment.delivery_location}
+                                            {shipment.receiver_name ||
+                                                "-"}
 
                                         </td>
+
+
+                                        {/* ==================================================
+                                            PICKUP
+                                        ================================================== */}
+
+                                        <td>
+
+                                            {shipment.pickup_location ||
+                                                "-"}
+
+                                        </td>
+
+
+                                        {/* ==================================================
+                                            DELIVERY
+                                        ================================================== */}
+
+                                        <td>
+
+                                            {shipment.delivery_location ||
+                                                "-"}
+
+                                        </td>
+
+
+                                        {/* ==================================================
+                                            STATUS
+                                        ================================================== */}
 
                                         <td>
 
                                             <span
-
                                                 className={
-
-                                                    shipment.current_status === "Created"
-
-                                                        ? "status created"
-
-                                                        : shipment.current_status === "Assigned"
-
-                                                        ? "status assigned"
-
-                                                        : shipment.current_status === "In Transit"
-
-                                                        ? "status transit"
-
-                                                        : shipment.current_status === "Delayed"
-
-                                                        ? "status delayed"
-
-                                                        : shipment.current_status === "Delivered"
-
-                                                        ? "status delivered"
-
-                                                        : "status cancelled"
-
+                                                    getShipmentStatusClass(
+                                                        shipment.current_status
+                                                    )
                                                 }
-
                                             >
 
-                                                {shipment.current_status}
+                                                {
+                                                    getShipmentStatusText(
+                                                        shipment.current_status
+                                                    )
+                                                }
 
                                             </span>
 
                                         </td>
 
-                                        <td>
 
-                                            {shipment.weight} kg
-
-                                        </td>
-
-                                        <td>
-
-                                            {
-
-                                                shipment.assigned_driver_id
-
-                                                    ?
-
-                                                    shipment.assigned_driver_id
-
-                                                    :
-
-                                                    "-"
-
-                                            }
-
-                                        </td>
+                                        {/* ==================================================
+                                            WEIGHT
+                                        ================================================== */}
 
                                         <td>
 
                                             {
-
-                                                shipment.assigned_vehicle_id
-
-                                                    ?
-
-                                                    shipment.assigned_vehicle_id
-
-                                                    :
-
-                                                    "-"
-
+                                                shipment.weight !==
+                                                    null &&
+                                                shipment.weight !==
+                                                    undefined &&
+                                                shipment.weight !==
+                                                    ""
+                                                    ? `${shipment.weight} kg`
+                                                    : "-"
                                             }
 
                                         </td>
 
+
+                                        {/* ==================================================
+                                            DRIVER
+                                        ================================================== */}
+
                                         <td>
 
-                                            <div className="action-buttons">
+                                            {
+                                                shipment.assigned_driver_id ||
+                                                "-"
+                                            }
+
+                                        </td>
+
+
+                                        {/* ==================================================
+                                            VEHICLE
+                                        ================================================== */}
+
+                                        <td>
+
+                                            {
+                                                shipment.assigned_vehicle_id ||
+                                                "-"
+                                            }
+
+                                        </td>
+
+
+                                        {/* ==================================================
+                                            ACTIONS
+                                        ================================================== */}
+
+                                        <td>
+
+                                            <div
+                                                className="action-buttons"
+                                            >
+
+                                                {/* EDIT */}
 
                                                 <button
-
+                                                    type="button"
                                                     className="edit-btn"
-
-                                                    onClick={() => onEdit(shipment)}
-
+                                                    onClick={() =>
+                                                        handleEdit(
+                                                            shipment
+                                                        )
+                                                    }
+                                                    title="Edit Shipment"
+                                                    aria-label="Edit Shipment"
                                                 >
 
                                                     <FaEdit />
 
                                                 </button>
 
+
+                                                {/* DELETE */}
+
                                                 <button
-
+                                                    type="button"
                                                     className="delete-btn"
-
-                                                    onClick={() => onDelete(shipment.id)}
-
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            shipment.id
+                                                        )
+                                                    }
+                                                    title="Delete Shipment"
+                                                    aria-label="Delete Shipment"
                                                 >
 
                                                     <FaTrash />
@@ -250,11 +384,10 @@ function ShipmentTable({
 
                                     </tr>
 
-                                ))
-
+                                )
                             )
 
-                        }
+                        )}
 
                     </tbody>
 
@@ -267,5 +400,6 @@ function ShipmentTable({
     );
 
 }
+
 
 export default ShipmentTable;

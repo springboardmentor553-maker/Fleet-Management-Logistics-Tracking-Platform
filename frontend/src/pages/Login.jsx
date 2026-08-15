@@ -3,157 +3,1157 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./Login.css";
 
+
+// ==========================================================
+// LOGIN
+// ==========================================================
+
 function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
 
+
+    // ==========================================================
+    // MODE
+    // ==========================================================
+
+    const [mode, setMode] = useState("login");
+    // login | register | forgot
+
+
+    // ==========================================================
+    // LOGIN STATE
+    // ==========================================================
+
+    const [loginEmail, setLoginEmail] = useState("");
+    const [loginPassword, setLoginPassword] = useState("");
+
+
+    // ==========================================================
+    // REGISTER STATE
+    // ==========================================================
+
+    const [name, setName] = useState("");
+    const [registerEmail, setRegisterEmail] = useState("");
+    const [registerPassword, setRegisterPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    // Public registration should always create a normal User.
+    const role = "User";
+
+
+    // ==========================================================
+    // FORGOT PASSWORD STATE
+    // ==========================================================
+
+    const [forgotEmail, setForgotEmail] = useState("");
+
+
+    // ==========================================================
+    // UI STATE
+    // ==========================================================
+
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+    const [showRegisterPassword, setShowRegisterPassword] =
+        useState(false);
+
+    const [showConfirmPassword, setShowConfirmPassword] =
+        useState(false);
+
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+
+
+    // ==========================================================
+    // CLEAR AUTH SESSION
+    // ==========================================================
+
+    const clearAuthSession = () => {
+
+        sessionStorage.removeItem("token");
+
+        sessionStorage.removeItem("token_type");
+
+        sessionStorage.removeItem("user");
+
+        sessionStorage.removeItem("user_email");
+
+
+        // Remove old authentication data that may have
+        // been created by the previous localStorage version.
+
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("token_type");
+
+        localStorage.removeItem("user");
+
+        localStorage.removeItem("user_email");
+    };
+
+
+    // ==========================================================
+    // CLEAR MESSAGES
+    // ==========================================================
+
+    const clearMessages = () => {
+
+        setMessage("");
+
+        setError("");
+    };
+
+
+    // ==========================================================
+    // SWITCH MODE
+    // ==========================================================
+
+    const switchMode = (newMode) => {
+
+        clearMessages();
+
+        setMode(newMode);
+    };
+
+
+    // ==========================================================
+    // LOGIN
+    // ==========================================================
+
     const handleLogin = async (e) => {
+
         e.preventDefault();
 
-        // Remove unnecessary spaces
-        const cleanEmail = email.trim();
-        const cleanPassword = password.trim();
+        clearMessages();
 
-        // Basic validation
-        if (!cleanEmail || !cleanPassword) {
-            alert("Please enter email and password.");
+
+        const email =
+            loginEmail.trim();
+
+        const password =
+            loginPassword.trim();
+
+
+        // ======================================================
+        // VALIDATION
+        // ======================================================
+
+        if (!email || !password) {
+
+            setError(
+                "Please enter email and password."
+            );
+
             return;
         }
 
+
         setLoading(true);
 
+
         try {
-            console.log("Sending login request...");
-            console.log("Email:", cleanEmail);
 
-            const response = await api.post("/auth/login", {
-                email: cleanEmail,
-                password: cleanPassword,
-            });
+            // --------------------------------------------------
+            // Clear previous session
+            // --------------------------------------------------
 
-            console.log("Login Success:", response.data);
+            clearAuthSession();
 
-            // Check whether token was received
-            if (!response.data.access_token) {
-                console.error(
-                    "Access token missing:",
-                    response.data
+
+            // --------------------------------------------------
+            // Login
+            // --------------------------------------------------
+
+            const response =
+                await api.post(
+                    "/auth/login",
+                    {
+                        email,
+                        password,
+                    }
                 );
 
-                alert("Login failed: Access token not received.");
+
+            console.log(
+                "Login response:",
+                response.data
+            );
+
+
+            // --------------------------------------------------
+            // Validate token
+            // --------------------------------------------------
+
+            if (
+                !response.data?.access_token
+            ) {
+
+                setError(
+                    "Login failed: access token was not received."
+                );
+
                 return;
             }
 
-            // Save JWT token
-            localStorage.setItem(
+
+            // --------------------------------------------------
+            // Save JWT in SESSION STORAGE
+            // --------------------------------------------------
+
+            sessionStorage.setItem(
                 "token",
                 response.data.access_token
             );
 
-            // Optional: save user email
-            localStorage.setItem(
-                "user_email",
-                cleanEmail
-            );
 
-            // Go to dashboard
-            navigate("/dashboard");
+            if (
+                response.data.token_type
+            ) {
 
-        } catch (error) {
-            console.error("Login Error:", error);
-
-            if (error.response) {
-                console.error(
-                    "Status:",
-                    error.response.status
-                );
-
-                console.error(
-                    "Response:",
-                    error.response.data
-                );
-
-                const message =
-                    error.response.data?.detail ||
-                    error.response.data?.message ||
-                    "Invalid email or password";
-
-                alert(message);
-
-            } else if (error.request) {
-                console.error(
-                    "No response received:",
-                    error.request
-                );
-
-                alert(
-                    "Unable to connect to the server. Please make sure FastAPI is running."
+                sessionStorage.setItem(
+                    "token_type",
+                    response.data.token_type
                 );
 
             } else {
-                console.error(
-                    "Request Error:",
-                    error.message
-                );
 
-                alert("Something went wrong. Please try again.");
+                sessionStorage.setItem(
+                    "token_type",
+                    "bearer"
+                );
             }
 
+
+            sessionStorage.setItem(
+                "user_email",
+                email
+            );
+
+
+            // --------------------------------------------------
+            // Fetch logged-in user's profile
+            // --------------------------------------------------
+
+            let user = null;
+
+
+            try {
+
+                const profileResponse =
+                    await api.get(
+                        "/auth/profile"
+                    );
+
+
+                user =
+                    profileResponse.data;
+
+
+                console.log(
+                    "Current user profile:",
+                    user
+                );
+
+
+                if (user) {
+
+                    sessionStorage.setItem(
+                        "user",
+                        JSON.stringify(user)
+                    );
+                }
+
+
+            } catch (profileError) {
+
+                console.error(
+                    "Profile fetch error:",
+                    profileError
+                );
+
+
+                // If profile cannot be fetched,
+                // clear the complete session.
+
+                clearAuthSession();
+
+
+                setError(
+                    "Login succeeded, but your user profile could not be loaded."
+                );
+
+
+                return;
+            }
+
+
+            // --------------------------------------------------
+            // Validate user
+            // --------------------------------------------------
+
+            if (!user) {
+
+                clearAuthSession();
+
+                setError(
+                    "Unable to load user profile."
+                );
+
+                return;
+            }
+
+
+            // --------------------------------------------------
+            // Get role
+            // --------------------------------------------------
+
+            const userRole =
+                String(
+                    user?.role || "User"
+                )
+                    .trim()
+                    .toLowerCase();
+
+
+            console.log(
+                "FleetFlow logged-in user:",
+                user
+            );
+
+            console.log(
+                "FleetFlow role:",
+                userRole
+            );
+
+
+            // --------------------------------------------------
+            // Redirect
+            // --------------------------------------------------
+
+            navigate(
+                "/dashboard",
+                {
+                    replace: true,
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Login Error:",
+                error
+            );
+
+
+            // Clear invalid session
+
+            clearAuthSession();
+
+
+            if (
+                error.response
+            ) {
+
+                const detail =
+                    error.response.data?.detail ||
+                    error.response.data?.message ||
+                    "Invalid email or password.";
+
+
+                setError(
+                    detail
+                );
+
+
+            } else if (
+                error.request
+            ) {
+
+                setError(
+                    "Unable to connect to the server. Please make sure FastAPI is running."
+                );
+
+
+            } else {
+
+                setError(
+                    "Something went wrong. Please try again."
+                );
+            }
+
+
         } finally {
+
             setLoading(false);
         }
     };
 
-    return (
-        <div className="login-container">
+
+    // ==========================================================
+    // REGISTER
+    // ==========================================================
+
+    const handleRegister = async (e) => {
+
+        e.preventDefault();
+
+        clearMessages();
+
+
+        const cleanName =
+            name.trim();
+
+        const cleanEmail =
+            registerEmail.trim();
+
+        const cleanPassword =
+            registerPassword.trim();
+
+        const cleanConfirmPassword =
+            confirmPassword.trim();
+
+
+        if (!cleanName) {
+
+            setError(
+                "Please enter your name."
+            );
+
+            return;
+        }
+
+
+        if (!cleanEmail) {
+
+            setError(
+                "Please enter your email."
+            );
+
+            return;
+        }
+
+
+        if (!cleanPassword) {
+
+            setError(
+                "Please enter a password."
+            );
+
+            return;
+        }
+
+
+        if (
+            cleanPassword.length < 6
+        ) {
+
+            setError(
+                "Password must contain at least 6 characters."
+            );
+
+            return;
+        }
+
+
+        if (
+            cleanPassword !==
+            cleanConfirmPassword
+        ) {
+
+            setError(
+                "Passwords do not match."
+            );
+
+            return;
+        }
+
+
+        setLoading(true);
+
+
+        try {
+
+            await api.post(
+                "/auth/register",
+                {
+                    name:
+                        cleanName,
+
+                    email:
+                        cleanEmail,
+
+                    password:
+                        cleanPassword,
+
+                    role:
+                        role,
+                }
+            );
+
+
+            setMessage(
+                "Account created successfully. You can now log in."
+            );
+
+
+            setName("");
+
+            setRegisterEmail("");
+
+            setRegisterPassword("");
+
+            setConfirmPassword("");
+
+
+            setTimeout(() => {
+
+                setMode("login");
+
+                setMessage(
+                    "Account created successfully. Please log in."
+                );
+
+            }, 800);
+
+
+        } catch (error) {
+
+            console.error(
+                "Registration Error:",
+                error
+            );
+
+
+            if (
+                error.response
+            ) {
+
+                const detail =
+                    error.response.data?.detail ||
+                    error.response.data?.message ||
+                    "Registration failed.";
+
+
+                setError(
+                    detail
+                );
+
+
+            } else if (
+                error.request
+            ) {
+
+                setError(
+                    "Unable to connect to the server. Please make sure FastAPI is running."
+                );
+
+
+            } else {
+
+                setError(
+                    "Something went wrong. Please try again."
+                );
+            }
+
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+
+    // ==========================================================
+    // FORGOT PASSWORD
+    // ==========================================================
+
+    const handleForgotPassword =
+        async (e) => {
+
+            e.preventDefault();
+
+            clearMessages();
+
+
+            const email =
+                forgotEmail.trim();
+
+
+            if (!email) {
+
+                setError(
+                    "Please enter your email address."
+                );
+
+                return;
+            }
+
+
+            setMessage(
+                "Password reset is not configured yet. Please contact the administrator to reset your password."
+            );
+        };
+
+
+    // ==========================================================
+    // LOGIN FORM
+    // ==========================================================
+
+    const renderLoginForm = () => {
+
+        return (
 
             <form
-                className="login-box"
+                className="auth-form"
                 onSubmit={handleLogin}
             >
 
-                <h1>FleetFlow</h1>
+                <div className="auth-header">
 
-                <h3>
-                    Fleet Management System
-                </h3>
+                    <h1>
+                        FleetFlow
+                    </h1>
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) =>
-                        setEmail(e.target.value)
-                    }
-                    required
-                    autoComplete="email"
-                />
+                    <p>
+                        Fleet Management System
+                    </p>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(e.target.value)
-                    }
-                    required
-                    autoComplete="current-password"
-                />
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={loginEmail}
+                        onChange={(e) =>
+                            setLoginEmail(
+                                e.target.value
+                            )
+                        }
+                        autoComplete="email"
+                        required
+                    />
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Password
+                    </label>
+
+
+                    <div className="password-wrapper">
+
+                        <input
+                            type={
+                                showLoginPassword
+                                    ? "text"
+                                    : "password"
+                            }
+                            placeholder="Enter your password"
+                            value={loginPassword}
+                            onChange={(e) =>
+                                setLoginPassword(
+                                    e.target.value
+                                )
+                            }
+                            autoComplete="current-password"
+                            required
+                        />
+
+
+                        <button
+                            type="button"
+                            className="password-toggle"
+                            onClick={() =>
+                                setShowLoginPassword(
+                                    !showLoginPassword
+                                )
+                            }
+                        >
+
+                            {
+                                showLoginPassword
+                                    ? "Hide"
+                                    : "Show"
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div className="forgot-row">
+
+                    <button
+                        type="button"
+                        className="link-button"
+                        onClick={() =>
+                            switchMode(
+                                "forgot"
+                            )
+                        }
+                    >
+                        Forgot Password?
+                    </button>
+
+                </div>
+
+
+                {error && (
+
+                    <div className="auth-message error-message">
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {message && (
+
+                    <div className="auth-message success-message">
+
+                        {message}
+
+                    </div>
+
+                )}
+
 
                 <button
                     type="submit"
+                    className="primary-button"
                     disabled={loading}
                 >
-                    {loading ? "Logging in..." : "Login"}
+
+                    {
+                        loading
+                            ? "Logging in..."
+                            : "Login"
+                    }
+
                 </button>
 
+
+                <div className="switch-section">
+
+                    <span>
+                        Don't have an account?
+                    </span>
+
+
+                    <button
+                        type="button"
+                        className="link-button create-link"
+                        onClick={() =>
+                            switchMode(
+                                "register"
+                            )
+                        }
+                    >
+                        Create New Account
+                    </button>
+
+                </div>
+
             </form>
+        );
+    };
+
+
+    // ==========================================================
+    // REGISTER FORM
+    // ==========================================================
+
+    const renderRegisterForm = () => {
+
+        return (
+
+            <form
+                className="auth-form"
+                onSubmit={handleRegister}
+            >
+
+                <div className="auth-header">
+
+                    <h1>
+                        Create Account
+                    </h1>
+
+                    <p>
+                        Join FleetFlow
+                    </p>
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChange={(e) =>
+                            setName(
+                                e.target.value
+                            )
+                        }
+                        autoComplete="name"
+                        required
+                    />
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={registerEmail}
+                        onChange={(e) =>
+                            setRegisterEmail(
+                                e.target.value
+                            )
+                        }
+                        autoComplete="email"
+                        required
+                    />
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Password
+                    </label>
+
+
+                    <div className="password-wrapper">
+
+                        <input
+                            type={
+                                showRegisterPassword
+                                    ? "text"
+                                    : "password"
+                            }
+                            placeholder="Create a password"
+                            value={registerPassword}
+                            onChange={(e) =>
+                                setRegisterPassword(
+                                    e.target.value
+                                )
+                            }
+                            autoComplete="new-password"
+                            required
+                        />
+
+
+                        <button
+                            type="button"
+                            className="password-toggle"
+                            onClick={() =>
+                                setShowRegisterPassword(
+                                    !showRegisterPassword
+                                )
+                            }
+                        >
+
+                            {
+                                showRegisterPassword
+                                    ? "Hide"
+                                    : "Show"
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Confirm Password
+                    </label>
+
+
+                    <div className="password-wrapper">
+
+                        <input
+                            type={
+                                showConfirmPassword
+                                    ? "text"
+                                    : "password"
+                            }
+                            placeholder="Confirm your password"
+                            value={confirmPassword}
+                            onChange={(e) =>
+                                setConfirmPassword(
+                                    e.target.value
+                                )
+                            }
+                            autoComplete="new-password"
+                            required
+                        />
+
+
+                        <button
+                            type="button"
+                            className="password-toggle"
+                            onClick={() =>
+                                setShowConfirmPassword(
+                                    !showConfirmPassword
+                                )
+                            }
+                        >
+
+                            {
+                                showConfirmPassword
+                                    ? "Hide"
+                                    : "Show"
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Account Type
+                    </label>
+
+                    <input
+                        type="text"
+                        value="User"
+                        readOnly
+                    />
+
+                    <small>
+                        New accounts are created as User
+                        accounts. Admin accounts are managed
+                        by the administrator.
+                    </small>
+
+                </div>
+
+
+                {error && (
+
+                    <div className="auth-message error-message">
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {message && (
+
+                    <div className="auth-message success-message">
+
+                        {message}
+
+                    </div>
+
+                )}
+
+
+                <button
+                    type="submit"
+                    className="primary-button"
+                    disabled={loading}
+                >
+
+                    {
+                        loading
+                            ? "Creating Account..."
+                            : "Create Account"
+                    }
+
+                </button>
+
+
+                <div className="switch-section">
+
+                    <span>
+                        Already have an account?
+                    </span>
+
+
+                    <button
+                        type="button"
+                        className="link-button create-link"
+                        onClick={() =>
+                            switchMode(
+                                "login"
+                            )
+                        }
+                    >
+                        Back to Login
+                    </button>
+
+                </div>
+
+            </form>
+        );
+    };
+
+
+    // ==========================================================
+    // FORGOT PASSWORD FORM
+    // ==========================================================
+
+    const renderForgotForm = () => {
+
+        return (
+
+            <form
+                className="auth-form"
+                onSubmit={handleForgotPassword}
+            >
+
+                <div className="auth-header">
+
+                    <h1>
+                        Forgot Password?
+                    </h1>
+
+                    <p>
+                        Enter your registered email
+                    </p>
+
+                </div>
+
+
+                <div className="form-group">
+
+                    <label>
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        placeholder="Enter your registered email"
+                        value={forgotEmail}
+                        onChange={(e) =>
+                            setForgotEmail(
+                                e.target.value
+                            )
+                        }
+                        autoComplete="email"
+                        required
+                    />
+
+                </div>
+
+
+                {error && (
+
+                    <div className="auth-message error-message">
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {message && (
+
+                    <div className="auth-message success-message">
+
+                        {message}
+
+                    </div>
+
+                )}
+
+
+                <button
+                    type="submit"
+                    className="primary-button"
+                    disabled={loading}
+                >
+                    Send Reset Instructions
+                </button>
+
+
+                <div className="switch-section">
+
+                    <button
+                        type="button"
+                        className="link-button create-link"
+                        onClick={() =>
+                            switchMode(
+                                "login"
+                            )
+                        }
+                    >
+                        ← Back to Login
+                    </button>
+
+                </div>
+
+            </form>
+        );
+    };
+
+
+    // ==========================================================
+    // MAIN UI
+    // ==========================================================
+
+    return (
+
+        <div className="login-container">
+
+            <div className="login-box">
+
+                {mode === "login" &&
+                    renderLoginForm()}
+
+                {mode === "register" &&
+                    renderRegisterForm()}
+
+                {mode === "forgot" &&
+                    renderForgotForm()}
+
+            </div>
 
         </div>
     );
 }
+
 
 export default Login;

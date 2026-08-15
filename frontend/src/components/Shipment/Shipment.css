@@ -1,322 +1,1047 @@
-/* ===================================================
-   Shipment Management Page
-=================================================== */
+/* ==========================================================
+   SHIPMENT PAGE
+========================================================== */
 
-.shipment-page{
-    width:100%;
-    padding:30px;
+.shipment-page {
+    width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
 }
 
-/* ===================================================
-   Header
-=================================================== */
 
-.shipment-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:30px;
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.shipment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 30px;
 }
 
-.shipment-header h1{
-    font-size:34px;
-    font-weight:700;
-    color:#1f2937;
+
+.shipment-header h1 {
+    margin: 0;
+
+    font-size: 34px;
+    font-weight: 700;
+
+    color: #172b4d;
 }
 
-.shipment-header p{
-    margin-top:8px;
-    color:#6b7280;
-    font-size:15px;
+
+.shipment-header p {
+    margin-top: 8px;
+
+    color: #6b7280;
+
+    font-size: 15px;
 }
 
-/* ===================================================
-   Search Box
-=================================================== */
 
-.search-container{
-    margin-bottom:25px;
+/* ==========================================================
+   SEARCH WRAPPER
+========================================================== */
+
+.shipment-search-wrapper {
+    width: 100%;
+
+    margin-bottom: 28px;
+
+    box-sizing: border-box;
 }
 
-.search-input{
-    width:350px;
-    height:45px;
-    padding:0 15px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    font-size:15px;
-    transition:.3s;
+
+/* ==========================================================
+   SEARCH BOX
+========================================================== */
+
+.shipment-search-box {
+    position: relative;
+
+    width: 100%;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
-.search-input:focus{
-    outline:none;
-    border-color:#2563eb;
-    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+
+/* ==========================================================
+   SEARCH BOX HOVER
+========================================================== */
+
+.shipment-search-box:hover {
+    border-color: #93b4e8;
+
+    box-shadow:
+        0 4px 12px
+        rgba(37, 99, 235, 0.08);
 }
 
-/* ===================================================
-   Shipment Form Card
-=================================================== */
 
-.shipment-form-card{
-    background:#fff;
-    padding:25px;
-    border-radius:12px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-    margin-bottom:30px;
+/* ==========================================================
+   SEARCH BOX FOCUS
+========================================================== */
+
+.shipment-search-box:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(37, 99, 235, 0.12);
 }
 
-.shipment-form-card h2{
-    margin-bottom:20px;
-    color:#1f2937;
-    font-size:24px;
+
+/* ==========================================================
+   SEARCH ICON
+========================================================== */
+
+.shipment-search-box .shipment-search-icon {
+    position: absolute;
+
+    left: 20px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 20px;
+    height: 20px;
+
+    color: #64748b;
+
+    pointer-events: none;
+
+    z-index: 5;
+
+    transition: color 0.2s ease;
 }
 
-.shipment-form{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
+
+/* Icon becomes blue when input is active */
+
+.shipment-search-box:focus-within
+.shipment-search-icon {
+    color: #2563eb;
 }
 
-.form-group{
-    display:flex;
-    flex-direction:column;
+
+/* ==========================================================
+   SEARCH INPUT
+   IMPORTANT:
+   This resets any old/global .search-input styling.
+========================================================== */
+
+.shipment-search-box input.search-input,
+.shipment-search-box .search-input {
+    position: relative;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    height: 100% !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    padding:
+        0
+        60px
+        0
+        55px !important;
+
+    border: none !important;
+
+    border-width: 0 !important;
+
+    border-radius: 0 !important;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    background: transparent !important;
+
+    color: #172b4d !important;
+
+    font-family: inherit;
+
+    font-size: 16px;
+
+    font-weight: 400;
+
+    line-height: normal;
+
+    appearance: none;
 }
 
-.form-group label{
-    margin-bottom:8px;
-    font-weight:600;
-    color:#374151;
+
+/* ==========================================================
+   REMOVE GLOBAL FOCUS EFFECT
+========================================================== */
+
+.shipment-search-box input.search-input:focus,
+.shipment-search-box .search-input:focus {
+    border: none !important;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    background: transparent !important;
 }
+
+
+/* ==========================================================
+   PLACEHOLDER
+========================================================== */
+
+.shipment-search-box
+input.search-input::placeholder {
+
+    color: #94a3b8;
+
+    opacity: 1;
+
+    font-size: 16px;
+
+    font-weight: 400;
+}
+
+
+/* ==========================================================
+   CLEAR BUTTON
+========================================================== */
+
+.shipment-search-box .clear-search-btn {
+    position: absolute;
+
+    right: 12px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 34px;
+    height: 34px;
+
+    padding: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #f1f5f9;
+
+    color: #64748b;
+
+    cursor: pointer;
+
+    z-index: 10;
+
+    font-size: 13px;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.shipment-search-box .clear-search-btn:hover {
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    transform:
+        translateY(-50%)
+        scale(1.05);
+}
+
+
+.shipment-search-box .clear-search-btn:active {
+
+    transform:
+        translateY(-50%)
+        scale(0.95);
+}
+
+
+/* ==========================================================
+   SEARCH RESULT LABEL
+========================================================== */
+
+.search-result-label {
+    margin-top: 10px;
+
+    padding-left: 4px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+.search-result-label strong {
+    color: #2563eb;
+
+    font-weight: 600;
+
+    word-break: break-word;
+}
+
+
+/* ==========================================================
+   FORM CARD
+========================================================== */
+
+.shipment-form-card {
+    background: #ffffff;
+
+    padding: 25px;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 5px 15px
+        rgba(0, 0, 0, 0.08);
+
+    margin-bottom: 30px;
+}
+
+
+.shipment-form-card h2 {
+    margin-bottom: 20px;
+
+    color: #1f2937;
+
+    font-size: 24px;
+}
+
+
+/* ==========================================================
+   FORM
+========================================================== */
+
+.shipment-form {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px, 1fr)
+        );
+
+    gap: 20px;
+}
+
+
+.form-group {
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.form-group label {
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+    color: #374151;
+}
+
 
 .form-group input,
-.form-group select{
-    height:45px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    padding:0 15px;
-    font-size:15px;
-    transition:.3s;
+.form-group select {
+    width: 100%;
+
+    height: 45px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    padding: 0 15px;
+
+    background: #ffffff;
+
+    font-size: 15px;
+
+    transition: 0.3s;
 }
+
 
 .form-group input:focus,
-.form-group select:focus{
-    outline:none;
-    border-color:#2563eb;
-    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+.form-group select:focus {
+
+    outline: none;
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(37, 99, 235, 0.15);
 }
 
-/* ===================================================
-   Button
-=================================================== */
 
-.button-group{
-    display:flex;
-    align-items:flex-end;
+/* ==========================================================
+   BUTTON
+========================================================== */
+
+.button-group {
+    display: flex;
+
+    align-items: flex-end;
+
+    grid-column: 1 / -1;
 }
 
-.save-btn{
-    width:100%;
-    height:45px;
-    background:#2563eb;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.3s;
+
+.save-btn {
+    width: 100%;
+
+    height: 45px;
+
+    background: #2563eb;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.3s;
 }
 
-.save-btn:hover{
-    background:#1d4ed8;
-    transform:translateY(-2px);
+
+.save-btn:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
 }
 
-/* ===================================================
-   Table Card
-=================================================== */
 
-.table-card{
-    background:#fff;
-    border-radius:12px;
-    padding:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+.save-btn:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
 }
 
-.table-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
+
+/* ==========================================================
+   TABLE CARD
+========================================================== */
+
+.table-card {
+    width: 100%;
+
+    background: #ffffff;
+
+    border-radius: 12px;
+
+    padding: 28px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 5px 15px
+        rgba(0, 0, 0, 0.08);
 }
 
-.table-header h2{
-    font-size:24px;
-    color:#1f2937;
+
+.table-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding-bottom: 28px;
+
+    margin-bottom: 28px;
+
+    border-bottom:
+        1px solid #e5e7eb;
 }
 
-/* ===================================================
-   Table
-=================================================== */
 
-.table-responsive{
-    overflow-x:auto;
+.table-header h2 {
+    margin: 0;
+
+    font-size: 34px;
+
+    font-weight: 700;
+
+    color: #172b4d;
 }
 
-.shipment-table{
-    width:100%;
-    border-collapse:collapse;
+
+/* ==========================================================
+   TABLE RESPONSIVE
+========================================================== */
+
+.table-responsive {
+    width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    padding-bottom: 10px;
 }
 
-.shipment-table thead{
-    background:#2563eb;
+
+/* ==========================================================
+   SHIPMENT TABLE
+========================================================== */
+
+.shipment-table {
+    width: 100%;
+
+    min-width: 1250px;
+
+    border-collapse: collapse;
+
+    background: #ffffff;
 }
 
-.shipment-table th{
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-size:15px;
+
+/* ==========================================================
+   TABLE HEADER
+========================================================== */
+
+.shipment-table thead {
+    background: #2563eb;
 }
 
-.shipment-table td{
-    padding:15px;
-    border-bottom:1px solid #e5e7eb;
-    text-align:center;
+
+.shipment-table thead tr {
+    height: 88px;
 }
 
-.shipment-table tbody tr:hover{
-    background:#f8fafc;
+
+.shipment-table th {
+    padding: 18px 15px;
+
+    color: #ffffff;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    font-size: 18px;
+
+    font-weight: 700;
 }
 
-/* ===================================================
-   Status
-=================================================== */
 
-.status{
-    display:inline-block;
-    padding:6px 14px;
-    border-radius:25px;
-    font-size:13px;
-    font-weight:600;
+.shipment-table th:first-child {
+    border-top-left-radius: 18px;
+
+    border-bottom-left-radius: 0;
 }
 
-.created{
-    background:#DBEAFE;
-    color:#2563EB;
+
+.shipment-table th:last-child {
+    border-top-right-radius: 18px;
 }
 
-.transit{
-    background:#FEF3C7;
-    color:#D97706;
+
+/* ==========================================================
+   TABLE BODY
+========================================================== */
+
+.shipment-table td {
+    padding: 22px 15px;
+
+    border-bottom:
+        1px solid #e5e7eb;
+
+    color: #374151;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    font-size: 17px;
 }
 
-.delivered{
-    background:#DCFCE7;
-    color:#15803D;
+
+.shipment-table tbody tr {
+    height: 82px;
+
+    transition: 0.2s;
 }
 
-/* ===================================================
-   Action Buttons
-=================================================== */
 
-.action-buttons{
-    display:flex;
-    justify-content:center;
-    gap:10px;
+.shipment-table tbody tr:hover {
+    background: #f8fafc;
 }
 
-.edit-btn{
-    width:40px;
-    height:40px;
-    border:none;
-    border-radius:8px;
-    background:#3B82F6;
-    color:white;
-    cursor:pointer;
-    transition:.3s;
+
+.shipment-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-.edit-btn:hover{
-    background:#2563EB;
-    transform:scale(1.05);
+
+/* ==========================================================
+   STATUS
+========================================================== */
+
+.status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 130px;
+
+    padding: 10px 22px;
+
+    border-radius: 30px;
+
+    font-size: 16px;
+
+    font-weight: 600;
 }
 
-.delete-btn{
-    width:40px;
-    height:40px;
-    border:none;
-    border-radius:8px;
-    background:#EF4444;
-    color:white;
-    cursor:pointer;
-    transition:.3s;
+
+.status.created {
+    background: #dbeafe;
+
+    color: #2563eb;
 }
 
-.delete-btn:hover{
-    background:#DC2626;
-    transform:scale(1.05);
+
+.status.assigned {
+    background: #ede9fe;
+
+    color: #7c3aed;
 }
 
-/* ===================================================
-   Empty Table
-=================================================== */
 
-.no-data{
-    padding:25px;
-    color:#9CA3AF;
-    font-size:16px;
+.status.picked-up {
+    background: #fef3c7;
+
+    color: #d97706;
 }
 
-/* ===================================================
-   Responsive
-=================================================== */
 
-@media(max-width:1200px){
+.status.in-transit {
+    background: #fef3c7;
 
-.shipment-form{
-    grid-template-columns:repeat(2,1fr);
+    color: #d97706;
 }
 
+
+.status.out-for-delivery {
+    background: #e0f2fe;
+
+    color: #0284c7;
 }
 
-@media(max-width:768px){
 
-.shipment-page{
-    padding:20px;
+.status.delivered {
+    background: #dcfce7;
+
+    color: #15803d;
 }
 
-.shipment-header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:15px;
+
+.status.delayed {
+    background: #fee2e2;
+
+    color: #dc2626;
 }
 
-.shipment-header h1{
-    font-size:28px;
+
+.status.cancelled {
+    background: #f3f4f6;
+
+    color: #6b7280;
 }
 
-.shipment-form{
-    grid-template-columns:1fr;
+
+/* ==========================================================
+   ACTION BUTTONS
+========================================================== */
+
+.action-buttons {
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 10px;
 }
 
-.search-input{
-    width:100%;
+
+.edit-btn,
+.delete-btn {
+    width: 40px;
+
+    height: 40px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    color: white;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    transition: 0.3s;
 }
 
-.table-card{
-    padding:15px;
+
+.edit-btn {
+    background: #2563eb;
 }
 
-.shipment-table th,
-.shipment-table td{
-    padding:10px;
-    font-size:14px;
+
+.edit-btn:hover {
+    background: #1d4ed8;
+
+    transform: scale(1.05);
 }
 
-.action-buttons{
-    flex-direction:column;
+
+.delete-btn {
+    background: #ef4444;
 }
+
+
+.delete-btn:hover {
+    background: #dc2626;
+
+    transform: scale(1.05);
+}
+
+
+/* ==========================================================
+   EMPTY DATA
+========================================================== */
+
+.no-data {
+    padding: 45px !important;
+
+    color: #9ca3af;
+
+    font-size: 16px;
+
+    text-align: center;
+}
+
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.loading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 180px;
+
+    background: #ffffff;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 5px 15px
+        rgba(0, 0, 0, 0.08);
+
+    color: #6b7280;
+
+    font-size: 16px;
+
+    font-weight: 600;
+}
+
+
+/* ==========================================================
+   HORIZONTAL SCROLLBAR
+========================================================== */
+
+.table-responsive::-webkit-scrollbar {
+    height: 12px;
+}
+
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #e5e7eb;
+
+    border-radius: 10px;
+}
+
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 10px;
+}
+
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1200px) {
+
+    .shipment-form {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .shipment-page {
+        padding: 20px;
+    }
+
+
+    .shipment-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+
+    .shipment-header h1 {
+        font-size: 28px;
+    }
+
+
+    .shipment-form {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* Search */
+
+    .shipment-search-box {
+        height: 54px;
+
+        border-radius: 10px;
+    }
+
+
+    .shipment-search-box
+    .shipment-search-icon {
+        left: 17px;
+
+        width: 18px;
+
+        height: 18px;
+    }
+
+
+    .shipment-search-box
+    input.search-input {
+
+        padding:
+            0
+            52px
+            0
+            48px !important;
+
+        font-size: 15px;
+    }
+
+
+    .shipment-search-box
+    input.search-input::placeholder {
+
+        font-size: 14px;
+    }
+
+
+    .clear-search-btn {
+        right: 9px;
+
+        width: 32px;
+
+        height: 32px;
+    }
+
+
+    .table-card {
+        padding: 20px;
+    }
+
+
+    .table-header h2 {
+        font-size: 28px;
+    }
+
+
+    .shipment-table {
+        min-width: 1150px;
+    }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 480px) {
+
+    .shipment-page {
+        padding: 15px;
+    }
+
+
+    .shipment-header h1 {
+        font-size: 24px;
+    }
+
+
+    .shipment-header p {
+        font-size: 14px;
+    }
+
+
+    .shipment-search-box {
+        height: 52px;
+
+        border-radius: 9px;
+    }
+
+
+    .shipment-search-box
+    .shipment-search-icon {
+
+        left: 15px;
+
+        width: 17px;
+
+        height: 17px;
+    }
+
+
+    .shipment-search-box
+    input.search-input {
+
+        padding:
+            0
+            48px
+            0
+            44px !important;
+
+        font-size: 14px;
+    }
+
+
+    .shipment-search-box
+    input.search-input::placeholder {
+
+        font-size: 13px;
+    }
+
+
+    .clear-search-btn {
+        right: 8px;
+
+        width: 30px;
+
+        height: 30px;
+
+        font-size: 11px;
+    }
+
+
+    .search-result-label {
+        font-size: 13px;
+    }
+
+
+    .shipment-form-card {
+        padding: 20px;
+    }
+
+
+    .shipment-form-card h2 {
+        font-size: 21px;
+    }
+
+
+    .table-card {
+        padding: 15px;
+    }
+
+
+    .table-header {
+        padding-bottom: 20px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .table-header h2 {
+        font-size: 24px;
+    }
 
 }

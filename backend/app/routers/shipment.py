@@ -1,13 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.services.notification_service import create_notification
+
 from app.database import get_db
 from app.models.shipment import Shipment
+
 from app.schemas.shipment import (
     ShipmentCreate,
     ShipmentUpdate,
     ShipmentResponse,
 )
+
+from app.services.notification_service import (
+    create_notification,
+)
+
+from app.services.status_sync_service import (
+    sync_all_trip_shipment_statuses,
+)
+
+
+# ==========================================================
+# ROUTER
+# ==========================================================
 
 router = APIRouter(
     prefix="/shipments",
@@ -27,20 +41,26 @@ def generate_tracking_number(db: Session):
         .first()
     )
 
+    # First shipment
     if last_shipment is None:
-
         return "FLT100001"
 
+    # Try to get previous tracking number
     try:
 
         last_number = int(
-            last_shipment.tracking_number.replace("FLT", "")
+            last_shipment.tracking_number.replace(
+                "FLT",
+                ""
+            )
         )
 
-    except Exception:
+    except (ValueError, AttributeError):
 
         last_number = 100000
 
+    # IMPORTANT:
+    # This must be on ONE line.
     next_number = last_number + 1
 
     return f"FLT{next_number}"
@@ -58,7 +78,44 @@ def get_shipments(
     db: Session = Depends(get_db),
 ):
 
-    return db.query(Shipment).all()
+    # ------------------------------------------------------
+    # B6 STATUS SYNCHRONIZATION
+    # ------------------------------------------------------
+    # Synchronize Trip status with Shipment status
+    # before returning shipment data.
+    # ------------------------------------------------------
+
+    try:
+
+        sync_all_trip_shipment_statuses(
+            db
+        )
+
+    except Exception as error:
+
+        print(
+            "SHIPMENT STATUS SYNC ERROR:",
+            error
+        )
+
+        # Do not stop the shipment page from loading
+        # if synchronization has an unexpected problem.
+
+        db.rollback()
+
+    # ------------------------------------------------------
+    # Get shipments
+    # ------------------------------------------------------
+
+    shipments = (
+        db.query(Shipment)
+        .order_by(
+            Shipment.id.desc()
+        )
+        .all()
+    )
+
+    return shipments
 
 
 # ==========================================================
@@ -74,9 +131,34 @@ def get_shipment(
     db: Session = Depends(get_db),
 ):
 
+    # ------------------------------------------------------
+    # B6 STATUS SYNCHRONIZATION
+    # ------------------------------------------------------
+
+    try:
+
+        sync_all_trip_shipment_statuses(
+            db
+        )
+
+    except Exception as error:
+
+        print(
+            "SHIPMENT STATUS SYNC ERROR:",
+            error
+        )
+
+        db.rollback()
+
+    # ------------------------------------------------------
+    # Find shipment
+    # ------------------------------------------------------
+
     shipment = (
         db.query(Shipment)
-        .filter(Shipment.id == shipment_id)
+        .filter(
+            Shipment.id == shipment_id
+        )
         .first()
     )
 
@@ -88,6 +170,7 @@ def get_shipment(
         )
 
     return shipment
+
 
 # ==========================================================
 # CREATE SHIPMENT
@@ -103,36 +186,92 @@ def create_shipment(
     db: Session = Depends(get_db),
 ):
 
-    shipment_data = shipment.model_dump()
+    try:
 
-    # Automatically Generate Tracking Number
-    shipment_data["tracking_number"] = generate_tracking_number(db)
+        # --------------------------------------------------
+        # Convert Pydantic model to dictionary
+        # --------------------------------------------------
 
-    new_shipment = Shipment(
+        shipment_data = (
+            shipment.model_dump()
+        )
 
-        **shipment_data
+        # --------------------------------------------------
+        # Generate tracking number automatically
+        # --------------------------------------------------
 
-    )
+        shipment_data["tracking_number"] = (
+            generate_tracking_number(db)
+        )
 
-    db.add(new_shipment)
+        # --------------------------------------------------
+        # Set initial shipment status
+        # --------------------------------------------------
+        # A newly created shipment starts as Created.
+        # It will become Assigned automatically when
+        # a Trip is created for it.
+        # --------------------------------------------------
 
-    db.commit()
+        if not shipment_data.get(
+            "current_status"
+        ):
 
-    db.refresh(new_shipment)
+            shipment_data[
+                "current_status"
+            ] = "Created"
 
-    create_notification(
+        # --------------------------------------------------
+        # Create database object
+        # --------------------------------------------------
 
-    db=db,
+        new_shipment = Shipment(
+            **shipment_data
+        )
 
-    title="New Shipment Added",
+        # --------------------------------------------------
+        # Save shipment
+        # --------------------------------------------------
 
-    message=f"{new_shipment.tracking_number} created successfully.",
+        db.add(new_shipment)
 
-    type="success"
+        db.commit()
 
-    )
+        db.refresh(new_shipment)
 
-    return new_shipment
+        # --------------------------------------------------
+        # Notification
+        # --------------------------------------------------
+
+        create_notification(
+
+            db=db,
+
+            title="New Shipment Added",
+
+            message=(
+                f"{new_shipment.tracking_number} "
+                "created successfully."
+            ),
+
+            type="success",
+
+        )
+
+        return new_shipment
+
+    except Exception as error:
+
+        db.rollback()
+
+        print(
+            "CREATE SHIPMENT ERROR:",
+            error
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to create shipment",
+        )
 
 
 # ==========================================================
@@ -149,100 +288,194 @@ def update_shipment(
     db: Session = Depends(get_db),
 ):
 
+    # ------------------------------------------------------
+    # Find shipment
+    # ------------------------------------------------------
+
     db_shipment = (
-
         db.query(Shipment)
-
-        .filter(Shipment.id == shipment_id)
-
+        .filter(
+            Shipment.id == shipment_id
+        )
         .first()
-
     )
 
     if db_shipment is None:
 
         raise HTTPException(
-
             status_code=404,
-
             detail="Shipment not found",
+        )
+
+    try:
+
+        # --------------------------------------------------
+        # Convert update data
+        # --------------------------------------------------
+
+        shipment_data = (
+            shipment.model_dump(
+                exclude_unset=True
+            )
+        )
+
+        # --------------------------------------------------
+        # Tracking number must never be changed
+        # --------------------------------------------------
+
+        shipment_data.pop(
+            "tracking_number",
+            None
+        )
+
+        # --------------------------------------------------
+        # Update fields
+        # --------------------------------------------------
+
+        for key, value in shipment_data.items():
+
+            setattr(
+                db_shipment,
+                key,
+                value
+            )
+
+        # --------------------------------------------------
+        # Save changes
+        # --------------------------------------------------
+
+        db.commit()
+
+        db.refresh(
+            db_shipment
+        )
+
+        # --------------------------------------------------
+        # Notification
+        # --------------------------------------------------
+
+        create_notification(
+
+            db=db,
+
+            title="Shipment Updated",
+
+            message=(
+                f"{db_shipment.tracking_number} "
+                "updated successfully."
+            ),
+
+            type="info",
 
         )
 
-    shipment_data = shipment.model_dump()
+        return db_shipment
 
-    # Don't allow changing Tracking Number
-    shipment_data.pop("tracking_number", None)
+    except Exception as error:
 
-    for key, value in shipment_data.items():
+        db.rollback()
 
-        setattr(db_shipment, key, value)
+        print(
+            "UPDATE SHIPMENT ERROR:",
+            error
+        )
 
-    db.commit()
-
-    db.refresh(db_shipment)
-    create_notification(
-
-    db=db,
-
-    title="Shipment Updated",
-
-    message=f"{db_shipment.tracking_number} updated successfully.",
-
-    type="info"
-
-    )
-
-    return db_shipment
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to update shipment",
+        )
 
 
 # ==========================================================
 # DELETE SHIPMENT
 # ==========================================================
 
-@router.delete("/{shipment_id}")
+@router.delete(
+    "/{shipment_id}"
+)
 def delete_shipment(
     shipment_id: int,
     db: Session = Depends(get_db),
 ):
 
+    # ------------------------------------------------------
+    # Find shipment
+    # ------------------------------------------------------
+
     shipment = (
-
         db.query(Shipment)
-
-        .filter(Shipment.id == shipment_id)
-
+        .filter(
+            Shipment.id == shipment_id
+        )
         .first()
-
     )
 
     if shipment is None:
 
         raise HTTPException(
-
             status_code=404,
-
             detail="Shipment not found",
+        )
+
+    try:
+
+        # --------------------------------------------------
+        # Save tracking number before deletion
+        # --------------------------------------------------
+
+        tracking_number = (
+            shipment.tracking_number
+        )
+
+        # --------------------------------------------------
+        # Delete shipment
+        # --------------------------------------------------
+
+        db.delete(
+            shipment
+        )
+
+        db.commit()
+
+        # --------------------------------------------------
+        # Notification
+        # --------------------------------------------------
+
+        create_notification(
+
+            db=db,
+
+            title="Shipment Deleted",
+
+            message=(
+                f"{tracking_number} "
+                "deleted successfully."
+            ),
+
+            type="warning",
 
         )
-    create_notification(
 
-    db=db,
+        return {
 
-    title="Shipment Deleted",
+            "message":
+                "Shipment deleted successfully",
 
-    message=f"{shipment.tracking_number} deleted successfully.",
+            "shipment_id":
+                shipment_id,
 
-    type="warning"
+        }
 
-    )
+    except Exception as error:
 
-    db.delete(shipment)
+        db.rollback()
 
-    db.commit()
+        print(
+            "DELETE SHIPMENT ERROR:",
+            error
+        )
 
-    return {
-
-        "message": "Shipment deleted successfully"
-
-    }
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to delete shipment",
+        )

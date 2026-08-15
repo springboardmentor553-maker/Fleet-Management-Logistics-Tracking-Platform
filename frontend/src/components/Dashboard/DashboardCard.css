@@ -1,57 +1,298 @@
-.dashboard-card{
+/* =========================================================
+   FLEETFLOW DASHBOARD CARD
+   ========================================================= */
 
-    width:230px;
+.dashboard-card {
+    position: relative;
 
-    height:120px;
+    width: 100%;
+    min-width: 0;
+    min-height: 150px;
 
-    background:white;
+    padding: 24px 26px;
 
-    border-radius:12px;
+    display: flex;
+    align-items: center;
 
-    padding:20px;
+    gap: 20px;
 
-    display:flex;
+    box-sizing: border-box;
 
-    align-items:center;
+    background: #ffffff;
 
-    justify-content:space-between;
+    border: 1px solid #e6edf5;
 
-    box-shadow:0px 4px 15px rgba(0,0,0,.12);
+    border-radius: 18px;
 
-    transition:.3s;
+    box-shadow:
+        0 8px 24px rgba(25, 55, 90, 0.07);
 
+    overflow: hidden;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
 }
 
-.dashboard-card:hover{
 
-    transform:translateY(-5px);
+/* =========================================================
+   LEFT BLUE ACCENT
+   ========================================================= */
 
+.dashboard-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 5px;
+    height: 100%;
+
+    background: #1976d2;
 }
 
-.card-icon{
 
-    font-size:45px;
+/* =========================================================
+   HOVER
+   ========================================================= */
 
-    color:#1976d2;
+.dashboard-card:hover {
+    transform: translateY(-4px);
 
+    border-color: #d7e4f2;
+
+    box-shadow:
+        0 14px 32px rgba(25, 55, 90, 0.12);
 }
 
-.card-content h3{
 
-    margin:0;
+/* =========================================================
+   CARD ICON
+   ========================================================= */
 
-    color:#666;
+.dashboard-card-icon {
+    width: 58px;
+    height: 58px;
 
-    font-size:17px;
+    min-width: 58px;
 
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 16px;
+
+    background: #eaf3ff;
+
+    color: #1976d2;
+
+    font-size: 25px;
+
+    line-height: 1;
+
+    transition:
+        transform 0.25s ease,
+        background 0.25s ease;
 }
 
-.card-content h1{
 
-    margin-top:10px;
+.dashboard-card:hover .dashboard-card-icon {
+    transform: scale(1.06);
 
-    color:#222;
+    background: #dfedff;
+}
 
-    font-size:35px;
 
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.dashboard-card-content {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 7px;
+}
+
+
+/* =========================================================
+   CARD TITLE
+   ========================================================= */
+
+.dashboard-card-content h3 {
+    margin: 0;
+
+    color: #718096;
+
+    font-size: 15px;
+
+    font-weight: 750;
+
+    line-height: 1.35;
+
+    letter-spacing: 0;
+}
+
+
+/* =========================================================
+   CARD VALUE
+   ========================================================= */
+
+.dashboard-card-content p {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 36px;
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    letter-spacing: -0.7px;
+}
+
+
+/* =========================================================
+   RESPONSIVE - LARGE DESKTOP
+   ========================================================= */
+
+@media (min-width: 1500px) {
+
+    .dashboard-card {
+        min-height: 155px;
+
+        padding: 25px 28px;
+    }
+
+    .dashboard-card-icon {
+        width: 60px;
+        height: 60px;
+
+        min-width: 60px;
+
+        font-size: 26px;
+    }
+
+    .dashboard-card-content h3 {
+        font-size: 16px;
+    }
+
+    .dashboard-card-content p {
+        font-size: 38px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .dashboard-card {
+        min-height: 140px;
+
+        padding: 22px;
+    }
+
+    .dashboard-card-icon {
+        width: 54px;
+        height: 54px;
+
+        min-width: 54px;
+
+        font-size: 23px;
+    }
+
+    .dashboard-card-content h3 {
+        font-size: 14px;
+    }
+
+    .dashboard-card-content p {
+        font-size: 32px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .dashboard-card {
+        min-height: 120px;
+
+        padding: 18px;
+
+        gap: 16px;
+
+        border-radius: 15px;
+    }
+
+    .dashboard-card-icon {
+        width: 48px;
+        height: 48px;
+
+        min-width: 48px;
+
+        border-radius: 13px;
+
+        font-size: 21px;
+    }
+
+    .dashboard-card-content h3 {
+        font-size: 13px;
+    }
+
+    .dashboard-card-content p {
+        font-size: 28px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+    .dashboard-card {
+        min-height: 110px;
+
+        padding: 16px;
+
+        gap: 13px;
+    }
+
+    .dashboard-card-icon {
+        width: 44px;
+        height: 44px;
+
+        min-width: 44px;
+
+        font-size: 19px;
+    }
+
+    .dashboard-card-content h3 {
+        font-size: 12px;
+    }
+
+    .dashboard-card-content p {
+        font-size: 25px;
+    }
 }

@@ -1,43 +1,107 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState,
+} from "react";
+
 import api from "../../services/api";
+
 
 function RecentDelayedShipments() {
 
-    const [shipments, setShipments] = useState([]);
+    const [
+        shipments,
+        setShipments,
+    ] = useState([]);
+
+
+    const fetchDelayedShipments =
+        async () => {
+
+            try {
+
+                const response =
+                    await api.get(
+                        "/shipments"
+                    );
+
+
+                const data =
+                    Array.isArray(
+                        response.data
+                    )
+                        ? response.data
+                        : [];
+
+
+                const delayed =
+                    data
+                        .filter(
+                            shipment =>
+                                shipment.current_status
+                                === "Delayed"
+                        )
+                        .sort(
+                            (a, b) =>
+                                Number(b.id) -
+                                Number(a.id)
+                        )
+                        .slice(
+                            0,
+                            5
+                        );
+
+
+                setShipments(
+                    delayed
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load delayed shipments:",
+                    error
+                );
+
+            }
+
+        };
+
 
     useEffect(() => {
+
         fetchDelayedShipments();
+
+
+        const interval =
+            setInterval(
+                () => {
+
+                    fetchDelayedShipments();
+
+                },
+                10000
+            );
+
+
+        return () => {
+
+            clearInterval(
+                interval
+            );
+
+        };
+
     }, []);
 
-    const fetchDelayedShipments = async () => {
-
-        try {
-
-            const response = await api.get("/shipments");
-
-            const delayed = response.data
-                .filter(
-                    shipment =>
-                        shipment.current_status === "Delayed"
-                )
-                .slice(-5)
-                .reverse();
-
-            setShipments(delayed);
-
-        } catch (error) {
-
-            console.log(error);
-
-        }
-
-    };
 
     return (
 
         <div className="dashboard-table">
 
-            <h2>Recent Delayed Shipments</h2>
+            <h2>
+                Recent Delayed Shipments
+            </h2>
+
 
             <table>
 
@@ -45,31 +109,70 @@ function RecentDelayedShipments() {
 
                     <tr>
 
-                        <th>Tracking</th>
+                        <th>
+                            Tracking
+                        </th>
 
-                        <th>Pickup</th>
+                        <th>
+                            Pickup
+                        </th>
 
-                        <th>Destination</th>
+                        <th>
+                            Destination
+                        </th>
 
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    {shipments.map((shipment) => (
+                    {shipments.length === 0 ? (
 
-                        <tr key={shipment.id}>
+                        <tr>
 
-                            <td>{shipment.tracking_number}</td>
-
-                            <td>{shipment.pickup_location}</td>
-
-                            <td>{shipment.delivery_location}</td>
+                            <td
+                                colSpan="3"
+                            >
+                                No Delayed Shipments
+                            </td>
 
                         </tr>
 
-                    ))}
+                    ) : (
+
+                        shipments.map(
+                            (shipment) => (
+
+                                <tr
+                                    key={shipment.id}
+                                >
+
+                                    <td>
+                                        {
+                                            shipment.tracking_number
+                                        }
+                                    </td>
+
+                                    <td>
+                                        {
+                                            shipment.pickup_location
+                                        }
+                                    </td>
+
+                                    <td>
+                                        {
+                                            shipment.delivery_location
+                                        }
+                                    </td>
+
+                                </tr>
+
+                            )
+                        )
+
+                    )}
 
                 </tbody>
 
@@ -78,7 +181,7 @@ function RecentDelayedShipments() {
         </div>
 
     );
-
 }
+
 
 export default RecentDelayedShipments;

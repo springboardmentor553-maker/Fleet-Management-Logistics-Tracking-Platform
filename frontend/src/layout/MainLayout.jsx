@@ -6,31 +6,31 @@ import Navbar from "../components/Navbar/Navbar";
 import "./MainLayout.css";
 
 function MainLayout() {
-  return (
-    <div className="layout">
+    return (
+        <div className="layout">
 
-      {/* Sidebar */}
+            {/* Sidebar */}
 
-      <Sidebar />
+            <Sidebar />
 
-      {/* Main Content */}
+            {/* Main Content */}
 
-      <div className="main-container">
+            <div className="main-container">
 
-        {/* Navbar */}
+                {/* Navbar */}
 
-        <Navbar />
+                <Navbar />
 
-        {/* Page */}
+                {/* Page */}
 
-        <main className="page-container">
-          <Outlet />
-        </main>
+                <main className="page-container">
+                    <Outlet />
+                </main>
 
-      </div>
+            </div>
 
-    </div>
-  );
+        </div>
+    );
 }
 
 export default MainLayout;

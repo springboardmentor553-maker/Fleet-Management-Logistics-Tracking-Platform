@@ -1,14 +1,37 @@
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
-# Import the SAME enum used by the model
-from app.models.shipment_status import ShipmentStatus
+
+# ==========================================================
+# SHIPMENT STATUS
+# ==========================================================
+
+class ShipmentStatus(str, Enum):
+
+    CREATED = "Created"
+
+    ASSIGNED = "Assigned"
+
+    PICKED_UP = "Picked Up"
+
+    IN_TRANSIT = "In Transit"
+
+    OUT_FOR_DELIVERY = "Out for Delivery"
+
+    DELIVERED = "Delivered"
+
+    DELAYED = "Delayed"
+
+    CANCELLED = "Cancelled"
 
 
-class ShipmentBase(BaseModel):
+# ==========================================================
+# CREATE SHIPMENT
+# ==========================================================
 
-    tracking_number: str | None = None
+class ShipmentCreate(BaseModel):
 
     sender_name: str
 
@@ -18,7 +41,9 @@ class ShipmentBase(BaseModel):
 
     delivery_location: str
 
-    current_status: ShipmentStatus = ShipmentStatus.CREATED
+    current_status: ShipmentStatus = (
+        ShipmentStatus.CREATED
+    )
 
     weight: float
 
@@ -27,9 +52,9 @@ class ShipmentBase(BaseModel):
     assigned_vehicle_id: int | None = None
 
 
-class ShipmentCreate(ShipmentBase):
-    pass
-
+# ==========================================================
+# UPDATE SHIPMENT
+# ==========================================================
 
 class ShipmentUpdate(BaseModel):
 
@@ -49,10 +74,36 @@ class ShipmentUpdate(BaseModel):
 
     assigned_vehicle_id: int | None = None
 
+    # Accepted for compatibility,
+    # but router does not allow changing it.
+    tracking_number: str | None = None
 
-class ShipmentResponse(ShipmentBase):
+
+# ==========================================================
+# RESPONSE
+# ==========================================================
+
+class ShipmentResponse(BaseModel):
 
     id: int
+
+    tracking_number: str
+
+    sender_name: str
+
+    receiver_name: str
+
+    pickup_location: str
+
+    delivery_location: str
+
+    current_status: ShipmentStatus
+
+    weight: float | None = None
+
+    assigned_driver_id: int | None = None
+
+    assigned_vehicle_id: int | None = None
 
     created_date: datetime
 

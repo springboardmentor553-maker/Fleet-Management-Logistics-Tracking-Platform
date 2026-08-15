@@ -3,13 +3,24 @@
 // ==========================================================
 
 let socket = null;
+
 let currentTripId = null;
+
+
+// ==========================================================
+// CONNECTION GENERATION
+// ==========================================================
+
+let connectionGeneration = 0;
+
 
 // ==========================================================
 // WEBSOCKET BASE URL
 // ==========================================================
 
-const WS_BASE_URL = "ws://127.0.0.1:8000";
+const WS_BASE_URL =
+    "ws://127.0.0.1:8000";
+
 
 // ==========================================================
 // CONNECT TO TRIP
@@ -27,7 +38,11 @@ export const connectWebSocket = (
     // Validate Trip ID
     // ------------------------------------------------------
 
-    if (!tripId) {
+    if (
+        tripId === undefined ||
+        tripId === null ||
+        tripId === ""
+    ) {
 
         console.error(
             "❌ Cannot connect WebSocket: Trip ID is missing."
@@ -36,11 +51,10 @@ export const connectWebSocket = (
         return null;
     }
 
-    // ------------------------------------------------------
-    // Convert Trip ID to number/string consistently
-    // ------------------------------------------------------
 
-    const normalizedTripId = String(tripId);
+    const normalizedTripId =
+        String(tripId);
+
 
     // ------------------------------------------------------
     // Already connected to same trip
@@ -59,6 +73,7 @@ export const connectWebSocket = (
         return socket;
     }
 
+
     // ------------------------------------------------------
     // Close existing socket
     // ------------------------------------------------------
@@ -67,7 +82,24 @@ export const connectWebSocket = (
 
         try {
 
-            socket.close();
+            socket.onopen = null;
+            socket.onmessage = null;
+            socket.onerror = null;
+            socket.onclose = null;
+
+
+            if (
+                socket.readyState ===
+                    WebSocket.OPEN ||
+                socket.readyState ===
+                    WebSocket.CONNECTING
+            ) {
+
+                socket.close(
+                    1000,
+                    "Switching trip"
+                );
+            }
 
         } catch (error) {
 
@@ -77,39 +109,86 @@ export const connectWebSocket = (
             );
         }
 
+
         socket = null;
     }
 
-    currentTripId = normalizedTripId;
 
     // ------------------------------------------------------
-    // Create WebSocket URL
+    // New connection generation
+    // ------------------------------------------------------
+
+    connectionGeneration += 1;
+
+    const thisGeneration =
+        connectionGeneration;
+
+
+    currentTripId =
+        normalizedTripId;
+
+
+    // ------------------------------------------------------
+    // Create URL
     // ------------------------------------------------------
 
     const websocketUrl =
         `${WS_BASE_URL}/ws/tracking/${normalizedTripId}`;
 
+
     console.log(
         `🔌 Connecting WebSocket: ${websocketUrl}`
     );
 
+
     // ------------------------------------------------------
-    // Create WebSocket
+    // Create socket
     // ------------------------------------------------------
 
-    socket = new WebSocket(
-        websocketUrl
-    );
+    const newSocket =
+        new WebSocket(
+            websocketUrl
+        );
+
+
+    socket =
+        newSocket;
+
 
     // ======================================================
     // OPEN
     // ======================================================
 
-    socket.onopen = () => {
+    newSocket.onopen = () => {
+
+        // --------------------------------------------------
+        // Ignore stale connection
+        // --------------------------------------------------
+
+        if (
+            thisGeneration !==
+            connectionGeneration
+        ) {
+
+            try {
+
+                newSocket.close(
+                    1000,
+                    "Stale connection"
+                );
+
+            } catch {
+                // Ignore
+            }
+
+            return;
+        }
+
 
         console.log(
             `✅ WebSocket connected to Trip ${normalizedTripId}`
         );
+
 
         if (onOpen) {
 
@@ -117,29 +196,36 @@ export const connectWebSocket = (
         }
     };
 
+
     // ======================================================
     // MESSAGE
     // ======================================================
 
-    socket.onmessage = (event) => {
+    newSocket.onmessage = (
+        event
+    ) => {
 
         try {
 
-            const data = JSON.parse(
-                event.data
-            );
+            const data =
+                JSON.parse(
+                    event.data
+                );
+
 
             console.log(
                 "📡 FleetFlow Live Update:",
                 data
             );
 
+
             // ------------------------------------------------
             // LOCATION UPDATE
             // ------------------------------------------------
 
             if (
-                data.type === "location_update"
+                data.type ===
+                "location_update"
             ) {
 
                 console.log(
@@ -148,17 +234,20 @@ export const connectWebSocket = (
                     data.longitude
                 );
 
+
                 console.log(
                     "📍 Remaining Distance:",
                     data.remaining_distance_km,
                     "km"
                 );
 
+
                 console.log(
                     "⏱️ Remaining ETA:",
                     data.remaining_duration_minutes,
                     "minutes"
                 );
+
 
                 console.log(
                     "📊 Progress:",
@@ -167,17 +256,20 @@ export const connectWebSocket = (
                 );
             }
 
+
             // ------------------------------------------------
             // TRIP COMPLETED
             // ------------------------------------------------
 
             if (
-                data.type === "trip_completed"
+                data.type ===
+                "trip_completed"
             ) {
 
                 console.log(
                     `🏁 Trip ${normalizedTripId} completed.`
                 );
+
 
                 console.log(
                     "Final location:",
@@ -185,23 +277,60 @@ export const connectWebSocket = (
                     data.longitude
                 );
 
+
                 console.log(
                     "Remaining distance:",
                     data.remaining_distance_km
                 );
 
+
                 console.log(
                     "Remaining ETA:",
                     data.remaining_duration_minutes
                 );
+
+
+                if (onMessage) {
+
+                    onMessage(data);
+                }
+
+
+                return;
             }
+
+
+            // ------------------------------------------------
+            // TRIP UNAVAILABLE
+            // ------------------------------------------------
+
+            if (
+                data.type ===
+                "trip_unavailable"
+            ) {
+
+                console.warn(
+                    `⚠️ Trip ${normalizedTripId} is no longer available.`
+                );
+
+
+                if (onMessage) {
+
+                    onMessage(data);
+                }
+
+
+                return;
+            }
+
 
             // ------------------------------------------------
             // SIMULATION ERROR
             // ------------------------------------------------
 
             if (
-                data.type === "simulation_error"
+                data.type ===
+                "simulation_error"
             ) {
 
                 console.error(
@@ -210,8 +339,9 @@ export const connectWebSocket = (
                 );
             }
 
+
             // ------------------------------------------------
-            // Pass data to React component
+            // PASS DATA TO REACT
             // ------------------------------------------------
 
             if (onMessage) {
@@ -226,6 +356,7 @@ export const connectWebSocket = (
                 error
             );
 
+
             console.error(
                 "Raw WebSocket message:",
                 event.data
@@ -233,28 +364,68 @@ export const connectWebSocket = (
         }
     };
 
+
     // ======================================================
     // CLOSE
     // ======================================================
 
-    socket.onclose = (event) => {
+    newSocket.onclose = (
+        event
+    ) => {
 
-        console.log(
-            `❌ WebSocket disconnected from Trip ${normalizedTripId}`
-        );
+        const isCurrentConnection =
+            thisGeneration ===
+            connectionGeneration;
 
-        console.log(
-            "WebSocket close code:",
-            event.code
-        );
 
-        console.log(
-            "WebSocket close reason:",
-            event.reason
-        );
+        // --------------------------------------------------
+        // Normal intentional close
+        // --------------------------------------------------
 
-        socket = null;
-        currentTripId = null;
+        if (
+            event.code === 1000
+        ) {
+
+            console.log(
+                `🔌 WebSocket closed normally for Trip ${normalizedTripId}`
+            );
+
+        } else {
+
+            console.warn(
+                `⚠️ WebSocket disconnected from Trip ${normalizedTripId}`
+            );
+
+
+            console.warn(
+                "WebSocket close code:",
+                event.code
+            );
+
+
+            if (event.reason) {
+
+                console.warn(
+                    "WebSocket close reason:",
+                    event.reason
+                );
+            }
+        }
+
+
+        // --------------------------------------------------
+        // Only clear current socket if this is active
+        // --------------------------------------------------
+
+        if (
+            isCurrentConnection
+        ) {
+
+            socket = null;
+
+            currentTripId = null;
+        }
+
 
         if (onClose) {
 
@@ -262,16 +433,20 @@ export const connectWebSocket = (
         }
     };
 
+
     // ======================================================
     // ERROR
     // ======================================================
 
-    socket.onerror = (error) => {
+    newSocket.onerror = (
+        error
+    ) => {
 
         console.error(
             "❌ FleetFlow WebSocket Error:",
             error
         );
+
 
         if (onError) {
 
@@ -279,7 +454,8 @@ export const connectWebSocket = (
         }
     };
 
-    return socket;
+
+    return newSocket;
 };
 
 
@@ -304,48 +480,80 @@ export const getCurrentTripId = () => {
 
 
 // ==========================================================
-// CHECK WHETHER SOCKET IS CONNECTED
+// CHECK CONNECTION
 // ==========================================================
 
 export const isWebSocketConnected = () => {
 
     return (
         socket !== null &&
-        socket.readyState === WebSocket.OPEN
+        socket.readyState ===
+            WebSocket.OPEN
     );
 };
 
 
 // ==========================================================
-// DISCONNECT WEBSOCKET
+// DISCONNECT
 // ==========================================================
 
 export const disconnectWebSocket = () => {
 
-    if (socket) {
+    connectionGeneration += 1;
 
-        console.log(
-            `🔌 Disconnecting from Trip ${currentTripId}`
-        );
 
-        try {
+    const socketToClose =
+        socket;
 
-            socket.close(
+
+    const tripToClose =
+        currentTripId;
+
+
+    socket = null;
+
+    currentTripId = null;
+
+
+    if (!socketToClose) {
+
+        return;
+    }
+
+
+    console.log(
+        `🔌 Disconnecting from Trip ${tripToClose}`
+    );
+
+
+    try {
+
+        socketToClose.onopen = null;
+        socketToClose.onmessage = null;
+        socketToClose.onerror = null;
+        socketToClose.onclose = null;
+
+
+        if (
+            socketToClose.readyState ===
+                WebSocket.OPEN ||
+            socketToClose.readyState ===
+                WebSocket.CONNECTING
+        ) {
+
+            socketToClose.close(
                 1000,
                 "Client disconnected"
             );
-
-        } catch (error) {
-
-            console.error(
-                "❌ WebSocket disconnect error:",
-                error
-            );
         }
-    }
 
-    socket = null;
-    currentTripId = null;
+    } catch (error) {
+
+        console.error(
+            "❌ WebSocket disconnect error:",
+            error
+        );
+    }
 };
 
 
@@ -359,7 +567,8 @@ export const sendWebSocketMessage = (
 
     if (
         !socket ||
-        socket.readyState !== WebSocket.OPEN
+        socket.readyState !==
+            WebSocket.OPEN
     ) {
 
         console.error(
@@ -369,11 +578,15 @@ export const sendWebSocketMessage = (
         return false;
     }
 
+
     try {
 
         socket.send(
-            JSON.stringify(message)
+            JSON.stringify(
+                message
+            )
         );
+
 
         return true;
 
@@ -383,6 +596,7 @@ export const sendWebSocketMessage = (
             "❌ Failed to send WebSocket message:",
             error
         );
+
 
         return false;
     }

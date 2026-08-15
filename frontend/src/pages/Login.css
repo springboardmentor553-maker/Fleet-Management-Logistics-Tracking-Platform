@@ -1,50 +1,416 @@
-.login-container{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    background:#f3f4f6;
+/* =========================================================
+   FLEETFLOW LOGIN
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
 }
 
-.login-box{
-    width:380px;
-    background:white;
-    padding:40px;
-    border-radius:12px;
-    box-shadow:0 5px 15px rgba(0,0,0,.1);
+.login-container {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: linear-gradient(
+        135deg,
+        #eef4ff 0%,
+        #f7faff 50%,
+        #e8f0ff 100%
+    );
+
+    padding: 30px;
 }
 
-.login-box h1{
-    text-align:center;
-    color:#2563eb;
-    margin-bottom:10px;
+/* =========================================================
+   LOGIN BOX
+   ========================================================= */
+
+.login-box {
+    width: 100%;
+    max-width: 480px;
+
+    background: #ffffff;
+
+    border-radius: 22px;
+
+    padding: 42px 40px;
+
+    box-shadow:
+        0 20px 60px rgba(28, 65, 130, 0.14),
+        0 5px 20px rgba(0, 0, 0, 0.05);
+
+    border: 1px solid rgba(31, 111, 235, 0.06);
 }
 
-.login-box h3{
-    text-align:center;
-    margin-bottom:30px;
-    color:gray;
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.auth-form {
+    width: 100%;
 }
 
-.login-box input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
-    border:1px solid #ddd;
-    border-radius:8px;
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
 }
 
-.login-box button{
-    width:100%;
-    padding:12px;
-    background:#2563eb;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
+.auth-header h1 {
+    margin: 0;
+
+    font-size: 38px;
+    font-weight: 800;
+
+    color: #1976d2;
+
+    letter-spacing: -0.5px;
 }
 
-.login-box button:hover{
-    background:#1e40af;
+.auth-header p {
+    margin: 8px 0 0;
+
+    font-size: 15px;
+
+    color: #718096;
+}
+
+/* =========================================================
+   FORM GROUP
+   ========================================================= */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #263238;
+}
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    height: 52px;
+
+    padding: 0 16px;
+
+    border: 1px solid #d9e4f5;
+
+    border-radius: 11px;
+
+    background: #f9fbff;
+
+    color: #263238;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: #9aa8ba;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #1976d2;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 0 0 4px rgba(25, 118, 210, 0.10);
+}
+
+/* Read-only input */
+
+.form-group input[readonly] {
+    background: #f0f5fc;
+
+    color: #1976d2;
+
+    font-weight: 700;
+
+    cursor: default;
+}
+
+/* Small information text */
+
+.form-group small {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #7a8797;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+/* =========================================================
+   PASSWORD
+   ========================================================= */
+
+.password-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 75px;
+}
+
+.password-toggle {
+    position: absolute;
+
+    right: 10px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    border: none;
+
+    background: transparent;
+
+    color: #1976d2;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    padding: 6px;
+
+    transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: #0d47a1;
+}
+
+/* =========================================================
+   FORGOT PASSWORD
+   ========================================================= */
+
+.forgot-row {
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: -5px;
+
+    margin-bottom: 20px;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.link-button {
+    border: none;
+
+    background: transparent;
+
+    color: #1976d2;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    padding: 0;
+
+    transition: color 0.2s ease;
+}
+
+.link-button:hover {
+    color: #0d47a1;
+
+    text-decoration: underline;
+}
+
+.create-link {
+    font-weight: 700;
+}
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.primary-button {
+    width: 100%;
+
+    height: 52px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    background: linear-gradient(
+        135deg,
+        #1976d2,
+        #1565c0
+    );
+
+    color: #ffffff;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 18px rgba(25, 118, 210, 0.22);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 11px 24px rgba(25, 118, 210, 0.28);
+}
+
+.primary-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.primary-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.auth-message {
+    padding: 12px 14px;
+
+    border-radius: 9px;
+
+    margin-bottom: 18px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+.error-message {
+    background: #fff1f1;
+
+    color: #c62828;
+
+    border: 1px solid #ffcdd2;
+}
+
+.success-message {
+    background: #effaf3;
+
+    color: #2e7d32;
+
+    border: 1px solid #c8e6c9;
+}
+
+/* =========================================================
+   SWITCH SECTION
+   ========================================================= */
+
+.switch-section {
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 24px;
+
+    font-size: 14px;
+
+    color: #6b7785;
+
+    flex-wrap: wrap;
+}
+
+/* =========================================================
+   SELECT
+   ========================================================= */
+
+.form-group select {
+    cursor: pointer;
+
+    appearance: auto;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .login-container {
+        padding: 20px;
+    }
+
+    .login-box {
+        padding: 32px 25px;
+
+        border-radius: 18px;
+    }
+
+    .auth-header h1 {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 400px) {
+    .login-container {
+        padding: 12px;
+    }
+
+    .login-box {
+        padding: 28px 20px;
+    }
+
+    .auth-header h1 {
+        font-size: 29px;
+    }
+
+    .switch-section {
+        flex-direction: column;
+
+        gap: 8px;
+    }
 }
