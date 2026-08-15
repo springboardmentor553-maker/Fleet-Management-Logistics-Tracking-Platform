@@ -42,7 +42,7 @@ class Shipment(Base):
         ForeignKey("vehicles.id", ondelete="SET NULL"),
         nullable=True
     )
-     trip = relationship(
+    trip = relationship(
         "Trip",
         back_populates="shipment",
         uselist=False
