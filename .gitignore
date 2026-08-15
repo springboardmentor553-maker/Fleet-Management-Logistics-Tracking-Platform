@@ -31,3 +31,13 @@ freightflow.db
 celerybeat-schedule.bak
 celerybeat-schedule.dat
 celerybeat-schedule.dir
+
+# FleetFlow generated files
+backend/node_modules/
+backend/app/logs/
+backend/logs/
+backend/celerybeat-schedule
+backend/celerybeat-schedule-*
+backend/*.zip
+backend/*.pdf
+backend/*.xlsx

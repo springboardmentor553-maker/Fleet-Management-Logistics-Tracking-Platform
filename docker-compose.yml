@@ -1,0 +1,68 @@
+services:
+
+  # ==========================================
+  # PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: postgres:16
+    container_name: fleetflow-postgres
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # ==========================================
+  # FastAPI Backend
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+
+    container_name: fleetflow-backend
+
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  # ==========================================
+  # React Frontend
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: fleetflow-frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  postgres_data:
