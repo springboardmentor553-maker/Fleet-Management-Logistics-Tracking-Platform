@@ -14,11 +14,16 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.database import Base
+from app.models.maintenance import Maintenance
+from app.models.driver_assignment import DriverAssignment
+from app.models.driver_attendance import DriverAttendance
 from app.models.user import User
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.models.shipment import Shipment
 from app.models.trip import Trip
+from app.models.fuel_record import FuelRecord
+from app.models.maintenance_alert import MaintenanceAlert
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

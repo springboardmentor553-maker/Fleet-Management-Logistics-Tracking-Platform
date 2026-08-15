@@ -69,6 +69,28 @@ def get_trip(
 
     return trip
 
+@router.put("/{trip_id}", response_model=TripResponse)
+def update_trip(
+    trip_id: int,
+    trip: TripUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_admin),
+):
+
+    updated = trip_service.update_trip(
+        db,
+        trip_id,
+        trip
+    )
+
+    if updated is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found"
+        )
+
+    return updated
+
 
 @router.get("/{trip_id}/eta", response_model=ETAResponse)
 def get_trip_eta(

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.schemas.driver_performance import DriverPerformanceResponse
+from app.services.driver_performance import get_driver_performance
 
 from app.database import get_db
 
@@ -64,6 +66,28 @@ def read_driver(
 
     return driver
 
+@router.get(
+    "/{driver_id}/performance",
+    response_model=DriverPerformanceResponse
+)
+def driver_performance(
+    driver_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_admin)
+):
+
+    driver = get_driver(db, driver_id)
+
+    if driver is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    return get_driver_performance(
+        db,
+        driver_id
+    )
 
 @router.put("/{driver_id}", response_model=DriverResponse)
 def update_existing_driver(

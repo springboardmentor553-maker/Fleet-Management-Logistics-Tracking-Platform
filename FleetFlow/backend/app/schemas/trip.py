@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.enums.trip_status import TripStatus
 
@@ -34,6 +34,7 @@ class TripResponse(TripBase):
     id: int
     trip_status: TripStatus
     created_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

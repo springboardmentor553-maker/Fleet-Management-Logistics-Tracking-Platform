@@ -51,4 +51,8 @@ class Vehicle(Base):
         back_populates="vehicle"
     )
 
+    maintenance_records = relationship(
+    "Maintenance",
+    back_populates="vehicle"
+    )
     

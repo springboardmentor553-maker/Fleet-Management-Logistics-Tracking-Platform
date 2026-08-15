@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from app.models.trip import Trip
 from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
+from app.models.driver_assignment import DriverAssignment
 
 from app.schemas.trip import TripCreate, TripUpdate
 
@@ -148,15 +150,50 @@ def update_trip(
                     ShipmentStatus.IN_TRANSIT.value
                 )
 
+                if value == TripStatus.STARTED:
+                    db_trip.started_at = func.now()
+
             elif value == TripStatus.COMPLETED:
                 db_trip.shipment.current_status = (
                     ShipmentStatus.DELIVERED.value
                 )
 
+                db_trip.completed_at = func.now()
+
+                db_trip.driver.status = "Available"
+                db_trip.vehicle.current_status = "Available"
+
+                assignment = (
+                    db.query(DriverAssignment)
+                    .filter(
+                        DriverAssignment.trip_id == db_trip.id,
+                        DriverAssignment.assignment_status == "Active"
+                    )
+                    .first()
+                )
+
+                if assignment:
+                    assignment.assignment_status = "Completed"
+
             elif value == TripStatus.CANCELLED:
                 db_trip.shipment.current_status = (
                     ShipmentStatus.CANCELLED.value
                 )
+
+                db_trip.driver.status = "Available"
+                db_trip.vehicle.current_status = "Available"
+
+                assignment = (
+                    db.query(DriverAssignment)
+                    .filter(
+                        DriverAssignment.trip_id == db_trip.id,
+                        DriverAssignment.assignment_status == "Active"
+                    )
+                    .first()
+                )
+
+                if assignment:
+                    assignment.assignment_status = "Cancelled"
 
             value = value.value
 

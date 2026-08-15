@@ -62,6 +62,16 @@ class Trip(Base):
         nullable=False
     )
 
+    started_at = Column(
+    DateTime(timezone=True),
+    nullable=True
+    )
+
+    completed_at = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
