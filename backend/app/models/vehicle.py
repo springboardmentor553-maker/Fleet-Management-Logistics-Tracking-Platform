@@ -49,6 +49,13 @@ class Vehicle(Base):
 
     # Relationships
     shipments = relationship("Shipment", back_populates="vehicle")
+    trips = relationship("Trip", back_populates="vehicle")
+    fuel_records = relationship("FuelRecord", back_populates="vehicle", cascade="all, delete-orphan")
+    fuel_logs = relationship("FuelLog", back_populates="vehicle", cascade="all, delete-orphan")
+    fleet_fuel_records = relationship("FuelRecordModel", back_populates="vehicle", cascade="all, delete-orphan")
+    maintenances = relationship("Maintenance", back_populates="vehicle", cascade="all, delete-orphan")
+    maintenance_alerts = relationship("MaintenanceAlert", back_populates="vehicle", cascade="all, delete-orphan")
+    assignments = relationship("DriverAssignment", back_populates="vehicle", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Vehicle(id={self.id}, license_plate='{self.license_plate}', status='{self.status}')>"

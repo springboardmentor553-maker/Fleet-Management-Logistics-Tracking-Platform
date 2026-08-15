@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -42,6 +42,10 @@ class Driver(Base):
         server_default=func.now(),
         nullable=False
     )
+    
+    current_latitude = Column(Float, nullable=True)
+    current_longitude = Column(Float, nullable=True)
+    location_updated_at = Column(DateTime(timezone=True), nullable=True)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -51,7 +55,12 @@ class Driver(Base):
 
     # Relationships
     user = relationship("User", back_populates="driver")
+    assignments = relationship("DriverAssignment", back_populates="driver", cascade="all, delete-orphan")
+    attendance_records = relationship("DriverAttendance", back_populates="driver", cascade="all, delete-orphan")
     shipments = relationship("Shipment", back_populates="driver")
+    trips = relationship("Trip", back_populates="driver")
+    fuel_logs = relationship("FuelLog", back_populates="driver")
+    fleet_fuel_records = relationship("FuelRecordModel", back_populates="driver")
 
     def __repr__(self) -> str:
         return f"<Driver(id={self.id}, license_number='{self.license_number}', status='{self.status}')>"

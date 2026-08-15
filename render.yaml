@@ -1,0 +1,58 @@
+services:
+  # ----------------------------------------------------
+  # Render Backend Web Service (FastAPI)
+  # ----------------------------------------------------
+  - type: web
+    name: fleetflow-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python -m alembic upgrade head
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fleetflow-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: ENABLE_SIMULATOR
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: "https://fleetflow-frontend.onrender.com,http://localhost:5173,http://localhost:80"
+
+  # ----------------------------------------------------
+  # Render Frontend Static Site (React + Vite)
+  # ----------------------------------------------------
+  - type: web
+    name: fleetflow-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://fleetflow-backend.onrender.com
+      - key: VITE_WS_URL
+        value: wss://fleetflow-backend.onrender.com
+
+databases:
+  # ----------------------------------------------------
+  # Render PostgreSQL Database
+  # ----------------------------------------------------
+  - name: fleetflow-db
+    region: oregon
+    plan: free
+    databaseName: fleetflow_db
+    user: fleetflow_user
