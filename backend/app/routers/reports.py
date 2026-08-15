@@ -1,39 +1,68 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from datetime import datetime, timezone
+from typing import Dict, Any
 
-from app import models
 from app.database import get_db
+from app.models.maintenance import Maintenance, MaintenanceStatus
+from app.models.vehicle import Vehicle, VehicleStatus
+from app.utils.dependencies import require_manager
+from app.models.user import UserRole
 
-router = APIRouter()
+router = APIRouter(prefix="/reports", tags=["Reports"])
 
+@router.get("/maintenance", response_model=Dict[str, Any], dependencies=[Depends(require_manager)])
+def get_maintenance_report(
+    db: Session = Depends(get_db)
+):
+    # Total maintenance records
+    total_records = db.query(Maintenance).count()
 
-def grouped_counts(db: Session, model, field):
-    rows = db.query(field, func.count(model.id)).group_by(field).all()
-    return {status or "unspecified": count for status, count in rows}
+    # Maintenance in progress
+    in_progress_services = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.IN_PROGRESS).count()
 
+    # Vehicles under maintenance
+    vehicles_under_maintenance = db.query(Vehicle).filter(Vehicle.status == VehicleStatus.MAINTENANCE).count()
 
-@router.get("/operations")
-def operations_report(db: Session = Depends(get_db)):
-    shipment_status = grouped_counts(db, models.Shipment, models.Shipment.status)
-    vehicle_status = grouped_counts(db, models.Vehicle, models.Vehicle.status)
-    driver_status = grouped_counts(db, models.Driver, models.Driver.status)
-    maintenance_status = grouped_counts(
-        db, models.MaintenanceRecord, models.MaintenanceRecord.status
-    )
+    # Completed services
+    completed_services = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.COMPLETED).count()
 
-    total_maintenance_cost = (
-        db.query(func.coalesce(func.sum(models.MaintenanceRecord.cost), 0)).scalar() or 0
-    )
-    total_capacity = db.query(func.coalesce(func.sum(models.Vehicle.capacity), 0)).scalar() or 0
-    total_cargo_weight = db.query(func.coalesce(func.sum(models.Shipment.weight), 0)).scalar() or 0
+    # Overdue services (scheduled and date passed)
+    today = datetime.now(timezone.utc)
+    overdue_services = db.query(Maintenance).filter(
+        Maintenance.maintenance_status == MaintenanceStatus.SCHEDULED,
+        Maintenance.next_service_date < today
+    ).count()
 
+    # Total maintenance cost
+    total_cost = db.query(func.sum(Maintenance.service_cost)).scalar() or 0.0
+
+    # Most frequent maintenance category
+    category_counts = db.query(
+        Maintenance.maintenance_category, 
+        func.count(Maintenance.id).label("count")
+    ).group_by(Maintenance.maintenance_category).order_by(func.count(Maintenance.id).desc()).first()
+    
+    most_frequent_category = category_counts[0].value if category_counts else ""
+
+    # UI expected keys
+    scheduled_services = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.SCHEDULED).count()
+    
     return {
-        "shipments_by_status": shipment_status,
-        "vehicles_by_status": vehicle_status,
-        "drivers_by_status": driver_status,
-        "maintenance_by_status": maintenance_status,
-        "total_maintenance_cost": float(total_maintenance_cost),
-        "total_vehicle_capacity": float(total_capacity),
-        "total_cargo_weight": float(total_cargo_weight),
+        # Mentor expected keys
+        "total_maintenance_records": total_records,
+        "vehicles_under_maintenance": vehicles_under_maintenance,
+        "completed_services": completed_services,
+        "overdue_services": overdue_services,
+        "total_maintenance_cost": float(total_cost),
+        "most_frequent_maintenance_category": most_frequent_category,
+        
+        # UI expected keys
+        "total_records": total_records,
+        "scheduled": scheduled_services,
+        "in_progress": in_progress_services,
+        "completed": completed_services,
+        "overdue": overdue_services,
+        "total_cost": float(total_cost)
     }

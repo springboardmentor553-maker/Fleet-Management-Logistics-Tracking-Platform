@@ -44,25 +44,6 @@ yarn-error.log*
 alembic/__pycache__/
 backend/alembic/__pycache__/
 
-# Scratch / Local test scripts
-scratch/
-check_*.py
-test_*.py
-fix_*.py
-run_servers.bat
-*.webp
-
 # OS files
 .DS_Store
 Thumbs.db
-# Frontend
-frontend/node_modules/
-frontend/dist/
-
-# Backend virtual environment
-backend/venv/
-freightflow.db
-
-celerybeat-schedule.bak
-celerybeat-schedule.dat
-celerybeat-schedule.dir
