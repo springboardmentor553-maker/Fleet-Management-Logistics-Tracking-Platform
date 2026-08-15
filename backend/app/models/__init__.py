@@ -1,5 +1,5 @@
 # Models package for database schema/table definitions
-
+from app.models.maintenance import MaintenanceRecord
 from app.models.user import User, UserRole
 from app.models.driver import Driver, DriverStatus
 from app.models.vehicle import Vehicle, VehicleStatus
@@ -14,4 +14,5 @@ __all__ = [
     "VehicleStatus",
     "Shipment",
     "ShipmentStatus",
+    "MaintenanceRecord",
 ]

@@ -48,7 +48,13 @@ class Vehicle(Base):
     )
 
     # Relationships
+    # Relationships
     shipments = relationship("Shipment", back_populates="vehicle")
+
+    maintenance_records = relationship(
+        "MaintenanceRecord",
+        back_populates="vehicle"
+    )
 
     def __repr__(self) -> str:
         return f"<Vehicle(id={self.id}, license_plate='{self.license_plate}', status='{self.status}')>"
