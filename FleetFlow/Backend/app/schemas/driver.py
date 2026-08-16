@@ -42,9 +42,8 @@ class DriverResponse(BaseModel):
 
 
 class DriverAttendanceCreate(BaseModel):
-    driver_id: int
-    date: str  # YYYY-MM-DD string — matches the String column in the DB model
-    status: str = "present"      # present, absent, on_leave
+    date: str                  # YYYY-MM-DD
+    status: str = "present"
     check_in: Optional[str] = None
     check_out: Optional[str] = None
 
