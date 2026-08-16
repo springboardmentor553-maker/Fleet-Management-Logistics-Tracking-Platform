@@ -802,6 +802,8 @@ select:focus, .form-select:focus, select.form-input:focus {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  position: relative;
+  z-index: 1;
 }
 .auth-card {
   background: var(--bg-card);
