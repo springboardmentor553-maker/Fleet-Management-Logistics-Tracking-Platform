@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     postgres_host: str
     postgres_port: int
     postgres_db: str
+    postgres_sslmode: str = ""
     
     jwt_algorithm: str = "HS256"
     jwt_secret_key: str
@@ -25,10 +26,13 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def database_url(self) -> str:
-        return (
+        url = (
             f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+        if self.postgres_sslmode:
+            url += f"?sslmode={self.postgres_sslmode}"
+        return url
 
     model_config = SettingsConfigDict(
         env_file=".env",
