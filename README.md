@@ -387,13 +387,13 @@ cd Fleet-Management-Logistics-Tracking-Platform
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r FleetFlow/backend/requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 ### 3. Configure environment
 ```bash
 # Create .env inside the backend folder
-cat > FleetFlow/backend/.env << EOF
+cat > backend/.env << EOF
 DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/fleetflow
 SECRET_KEY=your-super-secret-key-at-least-32-chars
 ALGORITHM=HS256
@@ -408,7 +408,7 @@ EOF
 psql -U postgres -c "CREATE DATABASE fleetflow;"
 
 # Run all migrations
-cd FleetFlow/backend
+cd backend
 alembic upgrade head
 ```
 
@@ -424,7 +424,7 @@ This creates: 8 users, 6 vehicles, 5 drivers, 7 shipments, 6 trips.
 ```bash
 # Terminal 1 - FastAPI
 source .venv/bin/activate
-cd FleetFlow/backend
+cd backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 # Terminal 2 - Redis (Docker)
@@ -432,19 +432,19 @@ docker-compose up -d redis
 
 # Terminal 3 - Celery Worker
 source .venv/bin/activate
-cd FleetFlow/backend
+cd backend
 celery -A app.celery worker -l info
 
 # Terminal 4 - Celery Beat
 source .venv/bin/activate
-cd FleetFlow/backend
+cd backend
 celery -A app.celery beat -l info
 ```
 
 ### 7. Start the frontend
 ```bash
 # Terminal 2
-cd FleetFlow/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -498,9 +498,8 @@ All sample users share the same password: **`FleetFlow@123`**
 
 ```
 Fleet-Management-Logistics-Tracking-Platform/
-├── FleetFlow/
-│   ├── README.md                  ← You are here
-│   ├── backend/
+├── README.md                  ← You are here
+├── backend/
 │   │   ├── alembic/
 │   │   │   └── versions/          # Migration history (6 files)
 │   │   ├── app/
@@ -532,22 +531,22 @@ Fleet-Management-Logistics-Tracking-Platform/
 │   │   │   ├── config.py
 │   │   │   └── main.py
 │   │   └── requirements.txt
-│   └── frontend/
-│       ├── src/
-│       │   ├── api/client.js      # Axios + all API bindings
-│       │   ├── components/        # Sidebar, StatusBadge, ProtectedRoute
-│       │   ├── context/AuthContext.jsx
-│       │   └── pages/
-│       │       ├── Login.jsx
-│       │       ├── Register.jsx
-│       │       ├── Dashboard.jsx
-│       │       ├── Vehicles.jsx
-│       │       ├── Drivers.jsx
-│       │       ├── Shipments.jsx
-│       │       ├── Trips.jsx
-│       │       └── LiveTracking.jsx  # Leaflet + LRM + WebSocket
-│       ├── index.html
-│       └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── api/client.js      # Axios + all API bindings
+│   │   ├── components/        # Sidebar, StatusBadge, ProtectedRoute
+│   │   ├── context/AuthContext.jsx
+│   │   └── pages/
+│   │       ├── Login.jsx
+│   │       ├── Register.jsx
+│   │       ├── Dashboard.jsx
+│   │       ├── Vehicles.jsx
+│   │       ├── Drivers.jsx
+│   │       ├── Shipments.jsx
+│   │       ├── Trips.jsx
+│   │       └── LiveTracking.jsx  # Leaflet + LRM + WebSocket
+│   ├── index.html
+│   └── package.json
 ├── seed.py                        # Seeds all sample data
 ├── verify.py                      # Health verification script
 └── docker-compose.yml
@@ -557,7 +556,7 @@ Fleet-Management-Logistics-Tracking-Platform/
 
 ## Environment Variables
 
-`FleetFlow/backend/.env`:
+`backend/.env`:
 
 ```env
 # PostgreSQL connection string

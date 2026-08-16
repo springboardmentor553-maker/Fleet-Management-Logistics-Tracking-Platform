@@ -79,3 +79,9 @@ def database_health() -> dict[str, str]:
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return {"status": "database connected"}
+
+
+@app.get("/api/v1/health")
+def api_v1_health() -> dict[str, str]:
+    """Health check endpoint for Render."""
+    return {"status": "ok"}
