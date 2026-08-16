@@ -21,24 +21,41 @@ from app.schemas.shipment import (
 
 from app.services.maps import geocode_location
 
+
 router = APIRouter(
     prefix="/dispatcher",
-    tags=["Dispatcher"]
+    tags=["Dispatcher"],
 )
+
 
 _dispatch_or_admin = require_roles(
     Role.DISPATCHER,
-    Role.ADMIN
+    Role.ADMIN,
 )
 
 
-@router.get("/shipments", response_model=list[ShipmentResponse])
+# ============================================================
+# GET ALL SHIPMENTS
+# ============================================================
+
+@router.get(
+    "/shipments",
+    response_model=list[ShipmentResponse],
+)
 def list_shipments(
     db: Session = Depends(get_db),
     _: User = Depends(_dispatch_or_admin),
 ):
-    return db.query(Shipment).order_by(Shipment.id).all()
+    return (
+        db.query(Shipment)
+        .order_by(Shipment.id)
+        .all()
+    )
 
+
+# ============================================================
+# CREATE SHIPMENT
+# ============================================================
 
 @router.post(
     "/shipments",
@@ -50,12 +67,20 @@ def create_shipment(
     db: Session = Depends(get_db),
     _: User = Depends(_dispatch_or_admin),
 ):
-    shipment = Shipment(**data.model_dump())
+    shipment = Shipment(
+        **data.model_dump()
+    )
+
     db.add(shipment)
     db.commit()
     db.refresh(shipment)
+
     return shipment
 
+
+# ============================================================
+# ASSIGN DRIVER + VEHICLE TO SHIPMENT
+# ============================================================
 
 @router.patch(
     "/shipments/{shipment_id}/assign",
@@ -67,9 +92,18 @@ def assign_shipment(
     db: Session = Depends(get_db),
     _: User = Depends(_dispatch_or_admin),
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    # ========================================================
+    # 1. FIND SHIPMENT
+    # ========================================================
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if not shipment:
         raise HTTPException(
@@ -77,64 +111,203 @@ def assign_shipment(
             detail="Shipment not found",
         )
 
+    # ========================================================
+    # 2. SHIPMENT MUST BE PENDING
+    # ========================================================
+
     if shipment.status != "pending":
         raise HTTPException(
             status_code=400,
             detail="Only pending shipments can be assigned",
         )
 
-    driver = db.query(Driver).filter(
-        Driver.id == data.driver_id,
-        Driver.is_available == True
-    ).first()
+    # ========================================================
+    # DRIVER VALIDATION
+    # ========================================================
+
+    # --------------------------------------------------------
+    # 3. FIND DRIVER
+    # --------------------------------------------------------
+
+    driver = (
+        db.query(Driver)
+        .filter(
+            Driver.id == data.driver_id
+        )
+        .first()
+    )
 
     if not driver:
         raise HTTPException(
-            status_code=400,
-            detail="Driver not found or unavailable",
+            status_code=404,
+            detail="Driver not found",
         )
 
-    vehicle = db.query(Vehicle).filter(
-        Vehicle.id == data.vehicle_id,
-        Vehicle.current_status == "available",
-    ).first()
+    # --------------------------------------------------------
+    # 4. DRIVER ON LEAVE
+    # --------------------------------------------------------
+
+    if driver.attendance_status == "on_leave":
+        raise HTTPException(
+            status_code=400,
+            detail="Driver is on leave",
+        )
+
+    # --------------------------------------------------------
+    # 5. DRIVER ACTIVE TRIP VALIDATION
+    # --------------------------------------------------------
+
+    active_driver_trip = (
+        db.query(Trip)
+        .filter(
+            Trip.driver_id == driver.id,
+            Trip.status.in_(
+                [
+                    "scheduled",
+                    "started",
+                    "in_transit",
+                ]
+            ),
+        )
+        .first()
+    )
+
+    if active_driver_trip:
+        raise HTTPException(
+            status_code=400,
+            detail="Driver already has an active trip",
+        )
+
+    # --------------------------------------------------------
+    # 6. DRIVER AVAILABILITY
+    # --------------------------------------------------------
+
+    if not driver.is_available:
+        raise HTTPException(
+            status_code=400,
+            detail="Driver is unavailable",
+        )
+
+    # ========================================================
+    # VEHICLE VALIDATION
+    # ========================================================
+
+    # --------------------------------------------------------
+    # 7. FIND VEHICLE
+    # --------------------------------------------------------
+
+    vehicle = (
+        db.query(Vehicle)
+        .filter(
+            Vehicle.id == data.vehicle_id
+        )
+        .first()
+    )
 
     if not vehicle:
         raise HTTPException(
-            status_code=400,
-            detail="Vehicle not found or unavailable",
+            status_code=404,
+            detail="Vehicle not found",
         )
 
-    # Update shipment
+    # --------------------------------------------------------
+    # 8. VEHICLE AVAILABILITY
+    # --------------------------------------------------------
+
+    if vehicle.current_status != "available":
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle is unavailable",
+        )
+
+    # --------------------------------------------------------
+    # 9. VEHICLE ACTIVE TRIP VALIDATION
+    # --------------------------------------------------------
+
+    active_vehicle_trip = (
+        db.query(Trip)
+        .filter(
+            Trip.vehicle_id == vehicle.id,
+            Trip.status.in_(
+                [
+                    "scheduled",
+                    "started",
+                    "in_transit",
+                ]
+            ),
+        )
+        .first()
+    )
+
+    if active_vehicle_trip:
+        raise HTTPException(
+            status_code=400,
+            detail="Vehicle already has an active trip",
+        )
+
+    # ========================================================
+    # GEOCODING
+    # ========================================================
+
+    # --------------------------------------------------------
+    # 10. GEOCODE ORIGIN
+    # --------------------------------------------------------
+
+    if (
+        shipment.origin_lat is None
+        or shipment.origin_lng is None
+    ):
+        origin = geocode_location(
+            shipment.origin
+        )
+
+        shipment.origin_lat = origin["latitude"]
+        shipment.origin_lng = origin["longitude"]
+
+    # --------------------------------------------------------
+    # 11. GEOCODE DESTINATION
+    # --------------------------------------------------------
+
+    if (
+        shipment.destination_lat is None
+        or shipment.destination_lng is None
+    ):
+        destination = geocode_location(
+            shipment.destination
+        )
+
+        shipment.destination_lat = destination["latitude"]
+        shipment.destination_lng = destination["longitude"]
+
+    # ========================================================
+    # UPDATE SHIPMENT
+    # ========================================================
+
     shipment.driver_id = driver.id
     shipment.vehicle_id = vehicle.id
     shipment.status = "in_transit"
 
-    # Update driver
+    # ========================================================
+    # UPDATE DRIVER
+    # ========================================================
+
     driver.is_available = False
     driver.assigned_vehicle_id = vehicle.id
 
-    # Update vehicle
+    # ========================================================
+    # UPDATE VEHICLE
+    # ========================================================
+
     vehicle.current_status = "in_transit"
     vehicle.assigned_driver_id = driver.id
 
-    # Geocode origin
-    if shipment.origin_lat is None or shipment.origin_lng is None:
-        origin = geocode_location(shipment.origin)
-        shipment.origin_lat = origin["latitude"]
-        shipment.origin_lng = origin["longitude"]
-
-    # Geocode destination
-    if shipment.destination_lat is None or shipment.destination_lng is None:
-        destination = geocode_location(shipment.destination)
-        shipment.destination_lat = destination["latitude"]
-        shipment.destination_lng = destination["longitude"]
-
-    # Vehicle current location
     vehicle.latitude = shipment.origin_lat
     vehicle.longitude = shipment.origin_lng
 
-    # Create Trip
+    # ========================================================
+    # CREATE TRIP
+    # ========================================================
+
     trip = Trip(
         shipment_id=shipment.id,
         driver_id=driver.id,
@@ -148,10 +321,13 @@ def assign_shipment(
 
     db.add(trip)
 
-    # Generate trip.id
+    # Generate trip ID
     db.flush()
 
-    # Create Driver Assignment
+    # ========================================================
+    # CREATE DRIVER ASSIGNMENT
+    # ========================================================
+
     assignment = DriverAssignment(
         driver_id=driver.id,
         vehicle_id=vehicle.id,
@@ -163,12 +339,20 @@ def assign_shipment(
 
     db.add(assignment)
 
+    # ========================================================
+    # COMMIT ALL CHANGES
+    # ========================================================
+
     db.commit()
 
     db.refresh(shipment)
 
     return shipment
 
+
+# ============================================================
+# CANCEL SHIPMENT
+# ============================================================
 
 @router.patch(
     "/shipments/{shipment_id}/cancel",
@@ -179,9 +363,18 @@ def cancel_shipment(
     db: Session = Depends(get_db),
     _: User = Depends(_dispatch_or_admin),
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    # ========================================================
+    # 1. FIND SHIPMENT
+    # ========================================================
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if not shipment:
         raise HTTPException(
@@ -189,31 +382,98 @@ def cancel_shipment(
             detail="Shipment not found",
         )
 
-    if shipment.status in ("delivered", "cancelled"):
+    # ========================================================
+    # 2. CANNOT CANCEL DELIVERED/CANCELLED SHIPMENT
+    # ========================================================
+
+    if shipment.status in (
+        "delivered",
+        "cancelled",
+    ):
         raise HTTPException(
             status_code=400,
-            detail=f"Cannot cancel a {shipment.status} shipment",
+            detail=(
+                f"Cannot cancel a "
+                f"{shipment.status} shipment"
+            ),
         )
 
+    # ========================================================
+    # FIND ASSOCIATED TRIP
+    # ========================================================
+
+    trip = (
+        db.query(Trip)
+        .filter(
+            Trip.shipment_id == shipment.id
+        )
+        .first()
+    )
+
+    # ========================================================
+    # UPDATE TRIP + ASSIGNMENT
+    # ========================================================
+
+    if trip:
+
+        trip.status = "cancelled"
+
+        assignment = (
+            db.query(DriverAssignment)
+            .filter(
+                DriverAssignment.trip_id == trip.id
+            )
+            .first()
+        )
+
+        if assignment:
+            assignment.assignment_status = "Cancelled"
+
+    # ========================================================
+    # RELEASE DRIVER
+    # ========================================================
+
     if shipment.driver_id:
-        driver = db.query(Driver).filter(
-            Driver.id == shipment.driver_id
-        ).first()
+
+        driver = (
+            db.query(Driver)
+            .filter(
+                Driver.id == shipment.driver_id
+            )
+            .first()
+        )
 
         if driver:
             driver.is_available = True
             driver.assigned_vehicle_id = None
 
+    # ========================================================
+    # RELEASE VEHICLE
+    # ========================================================
+
     if shipment.vehicle_id:
-        vehicle = db.query(Vehicle).filter(
-            Vehicle.id == shipment.vehicle_id
-        ).first()
+
+        vehicle = (
+            db.query(Vehicle)
+            .filter(
+                Vehicle.id == shipment.vehicle_id
+            )
+            .first()
+        )
 
         if vehicle:
             vehicle.current_status = "available"
             vehicle.assigned_driver_id = None
 
+    # ========================================================
+    # UPDATE SHIPMENT
+    # ========================================================
+
     shipment.status = "cancelled"
+
+    # ========================================================
+    # COMMIT
+    # ========================================================
 
     db.commit()
 

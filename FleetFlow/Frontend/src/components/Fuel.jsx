@@ -191,15 +191,22 @@ export default function Fuel() {
               <div className="stat-label">Total Fuel Cost</div>
             </div>
           </div>
-
           <div className="stat-card" style={{ '--card-color': '#3b82f6' }}>
-            <div className="stat-icon">📊</div>
-            <div className="stat-info">
-              <div className="stat-value">{analytics.average_fuel_consumption} L</div>
-              <div className="stat-label">Avg Fuel Consumption</div>
+          <div className="stat-icon">📊</div>
+          <div className="stat-info">
+            <div className="stat-value">
+              {records.length > 0
+                ? (
+                    records.reduce(
+                      (total, record) => total + Number(record.fuel_quantity || 0),
+                      0
+                    ) / records.length
+                  ).toFixed(2)
+                : '0.00'} L
             </div>
+            <div className="stat-label">Avg Fuel Consumption</div>
           </div>
-
+        </div>
           <div className="stat-card" style={{ '--card-color': '#ef4444' }}>
             <div className="stat-icon">📈</div>
             <div className="stat-info">
