@@ -189,7 +189,7 @@ async def update_trip(trip_id: int, updated: schemas.TripCreate, db: Session = D
     if not driver:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found")
 
-    validate_driver_and_vehicle_eligibility(driver, vehicle)
+    validate_driver_and_vehicle_eligibility(driver, vehicle, db)
 
     if updated.shipment_id is not None:
         shipment = db.query(models.Shipment).filter(models.Shipment.id == updated.shipment_id).first()

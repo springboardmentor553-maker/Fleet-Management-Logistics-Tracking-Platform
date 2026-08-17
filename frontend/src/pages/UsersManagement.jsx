@@ -4,8 +4,14 @@ import api from '../api/axios'
 import { getCurrentUser } from '../utils/permissions'
 import CustomSelect from '../components/CustomSelect'
 
-const ROLES = ['Admin', 'Fleet Manager', 'Driver', 'Dispatcher']
-const ROLE_OPTIONS = ROLES.map(r => ({ value: r, label: r }))
+const ROLES = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'fleet_manager', label: 'Fleet Manager' },
+  { value: 'driver', label: 'Driver' },
+  { value: 'dispatcher', label: 'Dispatcher' }
+]
+
+const ROLE_OPTIONS = ROLES
 
 export default function UsersManagement() {
   const [users, setUsers] = useState([])
@@ -52,7 +58,9 @@ export default function UsersManagement() {
                 <td>{u.email}</td>
                 <td>
                   {u.id === currentUser?.id ? (
-                    <span className="ff-badge status-in_use">{u.role} (you)</span>
+                    <span className="ff-badge status-in_use">
+                      {u.role} (you)
+                    </span>
                   ) : (
                     <CustomSelect
                       value={u.role}
