@@ -50,6 +50,7 @@ app.include_router(reports.router)
 from fastapi import WebSocket, WebSocketDisconnect
 
 @app.get("/", tags=["Health Check"])
+@app.head("/", tags=["Health Check"])
 def home():
     """
     Health check endpoint to verify that the FleetFlow backend is running successfully.
