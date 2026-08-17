@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from backend.app.config import settings
 
 from backend.app.routers.dashboard import router as dashboard_router
 from backend.app.routers.driver import router as driver_router
@@ -29,10 +30,7 @@ app = FastAPI(title="FleetFlow API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

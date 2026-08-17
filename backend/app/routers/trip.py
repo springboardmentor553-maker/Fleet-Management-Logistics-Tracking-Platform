@@ -54,12 +54,13 @@ latest_locations: Dict[int, Dict[str, float]] = {}
 # Ensure target columns exist for PostgreSQL/SQLite databases
 from sqlalchemy import text
 from backend.app.database import engine
-with engine.connect() as conn:
-    try:
+try:
+    with engine.connect() as conn:
         conn.execute(text("ALTER TABLE trips ADD COLUMN IF NOT EXISTS traffic_level VARCHAR DEFAULT 'Normal';"))
         conn.commit()
-    except Exception:
-        pass
+except Exception:
+    pass
+
 
 TRAFFIC_MULTIPLIERS = {
     "Normal": 1.0,

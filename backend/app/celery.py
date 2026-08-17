@@ -1,6 +1,7 @@
 from celery import Celery
 from celery.schedules import crontab
 import logging
+from backend.app.config import settings
 from datetime import datetime, timedelta
 
 from backend.app.database import SessionLocal
@@ -12,8 +13,8 @@ logger = logging.getLogger(__name__)
 # Configure Celery application with Redis as broker and backend
 celery_app = Celery(
     "fleetflow_tasks",
-    broker="redis://127.0.0.1:6379/0",
-    backend="redis://127.0.0.1:6379/0"
+    broker=settings.REDIS_BROKER_URL,
+    backend=settings.REDIS_RESULT_BACKEND
 )
 
 # Optional configuration settings

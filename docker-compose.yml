@@ -1,0 +1,132 @@
+services:
+  # ========================
+  # PostgreSQL Database
+  # ========================
+  postgres:
+    image: postgres:16-alpine
+    container_name: fleetflow_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1203}
+      POSTGRES_DB: ${POSTGRES_DB:-fleetflow_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fleetflow_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================
+  # Redis
+  # ========================
+  redis:
+    image: redis:7-alpine
+    container_name: fleetflow_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================
+  # FastAPI Backend
+  # ========================
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fleetflow_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-1203}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+      SECRET_KEY: ${SECRET_KEY:-fleetflow_secure_jwt_secret_key_2026_production_ready}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      REDIS_BROKER_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/0
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:80,http://127.0.0.1:80,http://localhost:5173,http://127.0.0.1:5173}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ========================
+  # Celery Worker
+  # ========================
+  celery_worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fleetflow_celery_worker
+    command: ["sh", "-c", "celery -A backend.app.celery.celery_app worker --loglevel=info"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-1203}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+      SECRET_KEY: ${SECRET_KEY:-fleetflow_secure_jwt_secret_key_2026_production_ready}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      REDIS_BROKER_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/0
+
+  # ========================
+  # Celery Beat Scheduler
+  # ========================
+  celery_beat:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fleetflow_celery_beat
+    command: ["sh", "-c", "celery -A backend.app.celery.celery_app beat --loglevel=info"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-1203}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+      SECRET_KEY: ${SECRET_KEY:-fleetflow_secure_jwt_secret_key_2026_production_ready}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      REDIS_BROKER_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/0
+
+  # ========================
+  # Frontend (React/Vite -> Nginx)
+  # ========================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fleetflow_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
