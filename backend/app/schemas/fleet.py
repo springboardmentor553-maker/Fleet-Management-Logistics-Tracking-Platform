@@ -253,6 +253,7 @@ class MaintenanceReportResponse(BaseModel):
     completed: int
     in_progress: int
     scheduled: int
+    cancelled: int = 0
     overdue: int
     total_cost: float
     category_summary: list[CategorySummary]

@@ -75,10 +75,26 @@ def run_migrations_online() -> None:
 
         with context.begin_transaction():
             from sqlalchemy import inspect
+            import sqlalchemy as sa
             inspector = inspect(connection)
             
             # Check if this is a fresh alembic run on an existing database
-            if inspector.has_table("drivers") and not inspector.has_table("alembic_version"):
+            has_drivers = inspector.has_table("drivers")
+            has_alembic = inspector.has_table("alembic_version")
+            
+            needs_stamp = False
+            if has_drivers:
+                if not has_alembic:
+                    needs_stamp = True
+                else:
+                    try:
+                        result = connection.execute(sa.text("SELECT count(*) FROM alembic_version")).scalar()
+                        if result == 0:
+                            needs_stamp = True
+                    except Exception:
+                        pass
+                        
+            if needs_stamp:
                 if not os.environ.get("ALEMBIC_SKIP_PRECHECK"):
                     print("WARNING: Existing tables found without alembic_version.")
                     print("Automatically stamping database to 'head' to prevent DuplicateTable errors...")

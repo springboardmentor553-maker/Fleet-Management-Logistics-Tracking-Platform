@@ -38,7 +38,16 @@ const MaintenanceReports = () => {
       const mergedReport = {
         ...(reportRes || {}),
         ...(summaryRes || {}),
-        overdue: summaryRes?.overdue ?? reportRes?.overdue ?? 0
+        total_records: reportRes?.total_records ?? summaryRes?.total_records ?? 0,
+        scheduled: reportRes?.scheduled ?? 0,
+        in_progress: reportRes?.in_progress ?? summaryRes?.in_progress ?? 0,
+        completed: reportRes?.completed ?? summaryRes?.completed ?? 0,
+        cancelled: reportRes?.cancelled ?? 0,
+        overdue: summaryRes?.overdue ?? reportRes?.overdue ?? 0,
+        total_cost: reportRes?.total_cost ?? summaryRes?.total_cost ?? 0,
+        category_summary: reportRes?.category_summary ?? [],
+        vehicle_summary: reportRes?.vehicle_summary ?? [],
+        status_summary: reportRes?.status_summary ?? []
       };
       setReport(mergedReport);
       setRecords(recordsRes || []);
@@ -73,46 +82,63 @@ const MaintenanceReports = () => {
 
   const getAlertStatusInfo = (a) => {
     const maintStatus = (a.maintenance_status || '').toLowerCase();
-    const notes = (a.notes || '').toLowerCase();
-    const alertType = (a.alert_type || '').toUpperCase();
 
-    let diffDays = null;
-    if (a.next_service_date) {
-      const nextDate = new Date(a.next_service_date);
-      const now = new Date();
-      diffDays = Math.ceil((nextDate - now) / (1000 * 60 * 60 * 24));
+    // Safety guard: completed and cancelled records are never active alerts.
+    // activeAlerts already excludes them, but this prevents any accidental
+    // date-based mis-classification if this function is called on such a record.
+    if (maintStatus === 'completed' || maintStatus === 'cancelled') {
+      return null;
     }
 
-    if (alertType === 'OVERDUE' || notes.includes('overdue') || (diffDays !== null && diffDays < 0) || maintStatus === 'overdue') {
-      return {
-        key: 'OVERDUE',
-        label: 'Overdue',
-        className: 'bg-red-500/10 text-red-400 border border-red-500/20'
-      };
-    }
-    if (alertType === 'DUE_SOON' || (diffDays !== null && diffDays >= 0 && diffDays <= 7) || maintStatus === 'due_soon') {
-      return {
-        key: 'DUE_SOON',
-        label: 'Due Soon',
-        className: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-      };
-    }
-    if (alertType === 'IN_PROGRESS' || maintStatus === 'in_progress' || maintStatus === 'in progress') {
+    // IN_PROGRESS must be checked first — it takes priority over any date-based classification.
+    // An in-progress record being worked on is never OVERDUE or DUE_SOON.
+    if (maintStatus === 'in_progress') {
       return {
         key: 'IN_PROGRESS',
         label: 'In Progress',
         className: 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
       };
     }
+
+    // For SCHEDULED records compare against next_service_date when available,
+    // falling back to service_date (the date the maintenance was due to happen).
+    const dateToCheck = a.next_service_date || a.service_date;
+    if (dateToCheck) {
+      const checkDate = new Date(dateToCheck);
+      const now = new Date();
+
+      // Use direct date comparison for OVERDUE to avoid Math.ceil rounding
+      // a sub-day overdue value (e.g. -0.5 days) up to 0 (not < 0).
+      if (checkDate < now) {
+        return {
+          key: 'OVERDUE',
+          label: 'Overdue',
+          className: 'bg-red-500/10 text-red-400 border border-red-500/20'
+        };
+      }
+
+      const diffDays = Math.ceil((checkDate - now) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 7) {
+        return {
+          key: 'DUE_SOON',
+          label: 'Due Soon',
+          className: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+        };
+      }
+    }
+
     return {
       key: 'SCHEDULED',
-      label: a.alert || a.category || 'Scheduled',
+      label: a.category || 'Scheduled',
       className: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
     };
   };
 
   const activeAlerts = (records || [])
-    .filter(r => r.maintenance_status !== 'completed' && r.maintenance_status !== 'cancelled')
+    .filter(r => {
+      const s = (r.maintenance_status || '').toLowerCase();
+      return s !== 'completed' && s !== 'cancelled';
+    })
     .map(r => {
       const v = (vehicles || []).find(veh => veh.id === r.vehicle_id);
       const vehName = v ? `${v.make} ${v.model}` : `Vehicle #${r.vehicle_id}`;
@@ -131,6 +157,13 @@ const MaintenanceReports = () => {
       };
     });
 
+  // Compute the overdue count from activeAlerts using the same getAlertStatusInfo logic
+  // so the summary card count exactly matches what the Overdue filter displays.
+  const overdueCount = activeAlerts.filter(a => {
+    const info = getAlertStatusInfo(a);
+    return info && info.key === 'OVERDUE';
+  }).length;
+
   // Filter alerts based on search and filter type
   const filteredAlerts = activeAlerts.filter(a => {
     const matchesSearch =
@@ -142,7 +175,7 @@ const MaintenanceReports = () => {
     if (alertFilter === 'ALL') return true;
 
     const statusInfo = getAlertStatusInfo(a);
-    return statusInfo.key === alertFilter;
+    return statusInfo && statusInfo.key === alertFilter;
   });
 
   if (loading) {
@@ -171,28 +204,32 @@ const MaintenanceReports = () => {
         <p className="text-slate-400 mt-1">Detailed statistics, active alerts, and vehicle histories</p>
       </div>
 
-      {/* --- Task 5: Dashboard Cards (Summary) --- */}
+      {/* Dashboard Cards (Summary) */}
       {report && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Records</p>
-            <h3 className="text-2xl font-bold text-white mt-1">{report.total_records}</h3>
+            <h3 className="text-2xl font-bold text-white mt-1">{report.total_records ?? 0}</h3>
           </div>
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Scheduled</p>
-            <h3 className="text-2xl font-bold text-yellow-400 mt-1">{report.scheduled}</h3>
+            <h3 className="text-2xl font-bold text-yellow-400 mt-1">{report.scheduled ?? 0}</h3>
           </div>
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">In Progress</p>
-            <h3 className="text-2xl font-bold text-blue-400 mt-1">{report.in_progress}</h3>
+            <h3 className="text-2xl font-bold text-blue-400 mt-1">{report.in_progress ?? 0}</h3>
           </div>
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Completed</p>
-            <h3 className="text-2xl font-bold text-green-400 mt-1">{report.completed}</h3>
+            <h3 className="text-2xl font-bold text-green-400 mt-1">{report.completed ?? 0}</h3>
+          </div>
+          <div className="glass-panel rounded-xl border border-slate-800 p-4">
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Cancelled</p>
+            <h3 className="text-2xl font-bold text-slate-400 mt-1">{report.cancelled ?? 0}</h3>
           </div>
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Overdue</p>
-            <h3 className="text-2xl font-bold text-red-400 mt-1">{report.overdue}</h3>
+            <h3 className="text-2xl font-bold text-red-400 mt-1">{overdueCount}</h3>
           </div>
           <div className="glass-panel rounded-xl border border-slate-800 p-4">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Cost</p>
@@ -267,9 +304,11 @@ const MaintenanceReports = () => {
                           {a.next_service_date ? new Date(a.next_service_date).toLocaleDateString() : 'N/A'}
                         </td>
                         <td className="px-6 py-3">
-                          <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${statusInfo.className}`}>
-                            {statusInfo.label}
-                          </span>
+                          {statusInfo && (
+                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${statusInfo.className}`}>
+                              {statusInfo.label}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

@@ -17,6 +17,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    if inspector.has_table("drivers"):
+        print("Existing tables found, assuming initial migration is already applied. Skipping table creation.")
+        return
+
     op.create_table(
         "drivers",
         sa.Column("id", sa.Integer(), nullable=False),

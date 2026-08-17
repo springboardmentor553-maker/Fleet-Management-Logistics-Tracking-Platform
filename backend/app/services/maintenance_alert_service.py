@@ -31,7 +31,7 @@ class MaintenanceAlertService:
 
             latest_record = db.query(Maintenance).filter(
                 Maintenance.vehicle_id == v.id,
-                Maintenance.maintenance_status.in_([MaintenanceStatus.SCHEDULED, MaintenanceStatus.COMPLETED])
+                Maintenance.maintenance_status == MaintenanceStatus.SCHEDULED
             ).order_by(Maintenance.service_date.desc()).first()
 
             if not latest_record or not latest_record.next_service_date:

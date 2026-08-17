@@ -122,11 +122,11 @@ def get_vehicle_maintenance_history(vehicle_id: int, db: Session = Depends(get_d
     """
     Get maintenance records for a specific vehicle.
     """
-    from app.models.maintenance import MaintenanceRecord
-    
-    records = db.query(MaintenanceRecord).filter(
-        MaintenanceRecord.vehicle_id == vehicle_id
-    ).order_by(MaintenanceRecord.service_date.desc()).all()
+    from app.models.maintenance import Maintenance
+
+    records = db.query(Maintenance).filter(
+        Maintenance.vehicle_id == vehicle_id
+    ).order_by(Maintenance.service_date.desc()).all()
     return records
 
 @router.put("/{vehicle_id}", response_model=VehicleResponse, dependencies=[Depends(require_manager)])

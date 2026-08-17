@@ -55,9 +55,11 @@ def get_maintenance_summary(db: Session = Depends(get_db)):
     due_soon_count = 0
     
     for v in vehicles:
+        # Only SCHEDULED or IN_PROGRESS records can be overdue/due-soon.
+        # COMPLETED and CANCELLED records must never increment these counters.
         latest = db.query(Maintenance).filter(
             Maintenance.vehicle_id == v.id,
-            Maintenance.maintenance_status.in_([MaintenanceStatus.SCHEDULED, MaintenanceStatus.COMPLETED])
+            Maintenance.maintenance_status.in_([MaintenanceStatus.SCHEDULED, MaintenanceStatus.IN_PROGRESS])
         ).order_by(Maintenance.service_date.desc()).first()
         
         if latest and latest.next_service_date:
@@ -86,6 +88,7 @@ def get_maintenance_report(db: Session = Depends(get_db)):
     completed = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.COMPLETED).count()
     in_progress = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.IN_PROGRESS).count()
     scheduled = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.SCHEDULED).count()
+    cancelled = db.query(Maintenance).filter(Maintenance.maintenance_status == MaintenanceStatus.CANCELLED).count()
     
     total_cost = db.query(func.sum(Maintenance.service_cost)).scalar() or 0.0
 
@@ -94,9 +97,11 @@ def get_maintenance_report(db: Session = Depends(get_db)):
     overdue_count = 0
     
     for v in vehicles:
+        # Only SCHEDULED or IN_PROGRESS records can be overdue.
+        # COMPLETED and CANCELLED records must never increment this counter.
         latest = db.query(Maintenance).filter(
             Maintenance.vehicle_id == v.id,
-            Maintenance.maintenance_status.in_([MaintenanceStatus.SCHEDULED, MaintenanceStatus.COMPLETED])
+            Maintenance.maintenance_status.in_([MaintenanceStatus.SCHEDULED, MaintenanceStatus.IN_PROGRESS])
         ).order_by(Maintenance.service_date.desc()).first()
         
         if latest and latest.next_service_date and latest.next_service_date < now:
@@ -153,6 +158,7 @@ def get_maintenance_report(db: Session = Depends(get_db)):
         "completed": completed,
         "in_progress": in_progress,
         "scheduled": scheduled,
+        "cancelled": cancelled,
         "overdue": overdue_count,
         "total_cost": float(total_cost),
         "category_summary": category_summary,
