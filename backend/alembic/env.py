@@ -74,6 +74,20 @@ def run_migrations_online() -> None:
         )
 
         with context.begin_transaction():
+            from sqlalchemy import inspect
+            inspector = inspect(connection)
+            
+            # Check if this is a fresh alembic run on an existing database
+            if inspector.has_table("drivers") and not inspector.has_table("alembic_version"):
+                if not os.environ.get("ALEMBIC_SKIP_PRECHECK"):
+                    print("WARNING: Existing tables found without alembic_version.")
+                    print("Automatically stamping database to 'head' to prevent DuplicateTable errors...")
+                    os.environ["ALEMBIC_SKIP_PRECHECK"] = "1"
+                    import subprocess
+                    subprocess.run([sys.executable, "-m", "alembic", "stamp", "head"], check=True)
+                    print("Successfully stamped database. Skipping remaining upgrade steps for this run.")
+                    return
+
             context.run_migrations()
 
 
