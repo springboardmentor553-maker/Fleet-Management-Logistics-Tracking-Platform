@@ -3,10 +3,17 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import DriverAssignment, Driver, Vehicle, Trip
+
 from app.schemas.driver_assignment import (
     DriverAssignmentCreate,
     DriverAssignmentResponse
 )
+
+from app.dependencies import (
+    fleet_operations_required,
+    driver_view_required
+)
+
 
 router = APIRouter(
     prefix="/driver-assignments",
@@ -14,38 +21,84 @@ router = APIRouter(
 )
 
 
-# Assign Driver
-@router.post("/", response_model=DriverAssignmentResponse)
-def assign_driver(assignment: DriverAssignmentCreate, db: Session = Depends(get_db)):
+# ============================================================
+# ASSIGN DRIVER
+# Administrator / Fleet Manager / Dispatcher
+# ============================================================
+
+@router.post(
+    "/",
+    response_model=DriverAssignmentResponse
+)
+def assign_driver(
+    assignment: DriverAssignmentCreate,
+    db: Session = Depends(get_db),
+    user=Depends(fleet_operations_required)
+):
+
+    # --------------------------------------------------------
+    # Validate Driver
+    # --------------------------------------------------------
 
     driver = db.query(Driver).filter(
         Driver.driver_id == assignment.driver_id
     ).first()
 
     if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    # Driver must be available
+    if driver.status != "Available":
+        raise HTTPException(
+            status_code=400,
+            detail="Driver is not available"
+        )
+
+    # --------------------------------------------------------
+    # Validate Vehicle
+    # --------------------------------------------------------
 
     vehicle = db.query(Vehicle).filter(
         Vehicle.vehicle_id == assignment.vehicle_id
     ).first()
 
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
-    trip = db.query(Trip).filter(
-        Trip.id == assignment.trip_id
-    ).first()
-
-    if not trip:
-        raise HTTPException(status_code=404, detail="Trip not found")
-
+    # Vehicle must be available
     if vehicle.status != "Available":
         raise HTTPException(
             status_code=400,
             detail="Vehicle is not available"
         )
 
-    assignment_exists = db.query(DriverAssignment).filter(
+    # --------------------------------------------------------
+    # Validate Trip
+    # --------------------------------------------------------
+
+    trip = db.query(Trip).filter(
+        Trip.id == assignment.trip_id
+    ).first()
+
+    if not trip:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found"
+        )
+
+    # --------------------------------------------------------
+    # Check existing assignment
+    # --------------------------------------------------------
+
+    assignment_exists = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.driver_id == assignment.driver_id,
         DriverAssignment.assignment_status == "Assigned"
     ).first()
@@ -56,6 +109,10 @@ def assign_driver(assignment: DriverAssignmentCreate, db: Session = Depends(get_
             detail="Driver is already assigned"
         )
 
+    # --------------------------------------------------------
+    # Create Assignment
+    # --------------------------------------------------------
+
     new_assignment = DriverAssignment(
         driver_id=assignment.driver_id,
         vehicle_id=assignment.vehicle_id,
@@ -63,6 +120,8 @@ def assign_driver(assignment: DriverAssignmentCreate, db: Session = Depends(get_
         assignment_status=assignment.assignment_status,
         remarks=assignment.remarks
     )
+
+    # Update statuses
     driver.status = "Assigned"
     vehicle.status = "Assigned"
 
@@ -73,26 +132,122 @@ def assign_driver(assignment: DriverAssignmentCreate, db: Session = Depends(get_
     return new_assignment
 
 
-# View Assigned Drivers
-@router.get("/", response_model=list[DriverAssignmentResponse])
-def get_assignments(db: Session = Depends(get_db)):
-    return db.query(DriverAssignment).all()
+# ============================================================
+# VIEW ASSIGNED DRIVERS
+# All allowed viewing roles including Driver
+# ============================================================
+
+@router.get(
+    "/",
+    response_model=list[DriverAssignmentResponse]
+)
+def get_assignments(
+    db: Session = Depends(get_db),
+    user=Depends(driver_view_required)
+):
+
+    return db.query(
+        DriverAssignment
+    ).all()
 
 
-# Update Driver Assignment
-@router.put("/{assignment_id}", response_model=DriverAssignmentResponse)
+# ============================================================
+# UPDATE DRIVER ASSIGNMENT
+# Administrator / Fleet Manager / Dispatcher
+# ============================================================
+
+@router.put(
+    "/{assignment_id}",
+    response_model=DriverAssignmentResponse
+)
 def update_assignment(
     assignment_id: int,
     assignment: DriverAssignmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user=Depends(fleet_operations_required)
 ):
 
-    record = db.query(DriverAssignment).filter(
+    # --------------------------------------------------------
+    # Find Assignment
+    # --------------------------------------------------------
+
+    record = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.assignment_id == assignment_id
     ).first()
 
     if not record:
-        raise HTTPException(status_code=404, detail="Assignment not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Assignment not found"
+        )
+
+    # --------------------------------------------------------
+    # Validate Driver
+    # --------------------------------------------------------
+
+    driver = db.query(Driver).filter(
+        Driver.driver_id == assignment.driver_id
+    ).first()
+
+    if not driver:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    # If changing to another driver,
+    # the new driver must be Available
+    if assignment.driver_id != record.driver_id:
+
+        if driver.status != "Available":
+            raise HTTPException(
+                status_code=400,
+                detail="Driver is not available"
+            )
+
+    # --------------------------------------------------------
+    # Validate Vehicle
+    # --------------------------------------------------------
+
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == assignment.vehicle_id
+    ).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
+
+    # If changing to another vehicle,
+    # the new vehicle must be Available
+    if assignment.vehicle_id != record.vehicle_id:
+
+        if vehicle.status != "Available":
+            raise HTTPException(
+                status_code=400,
+                detail="Vehicle is not available"
+            )
+
+    # --------------------------------------------------------
+    # Validate Trip
+    # --------------------------------------------------------
+
+    trip = db.query(Trip).filter(
+        Trip.id == assignment.trip_id
+    ).first()
+
+    if not trip:
+        raise HTTPException(
+            status_code=404,
+            detail="Trip not found"
+        )
+
+    # --------------------------------------------------------
+    # Update Assignment
+    # --------------------------------------------------------
 
     record.driver_id = assignment.driver_id
     record.vehicle_id = assignment.vehicle_id
@@ -106,14 +261,25 @@ def update_assignment(
     return record
 
 
-# Remove Driver Assignment
+# ============================================================
+# REMOVE DRIVER ASSIGNMENT
+# Administrator / Fleet Manager / Dispatcher
+# ============================================================
+
 @router.delete("/{assignment_id}")
 def delete_assignment(
     assignment_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user=Depends(fleet_operations_required)
 ):
 
-    record = db.query(DriverAssignment).filter(
+    # --------------------------------------------------------
+    # Find Assignment
+    # --------------------------------------------------------
+
+    record = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.assignment_id == assignment_id
     ).first()
 
@@ -123,7 +289,10 @@ def delete_assignment(
             detail="Assignment not found"
         )
 
-    # Update driver status
+    # --------------------------------------------------------
+    # Update Driver Status
+    # --------------------------------------------------------
+
     driver = db.query(Driver).filter(
         Driver.driver_id == record.driver_id
     ).first()
@@ -131,7 +300,10 @@ def delete_assignment(
     if driver:
         driver.status = "Available"
 
-    # Update vehicle status
+    # --------------------------------------------------------
+    # Update Vehicle Status
+    # --------------------------------------------------------
+
     vehicle = db.query(Vehicle).filter(
         Vehicle.vehicle_id == record.vehicle_id
     ).first()
@@ -139,7 +311,13 @@ def delete_assignment(
     if vehicle:
         vehicle.status = "Available"
 
+    # --------------------------------------------------------
+    # Delete Assignment
+    # --------------------------------------------------------
+
     db.delete(record)
     db.commit()
 
-    return {"message": "Driver assignment removed successfully"}
+    return {
+        "message": "Driver assignment removed successfully"
+    }

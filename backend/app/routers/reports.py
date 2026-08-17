@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.database import SessionLocal
-from app.models import Driver, Vehicle, Shipment
-from app.dependencies import fleet_manager_required
-from sqlalchemy import func
-from app.models import Maintenance
+from app.models import (
+    Driver,
+    Vehicle,
+    Shipment,
+    Maintenance
+)
+
+from app.dependencies import reports_required
 
 
 router = APIRouter(
@@ -14,24 +19,33 @@ router = APIRouter(
 )
 
 
+# =========================================================
+# DATABASE
+# =========================================================
+
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
         db.close()
 
 
-# Driver Report
+# =========================================================
+# DRIVER REPORT
+# =========================================================
+
 @router.get("/drivers")
 def driver_report(
     db: Session = Depends(get_db),
-    user=Depends(fleet_manager_required)
+    user=Depends(reports_required)
 ):
     drivers = db.query(Driver).all()
 
     return {
         "total_drivers": len(drivers),
+
         "drivers": [
             {
                 "driver_id": d.driver_id,
@@ -44,16 +58,20 @@ def driver_report(
     }
 
 
-# Vehicle Report
+# =========================================================
+# VEHICLE REPORT
+# =========================================================
+
 @router.get("/vehicles")
 def vehicle_report(
     db: Session = Depends(get_db),
-    user=Depends(fleet_manager_required)
+    user=Depends(reports_required)
 ):
     vehicles = db.query(Vehicle).all()
 
     return {
         "total_vehicles": len(vehicles),
+
         "vehicles": [
             {
                 "vehicle_id": v.vehicle_id,
@@ -72,46 +90,63 @@ def vehicle_report(
     }
 
 
-# Shipment Report
+# =========================================================
+# SHIPMENT REPORT
+# =========================================================
+
 @router.get("/shipments")
 def shipment_report(
     db: Session = Depends(get_db),
-    user=Depends(fleet_manager_required)
+    user=Depends(reports_required)
 ):
     shipments = db.query(Shipment).all()
 
-    delivered = db.query(Shipment).filter(
+    delivered = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "Delivered"
     ).count()
 
-    created = db.query(Shipment).filter(
+    created = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "Created"
     ).count()
 
-    assigned = db.query(Shipment).filter(
+    assigned = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "Assigned"
     ).count()
 
-    in_transit = db.query(Shipment).filter(
+    in_transit = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "In Transit"
     ).count()
 
-    delayed = db.query(Shipment).filter(
+    delayed = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "Delayed"
     ).count()
 
-    cancelled = db.query(Shipment).filter(
+    cancelled = db.query(
+        Shipment
+    ).filter(
         Shipment.current_status == "Cancelled"
     ).count()
 
     return {
         "total_shipments": len(shipments),
+
         "created": created,
         "assigned": assigned,
         "in_transit": in_transit,
         "delayed": delayed,
         "delivered": delivered,
         "cancelled": cancelled,
+
         "shipments": [
             {
                 "shipment_id": s.shipment_id,
@@ -132,48 +167,79 @@ def shipment_report(
         ]
     }
 
+
+# =========================================================
+# MAINTENANCE REPORT
+# =========================================================
+
 @router.get("/maintenance")
-def maintenance_report(current_user=Depends(fleet_manager_required)):
+def maintenance_report(
+    db: Session = Depends(get_db),
+    user=Depends(reports_required)
+):
 
-    db = SessionLocal()
+    total_records = db.query(
+        Maintenance
+    ).count()
 
-    try:
-        total_records = db.query(Maintenance).count()
+    vehicles_under_maintenance = db.query(
+        Maintenance
+    ).filter(
+        Maintenance.maintenance_status == "Under Maintenance"
+    ).count()
 
-        vehicles_under_maintenance = db.query(Maintenance).filter(
-            Maintenance.maintenance_status == "Under Maintenance"
-        ).count()
+    completed_services = db.query(
+        Maintenance
+    ).filter(
+        Maintenance.maintenance_status == "Completed"
+    ).count()
 
-        completed_services = db.query(Maintenance).filter(
-            Maintenance.maintenance_status == "Completed"
-        ).count()
+    overdue_services = db.query(
+        Maintenance
+    ).filter(
+        Maintenance.next_service_date < func.now()
+    ).count()
 
-        overdue_services = db.query(Maintenance).filter(
-            Maintenance.next_service_date < func.now()
-        ).count()
-
-        total_maintenance_cost = db.query(
-            func.coalesce(func.sum(Maintenance.service_cost), 0)
-        ).scalar()
-
-        category = (
-            db.query(
-                Maintenance.maintenance_category,
-                func.count(Maintenance.maintenance_category).label("count")
-            )
-            .group_by(Maintenance.maintenance_category)
-            .order_by(func.count(Maintenance.maintenance_category).desc())
-            .first()
+    total_maintenance_cost = db.query(
+        func.coalesce(
+            func.sum(Maintenance.service_cost),
+            0
         )
+    ).scalar()
 
-        return {
-            "total_maintenance_records": total_records,
-            "vehicles_under_maintenance": vehicles_under_maintenance,
-            "completed_services": completed_services,
-            "overdue_services": overdue_services,
-            "total_maintenance_cost": total_maintenance_cost,
-            "most_frequent_maintenance_category": category[0].value if category else None
-        }
+    category = (
+        db.query(
+            Maintenance.maintenance_category,
+            func.count(
+                Maintenance.maintenance_category
+            ).label("count")
+        )
+        .group_by(
+            Maintenance.maintenance_category
+        )
+        .order_by(
+            func.count(
+                Maintenance.maintenance_category
+            ).desc()
+        )
+        .first()
+    )
 
-    finally:
-        db.close()
+    return {
+        "total_maintenance_records": total_records,
+
+        "vehicles_under_maintenance":
+            vehicles_under_maintenance,
+
+        "completed_services":
+            completed_services,
+
+        "overdue_services":
+            overdue_services,
+
+        "total_maintenance_cost":
+            total_maintenance_cost,
+
+        "most_frequent_maintenance_category":
+            category[0].value if category else None
+    }

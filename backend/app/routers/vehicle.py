@@ -1,28 +1,39 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Vehicle
-from app.dependencies import fleet_manager_required
+from app.dependencies import (
+    fleet_manager_required,
+    vehicle_view_required,
+    fuel_view_required
+)
+
 
 router = APIRouter(
     prefix="/vehicles",
     tags=["Vehicles"]
 )
 
-fuel_db = {}
-location_db = {}
 
+# ============================================================
+# DATABASE CONNECTION
+# ============================================================
 
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
         db.close()
 
 
-# Create Vehicle
+# ============================================================
+# CREATE VEHICLE
+# Administrator / Fleet Manager
+# ============================================================
+
 @router.post("/")
 def create_vehicle(
     vehicle_number: str,
@@ -35,6 +46,28 @@ def create_vehicle(
     user=Depends(fleet_manager_required),
     db: Session = Depends(get_db)
 ):
+
+    # Validate capacity
+    try:
+        capacity_value = float(capacity)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Capacity must be a valid number"
+        )
+
+    if capacity_value <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Capacity must be greater than zero"
+        )
+
+    # Validate fuel level
+    if fuel_level < 0 or fuel_level > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="Fuel level must be between 0 and 100"
+        )
 
     vehicle = Vehicle(
         vehicle_number=vehicle_number,
@@ -56,20 +89,27 @@ def create_vehicle(
     }
 
 
-# Get All Vehicles
+# ============================================================
+# GET ALL VEHICLES
+# ============================================================
+
 @router.get("/")
 def get_vehicles(
-    user=Depends(fleet_manager_required),
+    user=Depends(vehicle_view_required),
     db: Session = Depends(get_db)
 ):
+
     return db.query(Vehicle).all()
 
 
-# Get Vehicle By ID
+# ============================================================
+# GET VEHICLE BY ID
+# ============================================================
+
 @router.get("/{vehicle_id}")
 def get_vehicle(
     vehicle_id: int,
-    user=Depends(fleet_manager_required),
+    user=Depends(vehicle_view_required),
     db: Session = Depends(get_db)
 ):
 
@@ -78,12 +118,19 @@ def get_vehicle(
     ).first()
 
     if not vehicle:
-        return {"message": "Vehicle not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
     return vehicle
 
 
-# Update Vehicle
+# ============================================================
+# UPDATE VEHICLE
+# Administrator / Fleet Manager
+# ============================================================
+
 @router.put("/{vehicle_id}")
 def update_vehicle(
     vehicle_id: int,
@@ -103,7 +150,32 @@ def update_vehicle(
     ).first()
 
     if not vehicle:
-        return {"message": "Vehicle not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
+
+    # Validate capacity
+    try:
+        capacity_value = float(capacity)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Capacity must be a valid number"
+        )
+
+    if capacity_value <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Capacity must be greater than zero"
+        )
+
+    # Validate fuel level
+    if fuel_level < 0 or fuel_level > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="Fuel level must be between 0 and 100"
+        )
 
     vehicle.vehicle_number = vehicle_number
     vehicle.vehicle_type = vehicle_type
@@ -121,8 +193,11 @@ def update_vehicle(
         "vehicle": vehicle
     }
 
+# ============================================================
+# DELETE VEHICLE
+# Administrator / Fleet Manager
+# ============================================================
 
-# Delete Vehicle
 @router.delete("/{vehicle_id}")
 def delete_vehicle(
     vehicle_id: int,
@@ -135,7 +210,10 @@ def delete_vehicle(
     ).first()
 
     if not vehicle:
-        return {"message": "Vehicle not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
     db.delete(vehicle)
     db.commit()
@@ -145,94 +223,210 @@ def delete_vehicle(
     }
 
 
-# Update Fuel
+# ============================================================
+# UPDATE FUEL
+# Administrator / Fleet Manager
+# ============================================================
+
 @router.put("/{vehicle_id}/fuel")
 def update_fuel(
     vehicle_id: int,
     fuel_level: float,
-    user=Depends(fleet_manager_required)
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
 ):
-    fuel_db[vehicle_id] = fuel_level
+
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
+
+    # Validate fuel level
+    if fuel_level < 0 or fuel_level > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="Fuel level must be between 0 and 100"
+        )
+
+    # Update database
+    vehicle.fuel_level = fuel_level
+
+    # Automatically update fuel status
+    if fuel_level < 20:
+        vehicle.fuel_status = "low"
+    else:
+        vehicle.fuel_status = "good"
+
+    db.commit()
+    db.refresh(vehicle)
 
     return {
         "message": "Fuel level updated successfully",
-        "vehicle_id": vehicle_id,
-        "fuel_level": fuel_level
+        "vehicle_id": vehicle.vehicle_id,
+        "fuel_level": vehicle.fuel_level,
+        "fuel_status": vehicle.fuel_status
     }
 
 
-# Get Fuel
+# ============================================================
+# GET FUEL
+# Administrator / Fleet Manager / Driver / Dispatcher
+# ============================================================
+
 @router.get("/{vehicle_id}/fuel")
 def get_fuel(
     vehicle_id: int,
-    user=Depends(fleet_manager_required)
+    user=Depends(fuel_view_required),
+    db: Session = Depends(get_db)
 ):
 
-    if vehicle_id not in fuel_db:
-        return {"message": "Vehicle not found"}
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
     return {
-        "vehicle_id": vehicle_id,
-        "fuel_level": fuel_db[vehicle_id]
+        "vehicle_id": vehicle.vehicle_id,
+        "vehicle_number": vehicle.vehicle_number,
+        "fuel_level": vehicle.fuel_level,
+        "fuel_status": vehicle.fuel_status
     }
 
 
-# Fuel Alert
+# ============================================================
+# FUEL ALERT
+# Administrator / Fleet Manager / Driver / Dispatcher
+# ============================================================
+
 @router.get("/{vehicle_id}/fuel-alert")
 def fuel_alert(
     vehicle_id: int,
-    user=Depends(fleet_manager_required)
+    user=Depends(fuel_view_required),
+    db: Session = Depends(get_db)
 ):
 
-    if vehicle_id not in fuel_db:
-        return {"message": "Vehicle not found"}
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
 
-    fuel = fuel_db[vehicle_id]
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
+    fuel = vehicle.fuel_level
+
+    # Low fuel
     if fuel < 20:
         return {
-            "alert": "⚠️ Low Fuel",
-            "fuel_level": fuel
+            "vehicle_id": vehicle.vehicle_id,
+            "vehicle_number": vehicle.vehicle_number,
+            "alert": "Low Fuel",
+            "fuel_level": fuel,
+            "fuel_status": vehicle.fuel_status
         }
 
+    # Sufficient fuel
     return {
+        "vehicle_id": vehicle.vehicle_id,
+        "vehicle_number": vehicle.vehicle_number,
         "message": "Fuel level is sufficient",
-        "fuel_level": fuel
+        "fuel_level": fuel,
+        "fuel_status": vehicle.fuel_status
     }
 
 
-# Update Location
+# ============================================================
+# UPDATE LOCATION
+# Administrator / Fleet Manager
+# ============================================================
+
 @router.put("/{vehicle_id}/location")
 def update_location(
     vehicle_id: int,
     latitude: float,
     longitude: float,
-    user=Depends(fleet_manager_required)
+    user=Depends(fleet_manager_required),
+    db: Session = Depends(get_db)
 ):
 
-    location_db[vehicle_id] = {
-        "latitude": latitude,
-        "longitude": longitude
-    }
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
+
+    # Validate latitude
+    if latitude < -90 or latitude > 90:
+        raise HTTPException(
+            status_code=400,
+            detail="Latitude must be between -90 and 90"
+        )
+
+    # Validate longitude
+    if longitude < -180 or longitude > 180:
+        raise HTTPException(
+            status_code=400,
+            detail="Longitude must be between -180 and 180"
+        )
+
+    # Update database
+    vehicle.latitude = latitude
+    vehicle.longitude = longitude
+
+    db.commit()
+    db.refresh(vehicle)
 
     return {
         "message": "Vehicle location updated successfully",
-        "vehicle_id": vehicle_id,
-        "location": location_db[vehicle_id]
+        "vehicle_id": vehicle.vehicle_id,
+        "location": {
+            "latitude": vehicle.latitude,
+            "longitude": vehicle.longitude
+        }
     }
 
 
-# Get Location
+# ============================================================
+# GET LOCATION
+# Administrator / Fleet Manager / Driver / Dispatcher
+# ============================================================
+
 @router.get("/{vehicle_id}/location")
 def get_location(
     vehicle_id: int,
-    user=Depends(fleet_manager_required)
+    user=Depends(vehicle_view_required),
+    db: Session = Depends(get_db)
 ):
 
-    if vehicle_id not in location_db:
-        return {"message": "Vehicle not found"}
+    vehicle = db.query(Vehicle).filter(
+        Vehicle.vehicle_id == vehicle_id
+    ).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=404,
+            detail="Vehicle not found"
+        )
 
     return {
-        "vehicle_id": vehicle_id,
-        "location": location_db[vehicle_id]
+        "vehicle_id": vehicle.vehicle_id,
+        "vehicle_number": vehicle.vehicle_number,
+        "latitude": vehicle.latitude,
+        "longitude": vehicle.longitude
     }

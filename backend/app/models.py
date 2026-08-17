@@ -1,8 +1,7 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Date, Time
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Date, Time, UniqueConstraint
 from app.database import Base
 from datetime import datetime
-
 from app.enums import ShipmentStatus
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -163,11 +162,30 @@ class AttendanceStatus(str, enum.Enum):
 class DriverAttendance(Base):
     __tablename__ = "driver_attendance"
 
-    attendance_id = Column(Integer, primary_key=True, index=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "driver_id",
+            "date",
+            name="unique_driver_attendance_per_day"
+        ),
+    )
 
-    driver_id = Column(Integer, ForeignKey("drivers.driver_id"), nullable=False)
+    attendance_id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    date = Column(Date, nullable=False)
+    driver_id = Column(
+        Integer,
+        ForeignKey("drivers.driver_id"),
+        nullable=False
+    )
+
+    date = Column(
+        Date,
+        nullable=False
+    )
 
     attendance_status = Column(
         Enum(AttendanceStatus),
@@ -178,7 +196,10 @@ class DriverAttendance(Base):
 
     check_out_time = Column(Time)
 
-    driver = relationship("Driver", back_populates="attendance")
+    driver = relationship(
+        "Driver",
+        back_populates="attendance"
+    )
 
 class FuelRecord(Base):
     __tablename__ = "fuel_records"

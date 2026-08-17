@@ -1,12 +1,7 @@
 from pydantic import BaseModel
 from datetime import date, time
-from enum import Enum
 
-
-class AttendanceStatus(str, Enum):
-    PRESENT = "Present"
-    ABSENT = "Absent"
-    LEAVE = "Leave"
+from app.enums import AttendanceStatus
 
 
 class DriverAttendanceCreate(BaseModel):

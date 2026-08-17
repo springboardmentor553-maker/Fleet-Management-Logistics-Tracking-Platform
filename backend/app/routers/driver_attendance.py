@@ -1,12 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import DriverAttendance, Driver
+from app.database import SessionLocal
+from app.models import Driver, DriverAttendance
+
 from app.schemas.driver_attendance import (
     DriverAttendanceCreate,
     DriverAttendanceResponse
 )
+
+from app.dependencies import (
+    fleet_operations_required,
+    driver_view_required
+)
+
 
 router = APIRouter(
     prefix="/driver-attendance",
@@ -14,13 +21,34 @@ router = APIRouter(
 )
 
 
-# Create Attendance
-@router.post("/", response_model=DriverAttendanceResponse)
+# ============================================================
+# DATABASE
+# ============================================================
+
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# ============================================================
+# CREATE ATTENDANCE
+# ============================================================
+
+@router.post(
+    "/",
+    response_model=DriverAttendanceResponse
+)
 def create_attendance(
     attendance: DriverAttendanceCreate,
+    user=Depends(fleet_operations_required),
     db: Session = Depends(get_db)
 ):
 
+    # Validate Driver
     driver = db.query(Driver).filter(
         Driver.driver_id == attendance.driver_id
     ).first()
@@ -31,6 +59,24 @@ def create_attendance(
             detail="Driver not found"
         )
 
+    # Prevent duplicate attendance
+    existing_attendance = db.query(
+        DriverAttendance
+    ).filter(
+        DriverAttendance.driver_id == attendance.driver_id,
+        DriverAttendance.date == attendance.date
+    ).first()
+
+    if existing_attendance:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Attendance already recorded for "
+                "this driver on this date"
+            )
+        )
+
+    # Create attendance
     new_attendance = DriverAttendance(
         driver_id=attendance.driver_id,
         date=attendance.date,
@@ -46,19 +92,43 @@ def create_attendance(
     return new_attendance
 
 
-# View All Attendance
-@router.get("/", response_model=list[DriverAttendanceResponse])
-def get_attendance(db: Session = Depends(get_db)):
-    return db.query(DriverAttendance).all()
+# ============================================================
+# GET ALL ATTENDANCE
+# ============================================================
 
-
-# View Attendance by ID
-@router.get("/{attendance_id}", response_model=DriverAttendanceResponse)
-def get_attendance_by_id(
-    attendance_id: int,
+@router.get(
+    "/",
+    response_model=list[DriverAttendanceResponse]
+)
+def get_all_attendance(
+    user=Depends(driver_view_required),
     db: Session = Depends(get_db)
 ):
-    attendance = db.query(DriverAttendance).filter(
+
+    return db.query(
+        DriverAttendance
+    ).order_by(
+        DriverAttendance.date.desc()
+    ).all()
+
+
+# ============================================================
+# GET ATTENDANCE BY ID
+# ============================================================
+
+@router.get(
+    "/{attendance_id}",
+    response_model=DriverAttendanceResponse
+)
+def get_attendance(
+    attendance_id: int,
+    user=Depends(driver_view_required),
+    db: Session = Depends(get_db)
+):
+
+    attendance = db.query(
+        DriverAttendance
+    ).filter(
         DriverAttendance.attendance_id == attendance_id
     ).first()
 
@@ -71,52 +141,135 @@ def get_attendance_by_id(
     return attendance
 
 
-# Update Attendance
-@router.put("/{attendance_id}", response_model=DriverAttendanceResponse)
+# ============================================================
+# GET ATTENDANCE BY DRIVER
+# ============================================================
+
+@router.get(
+    "/driver/{driver_id}",
+    response_model=list[DriverAttendanceResponse]
+)
+def get_driver_attendance(
+    driver_id: int,
+    user=Depends(driver_view_required),
+    db: Session = Depends(get_db)
+):
+
+    driver = db.query(Driver).filter(
+        Driver.driver_id == driver_id
+    ).first()
+
+    if not driver:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    return db.query(
+        DriverAttendance
+    ).filter(
+        DriverAttendance.driver_id == driver_id
+    ).order_by(
+        DriverAttendance.date.desc()
+    ).all()
+
+
+# ============================================================
+# UPDATE ATTENDANCE
+# ============================================================
+
+@router.put(
+    "/{attendance_id}",
+    response_model=DriverAttendanceResponse
+)
 def update_attendance(
     attendance_id: int,
     attendance: DriverAttendanceCreate,
+    user=Depends(fleet_operations_required),
     db: Session = Depends(get_db)
 ):
-    record = db.query(DriverAttendance).filter(
+
+    # Find existing record
+    existing = db.query(
+        DriverAttendance
+    ).filter(
         DriverAttendance.attendance_id == attendance_id
     ).first()
 
-    if not record:
+    if not existing:
         raise HTTPException(
             status_code=404,
             detail="Attendance not found"
         )
 
-    record.driver_id = attendance.driver_id
-    record.date = attendance.date
-    record.attendance_status = attendance.attendance_status
-    record.check_in_time = attendance.check_in_time
-    record.check_out_time = attendance.check_out_time
+    # Validate Driver
+    driver = db.query(Driver).filter(
+        Driver.driver_id == attendance.driver_id
+    ).first()
+
+    if not driver:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    # Prevent duplicate date for another record
+    duplicate = db.query(
+        DriverAttendance
+    ).filter(
+        DriverAttendance.driver_id == attendance.driver_id,
+        DriverAttendance.date == attendance.date,
+        DriverAttendance.attendance_id != attendance_id
+    ).first()
+
+    if duplicate:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Another attendance record already exists "
+                "for this driver on this date"
+            )
+        )
+
+    # Update
+    existing.driver_id = attendance.driver_id
+    existing.date = attendance.date
+    existing.attendance_status = attendance.attendance_status
+    existing.check_in_time = attendance.check_in_time
+    existing.check_out_time = attendance.check_out_time
 
     db.commit()
-    db.refresh(record)
+    db.refresh(existing)
 
-    return record
+    return existing
 
 
-# Delete Attendance
+# ============================================================
+# DELETE ATTENDANCE
+# ============================================================
+
 @router.delete("/{attendance_id}")
 def delete_attendance(
     attendance_id: int,
+    user=Depends(fleet_operations_required),
     db: Session = Depends(get_db)
 ):
-    record = db.query(DriverAttendance).filter(
+
+    attendance = db.query(
+        DriverAttendance
+    ).filter(
         DriverAttendance.attendance_id == attendance_id
     ).first()
 
-    if not record:
+    if not attendance:
         raise HTTPException(
             status_code=404,
             detail="Attendance not found"
         )
 
-    db.delete(record)
+    db.delete(attendance)
     db.commit()
 
-    return {"message": "Attendance deleted successfully"}
+    return {
+        "message": "Attendance deleted successfully"
+    }

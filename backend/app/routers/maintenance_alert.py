@@ -8,7 +8,14 @@ from app.schemas.maintenance_alert import (
     MaintenanceAlertResponse,
     MaintenanceAlertUpdate
 )
+
+from app.dependencies import (
+    fleet_manager_required,
+    driver_view_required
+)
+
 from app.tasks import check_maintenance_schedule
+
 
 router = APIRouter(
     prefix="/maintenance-alerts",
@@ -16,13 +23,22 @@ router = APIRouter(
 )
 
 
-# Create Alert
-@router.post("/", response_model=MaintenanceAlertResponse)
+# ============================================================
+# CREATE ALERT
+# Administrator / Fleet Manager
+# ============================================================
+
+@router.post(
+    "/",
+    response_model=MaintenanceAlertResponse
+)
 def create_alert(
     alert: MaintenanceAlertCreate,
+    user=Depends(fleet_manager_required),
     db: Session = Depends(get_db)
 ):
 
+    # Validate Vehicle
     vehicle = db.query(Vehicle).filter(
         Vehicle.vehicle_id == alert.vehicle_id
     ).first()
@@ -33,6 +49,7 @@ def create_alert(
             detail="Vehicle not found"
         )
 
+    # Validate Maintenance
     maintenance = db.query(Maintenance).filter(
         Maintenance.maintenance_id == alert.maintenance_id
     ).first()
@@ -43,18 +60,23 @@ def create_alert(
             detail="Maintenance record not found"
         )
 
+    # Prevent duplicate alerts
     duplicate = db.query(MaintenanceAlert).filter(
+        MaintenanceAlert.vehicle_id == alert.vehicle_id,
         MaintenanceAlert.maintenance_id == alert.maintenance_id,
-        MaintenanceAlert.alert_status == "Pending"
+        MaintenanceAlert.alert_type == alert.alert_type
     ).first()
 
     if duplicate:
         raise HTTPException(
             status_code=400,
-            detail="Pending alert already exists"
+            detail="Duplicate maintenance alert already exists"
         )
 
-    new_alert = MaintenanceAlert(**alert.dict())
+    # Create Alert
+    new_alert = MaintenanceAlert(
+        **alert.dict()
+    )
 
     db.add(new_alert)
     db.commit()
@@ -63,20 +85,52 @@ def create_alert(
     return new_alert
 
 
-# Get All Alerts
-@router.get("/", response_model=list[MaintenanceAlertResponse])
-def get_all_alerts(db: Session = Depends(get_db)):
+# ============================================================
+# GET ALL ALERTS
+# Administrator / Fleet Manager / Dispatcher / Driver
+# ============================================================
+
+@router.get(
+    "/",
+    response_model=list[MaintenanceAlertResponse]
+)
+def get_all_alerts(
+    user=Depends(driver_view_required),
+    db: Session = Depends(get_db)
+):
+
     return db.query(MaintenanceAlert).all()
 
-@router.get("/test-celery")
-def test_celery():
-    check_maintenance_schedule.delay()
-    return {"message": "Task sent to Celery"}
 
-# Get Alert by ID
-@router.get("/{alert_id}", response_model=MaintenanceAlertResponse)
+# ============================================================
+# TEST CELERY
+# Administrator / Fleet Manager
+# ============================================================
+
+@router.get("/test-celery")
+def test_celery(
+    user=Depends(fleet_manager_required)
+):
+
+    check_maintenance_schedule.delay()
+
+    return {
+        "message": "Task sent to Celery"
+    }
+
+
+# ============================================================
+# GET ALERT BY ID
+# Administrator / Fleet Manager / Dispatcher / Driver
+# ============================================================
+
+@router.get(
+    "/{alert_id}",
+    response_model=MaintenanceAlertResponse
+)
 def get_alert(
     alert_id: int,
+    user=Depends(driver_view_required),
     db: Session = Depends(get_db)
 ):
 
@@ -93,11 +147,19 @@ def get_alert(
     return alert
 
 
-# Update Alert Status
-@router.put("/{alert_id}", response_model=MaintenanceAlertResponse)
+# ============================================================
+# UPDATE ALERT
+# Administrator / Fleet Manager
+# ============================================================
+
+@router.put(
+    "/{alert_id}",
+    response_model=MaintenanceAlertResponse
+)
 def update_alert_status(
     alert_id: int,
     alert: MaintenanceAlertUpdate,
+    user=Depends(fleet_manager_required),
     db: Session = Depends(get_db)
 ):
 
@@ -119,10 +181,15 @@ def update_alert_status(
     return existing
 
 
-# Delete Alert
+# ============================================================
+# DELETE ALERT
+# Administrator / Fleet Manager
+# ============================================================
+
 @router.delete("/{alert_id}")
 def delete_alert(
     alert_id: int,
+    user=Depends(fleet_manager_required),
     db: Session = Depends(get_db)
 ):
 
@@ -142,5 +209,3 @@ def delete_alert(
     return {
         "message": "Maintenance alert deleted successfully"
     }
-
-
