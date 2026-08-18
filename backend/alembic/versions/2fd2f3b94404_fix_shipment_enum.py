@@ -19,11 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Need to commit the transaction since ALTER TYPE cannot run inside a transaction block
-    op.execute("COMMIT")
-    op.execute("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'picked_up'")
-    op.execute("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'out_for_delivery'")
-    op.execute("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'delayed'")
+    pass
 
 
 def downgrade() -> None:

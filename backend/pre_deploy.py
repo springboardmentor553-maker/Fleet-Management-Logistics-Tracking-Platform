@@ -16,6 +16,23 @@ try:
     
     has_alembic = inspector.has_table("alembic_version")
     has_drivers = inspector.has_table("drivers")
+
+    try:
+        from sqlalchemy import text
+        if "postgres" in engine.dialect.name:
+            with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+                try:
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'picked_up'"))
+                except Exception: pass
+                try:
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'out_for_delivery'"))
+                except Exception: pass
+                try:
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'delayed'"))
+                except Exception: pass
+    except Exception as e:
+        print(f"Non-fatal error adding enum values: {e}")
+
     
     if has_drivers and not has_alembic:
         print("Existing tables found but no alembic_version table. Stamping head...")
