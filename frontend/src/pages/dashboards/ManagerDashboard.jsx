@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { getWebSocketUrl } from '../../api/websocket';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Truck, Users, Package, Plus, Trash2, Edit3, 
   MapPin, CheckCircle2, AlertCircle, Phone, FileText,
@@ -57,6 +58,7 @@ const createVehicleIcon = () => L.divIcon({
 });
 
 const ManagerDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('analytics');
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
