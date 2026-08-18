@@ -34,7 +34,15 @@ class Shipment(Base):
     pickup_location = Column(String(255), nullable=False)
     delivery_location = Column(String(255), nullable=False)
     current_status = Column(
-        Enum(ShipmentStatus, name="shipment_status", native_enum=True),
+        Enum(
+            ShipmentStatus, 
+            name="shipment_status", 
+            native_enum=True,
+            values_callable=lambda objs: [
+                obj.name.lower() if obj.name in ("PICKED_UP", "OUT_FOR_DELIVERY") else obj.name 
+                for obj in objs
+            ]
+        ),
         default=ShipmentStatus.CREATED,
         nullable=False
     )
