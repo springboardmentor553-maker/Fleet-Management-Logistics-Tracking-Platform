@@ -9,7 +9,6 @@ from app.routers.dashboard import router as dashboard_router
 from app.routers.reports import router as reports_router
 from app.database import Base, engine
 from app import models
-from fastapi.middleware.cors import CORSMiddleware
 from app.routers import route
 from app.routers.websocket import router as websocket_router
 from app.routers import maintenance
