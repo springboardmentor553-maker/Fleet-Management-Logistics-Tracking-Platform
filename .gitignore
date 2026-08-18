@@ -34,7 +34,9 @@ celerybeat-schedule.dir
 
 # FleetFlow generated files
 backend/node_modules/
-backend/app/logs/
+# FleetFlow runtime logs
+backend/app/logs/*.log
+backend/app/logs/__pycache__/
 backend/logs/
 backend/celerybeat-schedule
 backend/celerybeat-schedule-*
