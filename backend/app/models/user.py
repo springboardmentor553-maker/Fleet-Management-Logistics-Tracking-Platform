@@ -27,7 +27,15 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
     role = Column(
-        Enum(UserRole, name="user_role", native_enum=True),
+        Enum(
+            UserRole,
+            name="user_role",
+            native_enum=False,
+            values_callable=lambda enum_class: [
+                member.value for member in enum_class
+            ],
+            validate_strings=True,
+        ),
         default=UserRole.DISPATCHER,
         nullable=False
     )

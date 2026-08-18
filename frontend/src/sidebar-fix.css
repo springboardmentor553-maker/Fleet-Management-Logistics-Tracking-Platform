@@ -1,0 +1,308 @@
+/* =========================================================
+   FLEETFLOW SIDEBAR - FINAL OVERRIDE
+========================================================= */
+
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media (min-width: 769px) {
+
+  /* =========================================
+     MAIN - OPEN
+  ========================================= */
+
+  .fleet-layout.sidebar-open .fleet-main {
+
+    width: calc(100% - 250px) !important;
+
+    margin-left: 250px !important;
+
+  }
+
+
+  /* =========================================
+     MAIN - CLOSED
+  ========================================= */
+
+  .fleet-layout.sidebar-closed .fleet-main {
+
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+  }
+
+
+  /* =========================================
+     SIDEBAR - OPEN
+  ========================================= */
+
+  .fleet-layout.sidebar-open
+  .fleet-sidebar {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 250px !important;
+    height: 100vh !important;
+
+    transform: translateX(0) !important;
+
+    visibility: visible !important;
+
+    opacity: 1 !important;
+
+    pointer-events: auto !important;
+
+    z-index: 9999 !important;
+
+  }
+
+
+  /* =========================================
+     SIDEBAR - CLOSED
+  ========================================= */
+
+  .fleet-layout.sidebar-closed
+  .fleet-sidebar {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 250px !important;
+    height: 100vh !important;
+
+    transform: translateX(-110%) !important;
+
+    visibility: hidden !important;
+
+    opacity: 0 !important;
+
+    pointer-events: none !important;
+
+    z-index: 9999 !important;
+
+  }
+
+
+  /* =========================================
+     HAMBURGER
+  ========================================= */
+
+  .fleet-layout
+  .fleet-menu-btn {
+
+    display: flex !important;
+
+    width: 42px !important;
+    height: 42px !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+
+  }
+
+
+  /* =========================================
+     X BUTTON
+  ========================================= */
+
+  .fleet-layout
+  .fleet-sidebar-close {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+
+  }
+
+
+  /* =========================================
+     NO OVERLAY DESKTOP
+  ========================================= */
+
+  .fleet-layout
+  .fleet-sidebar-overlay {
+
+    display: none !important;
+
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  /* =========================================
+     MAIN ALWAYS FULL WIDTH
+  ========================================= */
+
+  .fleet-layout .fleet-main {
+
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding-left: 0 !important;
+
+  }
+
+
+  /* =========================================
+     SIDEBAR OPEN
+  ========================================= */
+
+  .fleet-layout.sidebar-open
+  .fleet-sidebar {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 280px !important;
+
+    max-width: 85vw !important;
+
+    height: 100vh !important;
+
+    transform: translateX(0) !important;
+
+    visibility: visible !important;
+
+    opacity: 1 !important;
+
+    pointer-events: auto !important;
+
+    z-index: 9999 !important;
+
+  }
+
+
+  /* =========================================
+     SIDEBAR CLOSED
+  ========================================= */
+
+  .fleet-layout.sidebar-closed
+  .fleet-sidebar {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 280px !important;
+
+    max-width: 85vw !important;
+
+    height: 100vh !important;
+
+    transform: translateX(-110%) !important;
+
+    visibility: hidden !important;
+
+    opacity: 0 !important;
+
+    pointer-events: none !important;
+
+    z-index: 9999 !important;
+
+  }
+
+
+  /* =========================================
+     HAMBURGER
+  ========================================= */
+
+  .fleet-menu-btn {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+
+  }
+
+
+  /* =========================================
+     X
+  ========================================= */
+
+  .fleet-sidebar-close {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+
+  }
+
+
+  /* =========================================
+     OVERLAY OPEN
+  ========================================= */
+
+  .fleet-layout.sidebar-open
+  .fleet-sidebar-overlay {
+
+    display: block !important;
+
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+
+    height: 100vh !important;
+
+    background:
+      rgba(15, 23, 42, 0.55) !important;
+
+    z-index: 9998 !important;
+
+    opacity: 1 !important;
+
+    visibility: visible !important;
+
+    pointer-events: auto !important;
+
+  }
+
+
+  /* =========================================
+     OVERLAY CLOSED
+  ========================================= */
+
+  .fleet-layout.sidebar-closed
+  .fleet-sidebar-overlay {
+
+    display: none !important;
+
+    opacity: 0 !important;
+
+    visibility: hidden !important;
+
+    pointer-events: none !important;
+
+  }
+
+}

@@ -15,3 +15,24 @@ python-dotenv>=1.0.0
 
 # Database migrations tool
 alembic>=1.11.0
+
+# JWT authentication
+python-jose[cryptography]
+
+# Password hashing
+passlib[bcrypt]
+
+# Email validation
+email-validator
+
+# OAuth2 form data
+python-multipart
+
+# Excel reports
+openpyxl
+
+# PDF reports
+reportlab
+
+# OSRM routing / HTTP requests
+requests

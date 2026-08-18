@@ -1,153 +1,392 @@
-import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 
 import {
-  FaBars,
-  FaTimes,
-  FaHome,
-  FaUserTie,
+  FaTachometerAlt,
   FaTruck,
+  FaUserTie,
   FaBoxOpen,
-  FaBell,
-  FaUserCircle,
+  FaChartBar,
+  FaUsers,
+  FaRoute,
   FaCog,
+  FaSignOutAlt,
+  FaTruckMoving,
+  FaGasPump,
+  FaTools,
+  FaUserCheck,
+  FaChartPie,
+  FaBell,
+  FaTimes,
 } from "react-icons/fa";
 
-import "./Sidebar.css";
 
-function Sidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+function Sidebar({
+  isOpen,
+  isMobile,
+  onClose,
+}) {
 
-  const closeSidebar = () => {
-    if (window.innerWidth <= 768) {
-      setSidebarOpen(false);
-    }
+
+  // =====================================================
+  // ROLE
+  // =====================================================
+
+  const role =
+    localStorage.getItem("role") || "Admin";
+
+
+  // =====================================================
+  // LOGOUT
+  // =====================================================
+
+  const logout = () => {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+
+    window.location.href = "/";
+
   };
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setSidebarOpen(false);
-      }
-    };
 
-    window.addEventListener("resize", handleResize);
+  // =====================================================
+  // NAVIGATION CLASS
+  // =====================================================
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const linkClass = ({ isActive }) => {
 
-  const menus = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: <FaHome />,
-    },
-    {
-      name: "Drivers",
-      path: "/drivers",
-      icon: <FaUserTie />,
-    },
-    {
-      name: "Vehicles",
-      path: "/vehicles",
-      icon: <FaTruck />,
-    },
-    {
-      name: "Shipments",
-      path: "/shipments",
-      icon: <FaBoxOpen />,
-    },
-    {
-      name: "Notifications",
-      path: "/notifications",
-      icon: <FaBell />,
-    },
-    {
-      name: "Profile",
-      path: "/profile",
-      icon: <FaUserCircle />,
-    },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: <FaCog />,
-    },
-  ];
+    return `fleet-sidebar-link ${
+      isActive
+        ? "fleet-sidebar-active"
+        : ""
+    }`;
+
+  };
+
+
+  // =====================================================
+  // NAVIGATION
+  // =====================================================
+
+  const handleNavigation = () => {
+
+    if (isMobile) {
+
+      onClose();
+
+    }
+
+  };
+
 
   return (
+
     <>
-      {/* Mobile Menu Button */}
 
-      <button
-        className="menu-btn"
-        onClick={() => setSidebarOpen(true)}
-      >
-        <FaBars />
-      </button>
 
-      {/* Overlay */}
+      {/* =================================================
+          MOBILE OVERLAY
+      ================================================= */}
 
-      {sidebarOpen && (
+      {isMobile && isOpen && (
+
         <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
+          className="fleet-sidebar-overlay"
+          onClick={onClose}
+          aria-hidden="true"
         />
+
       )}
 
-      {/* Sidebar */}
+
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
 
       <aside
-        className={`sidebar ${
-          sidebarOpen ? "show-sidebar" : ""
+        className={`fleet-sidebar ${
+          isOpen
+            ? "fleet-sidebar-open"
+            : "fleet-sidebar-closed"
         }`}
       >
-        {/* Close Button */}
 
-        
 
-        {/* Logo */}
+        {/* =================================================
+            LOGO
+        ================================================= */}
 
-        <div className="sidebar-logo">
-          <h2>FleetFlow</h2>
-          <p>Fleet Management</p>
+        <div className="fleet-logo">
+
+
+          <div className="fleet-logo-icon">
+
+            <FaTruck />
+
+          </div>
+
+
+          <div className="fleet-logo-text">
+
+            <div className="fleet-logo-title">
+              FleetFlow
+            </div>
+
+
+            <div className="fleet-logo-subtitle">
+              Fleet Management
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              CLOSE X
+          ================================================= */}
+
+          <button
+            type="button"
+            className="fleet-sidebar-close"
+            onClick={onClose}
+            aria-label="Close sidebar"
+            title="Close sidebar"
+          >
+
+            <FaTimes />
+
+          </button>
+
+
         </div>
 
-        {/* Navigation */}
 
-        <nav className="sidebar-menu">
-          <ul>
-            {menus.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  onClick={closeSidebar}
-                  className={({ isActive }) =>
-                    isActive ? "active" : ""
-                  }
-                >
-                  <span className="menu-icon">
-                    {item.icon}
-                  </span>
+        {/* =================================================
+            NAVIGATION
+        ================================================= */}
 
-                  <span className="menu-text">
-                    {item.name}
-                  </span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+        <nav className="fleet-navigation">
+
+
+          <NavLink
+            to="/dashboard"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaTachometerAlt />
+            <span>Dashboard</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/vehicles"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaTruck />
+            <span>Vehicles</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/drivers"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaUserTie />
+            <span>Drivers</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/shipments"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaBoxOpen />
+            <span>Shipments</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/trips"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaTruckMoving />
+            <span>Trips</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/reports"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaChartBar />
+            <span>Reports</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/maintenance"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaTools />
+            <span>Maintenance</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/fuel"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaGasPump />
+            <span>Fuel</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/notifications"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaBell />
+            <span>Notifications</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/driver-assignment"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaUserCheck />
+            <span>Driver Assignment</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/analytics"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaChartPie />
+            <span>Analytics</span>
+          </NavLink>
+
+
+          {role === "Admin" && (
+
+            <NavLink
+              to="/users"
+              className={linkClass}
+              onClick={handleNavigation}
+            >
+              <FaUsers />
+              <span>Users</span>
+            </NavLink>
+
+          )}
+
+
+          <NavLink
+            to="/route-planner"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaRoute />
+            <span>Route Planner</span>
+          </NavLink>
+
+
+          <NavLink
+            to="/settings"
+            className={linkClass}
+            onClick={handleNavigation}
+          >
+            <FaCog />
+            <span>Settings</span>
+          </NavLink>
+
+
         </nav>
 
-        {/* Footer */}
 
-        <div className="sidebar-footer">
-          <small>FleetFlow v1.0</small>
+        {/* =================================================
+            BOTTOM
+        ================================================= */}
+
+        <div className="fleet-sidebar-bottom">
+
+
+          <div className="fleet-user-card">
+
+
+            <div className="fleet-user-avatar">
+
+              {(
+                localStorage.getItem("name") ||
+                "A"
+              )
+                .charAt(0)
+                .toUpperCase()}
+
+            </div>
+
+
+            <div>
+
+              <div className="fleet-user-name">
+
+                {localStorage.getItem("name") ||
+                  "Admin"}
+
+              </div>
+
+
+              <div className="fleet-user-role">
+
+                {role === "Admin"
+                  ? "Administrator"
+                  : role}
+
+              </div>
+
+            </div>
+
+
+          </div>
+
+
+          <button
+            type="button"
+            className="fleet-logout"
+            onClick={logout}
+          >
+
+            <FaSignOutAlt />
+
+            <span>
+              Logout
+            </span>
+
+          </button>
+
+
         </div>
+
+
       </aside>
+
     </>
+
   );
+
 }
+
 
 export default Sidebar;

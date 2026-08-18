@@ -1,12 +1,16 @@
+from datetime import datetime
+
 from app.schemas.common import ORMModel
 
 
 class RouteBase(ORMModel):
-    name: str
-    source: str
-    destination: str
-    distance_km: float | None = None
-    estimated_duration_hours: float | None = None
+    trip_id: int
+    source_latitude: float
+    source_longitude: float
+    destination_latitude: float
+    destination_longitude: float
+    distance: float
+    estimated_time: float
 
 
 class RouteCreate(RouteBase):
@@ -14,12 +18,15 @@ class RouteCreate(RouteBase):
 
 
 class RouteUpdate(ORMModel):
-    name: str | None = None
-    source: str | None = None
-    destination: str | None = None
-    distance_km: float | None = None
-    estimated_duration_hours: float | None = None
+    trip_id: int | None = None
+    source_latitude: float | None = None
+    source_longitude: float | None = None
+    destination_latitude: float | None = None
+    destination_longitude: float | None = None
+    distance: float | None = None
+    estimated_time: float | None = None
 
 
 class RouteRead(RouteBase):
     id: int
+    created_at: datetime | None = None

@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.database import Base
 
@@ -7,19 +9,66 @@ class Route(Base):
     """
     SQLAlchemy model representing a route.
     """
+
     __tablename__ = "routes"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    name = Column(String(255), nullable=False)
-    source = Column(String(255), nullable=False)
-    destination = Column(String(255), nullable=False)
+    trip_id = Column(
+        Integer,
+        ForeignKey("trips.id"),
+        nullable=False
+    )
 
-    distance_km = Column(Float, nullable=True)
-    estimated_duration_hours = Column(Float, nullable=True)
+    source_latitude = Column(
+        Float,
+        nullable=False
+    )
+
+    source_longitude = Column(
+        Float,
+        nullable=False
+    )
+
+    destination_latitude = Column(
+        Float,
+        nullable=False
+    )
+
+    destination_longitude = Column(
+        Float,
+        nullable=False
+    )
+
+    distance = Column(
+        Float,
+        nullable=False
+    )
+
+    estimated_time = Column(
+        Float,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    trip = relationship(
+        "Trip",
+        back_populates="route"
+    )
 
     def __repr__(self) -> str:
         return (
-            f"<Route(id={self.id}, name='{self.name}', "
-            f"source='{self.source}', destination='{self.destination}')>"
+            f"<Route("
+            f"id={self.id}, "
+            f"trip_id={self.trip_id}, "
+            f"distance={self.distance})>"
         )

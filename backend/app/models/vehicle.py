@@ -1,5 +1,12 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -10,6 +17,7 @@ class VehicleStatus(str, enum.Enum):
     """
     Enum representing status of a vehicle.
     """
+
     ACTIVE = "active"
     MAINTENANCE = "maintenance"
     INACTIVE = "inactive"
@@ -19,27 +27,65 @@ class Vehicle(Base):
     """
     SQLAlchemy model representing a vehicle.
     """
+
     __tablename__ = "vehicles"
 
-    id = Column(Integer, primary_key=True, index=True)
-    make = Column(String(100), nullable=False)
-    model = Column(String(100), nullable=False)
-    year = Column(Integer, nullable=False)
-    license_plate = Column(String(20), unique=True, nullable=False)
-    vin = Column(String(17), unique=True, nullable=True)
-    status = Column(
-        Enum(VehicleStatus, name="vehicle_status", native_enum=True),
-        default=VehicleStatus.ACTIVE,
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    make = Column(
+        String(100),
         nullable=False
     )
-    capacity_weight = Column(Float, nullable=True)
-    capacity_volume = Column(Float, nullable=True)
-    
+
+    model = Column(
+        String(100),
+        nullable=False
+    )
+
+    year = Column(
+        Integer,
+        nullable=False
+    )
+
+    license_plate = Column(
+        String(20),
+        unique=True,
+        nullable=False
+    )
+
+    vin = Column(
+        String(17),
+        unique=True,
+        nullable=True
+    )
+
+    # Database stores status as VARCHAR
+    status = Column(
+        String(50),
+        nullable=False,
+        default=VehicleStatus.ACTIVE.value
+    )
+
+    capacity_weight = Column(
+        Float,
+        nullable=True
+    )
+
+    capacity_volume = Column(
+        Float,
+        nullable=True
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False
     )
+
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -47,14 +93,39 @@ class Vehicle(Base):
         nullable=False
     )
 
+    # =========================================================
     # Relationships
-    # Relationships
-    shipments = relationship("Shipment", back_populates="vehicle")
+    # =========================================================
+
+    shipments = relationship(
+        "Shipment",
+        back_populates="vehicle"
+    )
 
     maintenance_records = relationship(
         "MaintenanceRecord",
         back_populates="vehicle"
     )
 
+    maintenance_alerts = relationship(
+        "MaintenanceAlert",
+        back_populates="vehicle"
+    )
+
+    trips = relationship(
+        "Trip",
+        back_populates="vehicle"
+    )
+
+    fuel_logs = relationship(
+        "FuelLog",
+        back_populates="vehicle"
+    )
+
     def __repr__(self) -> str:
-        return f"<Vehicle(id={self.id}, license_plate='{self.license_plate}', status='{self.status}')>"
+        return (
+            f"<Vehicle("
+            f"id={self.id}, "
+            f"license_plate='{self.license_plate}', "
+            f"status='{self.status}')>"
+        )

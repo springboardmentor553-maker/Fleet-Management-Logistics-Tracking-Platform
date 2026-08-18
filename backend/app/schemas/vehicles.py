@@ -1,12 +1,17 @@
+from datetime import datetime
+
 from app.schemas.common import ORMModel
 
 
 class VehicleBase(ORMModel):
-    vehicle_number: str
-    vehicle_type: str
-    capacity: float | None = None
-    status: str = "available"
-    current_location: str | None = None
+    make: str
+    model: str
+    year: int
+    license_plate: str
+    vin: str | None = None
+    status: str = "active"
+    capacity_weight: float | None = None
+    capacity_volume: float | None = None
 
 
 class VehicleCreate(VehicleBase):
@@ -14,12 +19,17 @@ class VehicleCreate(VehicleBase):
 
 
 class VehicleUpdate(ORMModel):
-    vehicle_number: str | None = None
-    vehicle_type: str | None = None
-    capacity: float | None = None
+    make: str | None = None
+    model: str | None = None
+    year: int | None = None
+    license_plate: str | None = None
+    vin: str | None = None
     status: str | None = None
-    current_location: str | None = None
+    capacity_weight: float | None = None
+    capacity_volume: float | None = None
 
 
 class VehicleRead(VehicleBase):
     id: int
+    created_at: datetime
+    updated_at: datetime

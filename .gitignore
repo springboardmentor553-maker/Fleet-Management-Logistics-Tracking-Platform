@@ -41,3 +41,18 @@ backend/celerybeat-schedule-*
 backend/*.zip
 backend/*.pdf
 backend/*.xlsx
+
+# Database backups
+*.sql
+*.dump
+*.backup
+
+# Local migration backups
+backend/alembic/versions_backup/
+
+# Local project backups
+frontend_current_backup/
+frontend_simple_backup/
+
+# Vite local cache
+frontend/.vite/

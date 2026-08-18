@@ -5,10 +5,14 @@ from app.schemas.common import ORMModel
 
 class MaintenanceBase(ORMModel):
     vehicle_id: int
+    maintenance_category: str
     service_date: date
-    description: str
-    cost: float | None = None
-    status: str = "scheduled"
+    next_service_date: date
+    service_cost: float
+    service_provider: str
+    maintenance_status: str | None = None
+    notes: str | None = None
+    is_active: int = 1
 
 
 class MaintenanceCreate(MaintenanceBase):
@@ -17,10 +21,14 @@ class MaintenanceCreate(MaintenanceBase):
 
 class MaintenanceUpdate(ORMModel):
     vehicle_id: int | None = None
+    maintenance_category: str | None = None
     service_date: date | None = None
-    description: str | None = None
-    cost: float | None = None
-    status: str | None = None
+    next_service_date: date | None = None
+    service_cost: float | None = None
+    service_provider: str | None = None
+    maintenance_status: str | None = None
+    notes: str | None = None
+    is_active: int | None = None
 
 
 class MaintenanceRead(MaintenanceBase):
