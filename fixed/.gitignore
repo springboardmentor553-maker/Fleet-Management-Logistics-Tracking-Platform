@@ -1,0 +1,12 @@
+backend/venv/
+frontend/node_modules/
+frontend/dist/
+.env
+*.db
+*.pyc
+__pycache__/
+*/__pycache__/
+.pytest_cache/
+backend/app.zip
+*.pdf
+

@@ -18,3 +18,13 @@ alembic>=1.11.0
 
 # Password hashing
 bcrypt>=4.0.0
+
+# JWT Authentication
+PyJWT>=2.8.0
+
+# HTTP client for calling external APIs (geocoding/routing)
+httpx>=0.24.0
+
+# Background task processing and Redis client
+celery>=5.3.0
+redis>=4.6.0

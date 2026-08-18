@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FleetFlow — Live Tracking Test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+  h1 { font-size: 1.25rem; }
+  #status { padding: 8px 12px; border-radius: 6px; font-weight: 600; margin-bottom: 16px; }
+  .connected { background: #dcfce7; color: #166534; }
+  .disconnected { background: #fee2e2; color: #991b1b; }
+  #log { border: 1px solid #ddd; border-radius: 6px; padding: 12px; height: 320px;
+         overflow-y: auto; background: #fafafa; font-family: monospace; font-size: 0.85rem; }
+  .entry { padding: 4px 0; border-bottom: 1px solid #eee; }
+  .location { color: #1d4ed8; }
+  .shipment { color: #b45309; font-weight: 600; }
+  label { display: block; margin: 12px 0 4px; font-size: 0.9rem; }
+  input, button { padding: 6px 10px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <h1>FleetFlow — Live Trip Tracking Test</h1>
+  <p>Open this same page in two browser tabs/windows, use the same Trip ID in both,
+     and confirm both update instantly with no page refresh (Task 5).</p>
+
+  <label for="tripId">Trip ID</label>
+  <input id="tripId" type="number" value="1" min="1">
+  <button id="connectBtn">Connect</button>
+  <button id="disconnectBtn" disabled>Disconnect</button>
+
+  <div id="status" class="disconnected">Not connected</div>
+  <div id="log"></div>
+
+  <script>
+    const API_HOST = "127.0.0.1:8000";
+    let socket = null;
+
+    const statusEl = document.getElementById("status");
+    const logEl = document.getElementById("log");
+    const connectBtn = document.getElementById("connectBtn");
+    const disconnectBtn = document.getElementById("disconnectBtn");
+    const tripIdInput = document.getElementById("tripId");
+
+    function logEntry(text, cls) {
+      const div = document.createElement("div");
+      div.className = "entry" + (cls ? " " + cls : "");
+      const time = new Date().toLocaleTimeString();
+      div.textContent = `[${time}] ${text}`;
+      logEl.prepend(div);
+    }
+
+    function setStatus(connected) {
+      statusEl.textContent = connected ? "Connected" : "Not connected";
+      statusEl.className = connected ? "connected" : "disconnected";
+      connectBtn.disabled = connected;
+      disconnectBtn.disabled = !connected;
+    }
+
+    connectBtn.addEventListener("click", () => {
+      const tripId = tripIdInput.value;
+      socket = new WebSocket(`ws://${API_HOST}/ws/tracking/${tripId}`);
+
+      socket.onopen = () => {
+        setStatus(true);
+        logEntry(`Connected to trip ${tripId}`);
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "vehicle_location") {
+          logEntry(`Vehicle location -> lat ${data.latitude}, lng ${data.longitude}`, "location");
+        } else if (data.type === "shipment_status") {
+          logEntry(`Shipment status -> ${data.status}`, "shipment");
+        } else {
+          logEntry(JSON.stringify(data));
+        }
+      };
+
+      socket.onclose = () => {
+        setStatus(false);
+        logEntry("Disconnected");
+      };
+
+      socket.onerror = () => {
+        logEntry("WebSocket error — check that the backend is running");
+      };
+    });
+
+    disconnectBtn.addEventListener("click", () => {
+      if (socket) socket.close();
+    });
+  </script>
+</body>
+</html>
