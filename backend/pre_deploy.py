@@ -22,13 +22,13 @@ try:
         if "postgres" in engine.dialect.name:
             with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
                 try:
-                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'picked_up'"))
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'PICKED_UP'"))
                 except Exception: pass
                 try:
-                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'out_for_delivery'"))
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'OUT_FOR_DELIVERY'"))
                 except Exception: pass
                 try:
-                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'delayed'"))
+                    conn.execute(text("ALTER TYPE shipment_status ADD VALUE IF NOT EXISTS 'DELAYED'"))
                 except Exception: pass
     except Exception as e:
         print(f"Non-fatal error adding enum values: {e}")
