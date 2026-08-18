@@ -30,10 +30,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://fleetflow-frontend-theta.vercel.app",
-        "https://fleetflow-frontend-kiyjpx6i-madhupriya-17s-projects.vercel.app",
-
+       
     ],
+    allow_origin_regex=r"https://fleetflow-frontend.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
