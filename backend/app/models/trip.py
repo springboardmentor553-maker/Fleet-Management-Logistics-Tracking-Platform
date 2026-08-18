@@ -62,7 +62,7 @@ class Trip(Base):
     location_updated_at = Column(DateTime(timezone=True), nullable=True)
     
     trip_status = Column(
-        Enum(TripStatus, name="trip_status", native_enum=True),
+        Enum(TripStatus, name="trip_status", native_enum=True, values_callable=lambda obj: [e.value for e in obj]),
         default=TripStatus.CREATED,
         nullable=False
     )
