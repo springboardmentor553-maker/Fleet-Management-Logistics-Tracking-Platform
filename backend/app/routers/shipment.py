@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,11 +15,6 @@ from app.services.route_service import get_route
 from app.services.eta_service import calculate_eta
 from app.connection_manager import manager
 
-=======
-from fastapi import APIRouter
-from app.database import SessionLocal
-from app.models import Shipment
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 router = APIRouter(
     prefix="/shipments",
@@ -28,7 +22,6 @@ router = APIRouter(
 )
 
 
-<<<<<<< HEAD
 # =========================================================
 # DATABASE
 # =========================================================
@@ -148,28 +141,6 @@ def create_shipment(
         pickup_location=pickup_location,
         delivery_location=delivery_location,
         current_status=current_status
-=======
-@router.post("/")
-def create_shipment(
-    source: str,
-    destination: str,
-    shipment_type: str,
-    weight: float,
-    status: str,
-    driver_id: int,
-    vehicle_id: int
-):
-    db = SessionLocal()
-
-    shipment = Shipment(
-        source=source,
-        destination=destination,
-        shipment_type=shipment_type,
-        weight=weight,
-        status=status,
-        driver_id=driver_id,
-        vehicle_id=vehicle_id
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     )
 
     db.add(shipment)
@@ -182,7 +153,6 @@ def create_shipment(
     }
 
 
-<<<<<<< HEAD
 # =========================================================
 # GET ALL SHIPMENTS
 # Administrator / Fleet Manager / Dispatcher / Driver
@@ -334,49 +304,10 @@ async def update_shipment(
     # ==========================================
     # SAVE DATABASE
     # ==========================================
-=======
-@router.get("/")
-def get_shipments():
-    db = SessionLocal()
-
-    shipments = db.query(Shipment).all()
-
-    return shipments
-
-
-@router.put("/{shipment_id}")
-def update_shipment(
-    shipment_id: int,
-    source: str,
-    destination: str,
-    shipment_type: str,
-    weight: float,
-    status: str,
-    driver_id: int,
-    vehicle_id: int
-):
-    db = SessionLocal()
-
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
-        return {"message": "Shipment not found"}
-
-    shipment.source = source
-    shipment.destination = destination
-    shipment.shipment_type = shipment_type
-    shipment.weight = weight
-    shipment.status = status
-    shipment.driver_id = driver_id
-    shipment.vehicle_id = vehicle_id
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
     db.commit()
     db.refresh(shipment)
 
-<<<<<<< HEAD
     # ==========================================
     # BROADCAST UPDATE
     # ==========================================
@@ -400,14 +331,11 @@ def update_shipment(
     # RESPONSE
     # ==========================================
 
-=======
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     return {
         "message": "Shipment updated successfully",
         "shipment": shipment
     }
 
-<<<<<<< HEAD
 # =========================================================
 # DELETE SHIPMENT
 # Administrator / Fleet Manager / Dispatcher
@@ -429,19 +357,6 @@ def delete_shipment(
             status_code=404,
             detail="Shipment not found"
         )
-=======
-
-@router.delete("/{shipment_id}")
-def delete_shipment(shipment_id: int):
-    db = SessionLocal()
-
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
-        return {"message": "Shipment not found"}
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
     db.delete(shipment)
     db.commit()
@@ -451,7 +366,6 @@ def delete_shipment(shipment_id: int):
     }
 
 
-<<<<<<< HEAD
 # =========================================================
 # TRACK SHIPMENT STATUS
 # Administrator / Fleet Manager / Dispatcher / Driver
@@ -559,45 +473,4 @@ def track_shipment(
             shipment.delivery_location,
 
         "eta": eta
-=======
-@router.put("/{shipment_id}/eta")
-def update_eta(shipment_id: int, eta: str):
-    db = SessionLocal()
-
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
-        return {"message": "Shipment not found"}
-
-    shipment.eta = eta
-
-    db.commit()
-    db.refresh(shipment)
-
-    return {
-        "message": "ETA updated successfully",
-        "shipment_id": shipment_id,
-        "eta": shipment.eta
-    }
-
-
-@router.get("/{shipment_id}/eta")
-def get_eta(shipment_id: int):
-    db = SessionLocal()
-
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
-        return {
-            "message": "Shipment not found"
-        }
-
-    return {
-        "shipment_id": shipment.id,
-        "eta": shipment.eta
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -13,11 +12,6 @@ from app.models import (
 
 from app.dependencies import reports_required
 
-=======
-from fastapi import APIRouter
-from app.database import SessionLocal
-from app.models import Driver, Vehicle, Shipment
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 router = APIRouter(
     prefix="/reports",
@@ -25,7 +19,6 @@ router = APIRouter(
 )
 
 
-<<<<<<< HEAD
 # =========================================================
 # DATABASE
 # =========================================================
@@ -48,17 +41,10 @@ def driver_report(
     db: Session = Depends(get_db),
     user=Depends(reports_required)
 ):
-=======
-@router.get("/drivers")
-def driver_report():
-    db = SessionLocal()
-
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     drivers = db.query(Driver).all()
 
     return {
         "total_drivers": len(drivers),
-<<<<<<< HEAD
 
         "drivers": [
             {
@@ -81,21 +67,10 @@ def vehicle_report(
     db: Session = Depends(get_db),
     user=Depends(reports_required)
 ):
-=======
-        "drivers": drivers
-    }
-
-
-@router.get("/vehicles")
-def vehicle_report():
-    db = SessionLocal()
-
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     vehicles = db.query(Vehicle).all()
 
     return {
         "total_vehicles": len(vehicles),
-<<<<<<< HEAD
 
         "vehicles": [
             {
@@ -160,29 +135,10 @@ def shipment_report(
         Shipment
     ).filter(
         Shipment.current_status == "Cancelled"
-=======
-        "vehicles": vehicles
-    }
-
-
-@router.get("/shipments")
-def shipment_report():
-    db = SessionLocal()
-
-    shipments = db.query(Shipment).all()
-
-    delivered = db.query(Shipment).filter(
-        Shipment.status == "Delivered"
-    ).count()
-
-    pending = db.query(Shipment).filter(
-        Shipment.status == "Pending"
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     ).count()
 
     return {
         "total_shipments": len(shipments),
-<<<<<<< HEAD
 
         "created": created,
         "assigned": assigned,
@@ -286,9 +242,4 @@ def maintenance_report(
 
         "most_frequent_maintenance_category":
             category[0].value if category else None
-=======
-        "delivered": delivered,
-        "pending": pending,
-        "shipments": shipments
->>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
     }
