@@ -1,232 +1,143 @@
-# Fleet Management & Logistics Tracking Platform
+# FleetFlow – Logistics & Fleet Management Platform
 
-A backend-based Fleet Management and Logistics Tracking Platform developed using FastAPI, PostgreSQL, SQLAlchemy, and Alembic. This system helps manage vehicles, users, shipments, trips, fleet monitoring, and real-time tracking.
+## Project Overview
 
+FleetFlow is a web-based logistics and fleet management platform designed to help organizations manage vehicles, drivers, shipments, trips, maintenance activities, fuel usage, and operational analytics from a centralized system.
 
-## Features
+The platform provides a unified interface for managing fleet operations, tracking shipments and trips, monitoring vehicle-related activities, and generating operational insights.
 
-### Authentication & Authorization
-- User Registration
-- User Login
-- Password Hashing using BCrypt
-- JWT Authentication
-- Role-Based Access Control
-- Protected Routes
+## Problem Statement
 
-### User Roles
-- Admin
-- Fleet Manager
-- Driver
-- Dispatcher
+Managing fleet and logistics operations using separate systems or manual processes can make it difficult to track vehicles, drivers, shipments, trips, maintenance, fuel consumption, and operational performance.
 
-### Vehicle Management
-- Add Vehicle
-- View Vehicles
-- Update Vehicle
-- Delete Vehicle
-
-### Shipment Management
-- Create Shipment
-- View Shipments
-- Update Shipment
-- Delete Shipment
-
-### Trip Management
-- Schedule Trips
-- Assign Vehicle & Driver
-- Track Trip Status
-- Update Delivery Status
-
-### GPS Tracking
-- Store Current Vehicle Location
-- Store Destination Coordinates
-- Simulate GPS Tracking
-
-### Route Optimization
-- Recommend Best Route
-- Distance Estimation
-- ETA Calculation
-- Traffic-Aware Route Planning
-
-### Dashboard
-Provides an overview of:
-- Total Vehicles
-- Available Vehicles
-- Vehicles On Trip
-- Vehicles Under Maintenance
-- Inactive Vehicles
-- Total Shipments
-- Total Trips
-- Scheduled Trips
-- Active Trips
-- Completed Trips
-- Delayed Trips
-
-### Fleet Monitoring
-- View Fleet Status
-- Monitor Active Trips
-
-### Real-Time Tracking
-- WebSocket-based Live Vehicle Tracking
-- Real-Time Location Updates
+FleetFlow aims to provide a centralized platform that integrates these activities into a single application, improving visibility, organization, and operational management.
 
 ---
 
-## Tech Stack
+# Features
 
+## Authentication
+- User authentication
+- JWT-based authentication
+- Protected application endpoints
+- Role-based access support
+
+## Fleet Management
+- Vehicle management
+- Vehicle information and status tracking
+- Fleet operational data management
+
+## Driver Management
+- Driver management
+- Driver assignments
+- Driver attendance management
+
+## Shipment Tracking
+- Shipment creation and management
+- Shipment status tracking
+- Origin and destination information
+- Sender and receiver information
+- Current shipment location
+- Pickup and delivery date information
+
+## Trip Management
+- Trip scheduling
+- Trip and shipment association
+- Departure and expected arrival information
+- Actual arrival information
+- Trip distance
+- GPS-related trip information
+- Trip start coordinates
+
+## Maintenance Management
+- Vehicle maintenance records
+- Maintenance alerts
+- Maintenance service dates
+- Maintenance status monitoring
+
+## Fuel Monitoring
+- Fuel records
+- Fuel-related fleet information
+- Fuel consumption monitoring
+
+## Operational Analytics
+- Operational statistics
+- Shipment and trip-related reports
+- Delivery status analysis
+- Operational reporting
+
+## Alerts
+- Maintenance alerts
+- Vehicle-related maintenance monitoring
+
+## Location & Tracking
+- GPS-related tracking support
+- Trip start coordinates
+- Current location information for shipments
+- Map-based tracking interface
+
+---
+
+# Technology Stack
+
+### Frontend
+- React
+- JavaScript
+- HTML
+- CSS
+
+### Backend
+- Python
 - FastAPI
+
+### Database
 - PostgreSQL
+
+### ORM
 - SQLAlchemy
+
+### Database Migration
 - Alembic
-- JWT Authentication
-- Passlib (BCrypt)
-- Uvicorn
-- WebSockets
-- Swagger UI
-
-
-## Project Structure
-
-Fleet-Management-Logistics-Tracking-Platform/
-│
-├── backend/
-│   ├── alembic/
-│   ├── app/
-│   │   ├── models/
-│   │   ├── routers/
-│   │   ├── schemas/
-│   │   ├── utils/
-│   │   ├── database.py
-│   │   └── main.py
-│   ├── requirements.txt
-│   └── alembic.ini
-│
-├── README.md
-└── LICENSE
-
-
-## Installation
-
-### Clone the Repository
-
-git clone <repository-url>
-cd Fleet-Management-Logistics-Tracking-Platform
-
-### Create Virtual Environment
-python -m venv venv
-
-### Activate Virtual Environment
-
-Windows
-
-venv\Scripts\activate
-
-### Install Dependencies
-
-pip install -r backend/requirements.txt
-
-
-## Configure PostgreSQL
-
-Update your database URL in:
-
-backend/app/database.py
-
-Example:
-
-DATABASE_URL = "postgresql://username:password@localhost:5432/fleet_db"
-
-
-## ▶Run Alembic Migrations
-
-
-cd backend
-python -m alembic upgrade head
-
-
-## Run the Application
-
-cd backend
-python -m uvicorn app.main:app --reload
-
-Server will run at:
-
-http://127.0.0.1:8000
-
-Swagger Documentation:
-
-http://127.0.0.1:8000/docs
-
-## API Modules
 
 ### Authentication
-- Register User
-- Login User
+- JWT
 
-### Vehicles
-- Add Vehicle
-- Get Vehicles
-- Update Vehicle
-- Delete Vehicle
+### Background Processing
+- Celery
+- Redis
 
-### Shipments
-- Shipment CRUD
+### Maps & Location
+- Leaflet / OpenStreetMap
+- OSRM where applicable
 
-### Trips
-- Trip CRUD
-- Route Optimization
-- ETA Calculation
-- Delivery Status Update
+### Containerization
+- Docker
+- Docker Compose
 
-### Dashboard
-- Fleet Summary
-- Shipment Summary
-- Trip Summary
+---
 
-### Fleet Monitoring
-- Fleet Status
+# System Architecture
 
-### WebSocket
-- Live Vehicle Tracking
+FleetFlow follows a client-server architecture.
 
-## Testing
-
-All APIs can be tested using:
-
-- Swagger UI
-- Postman
-
-WebSocket testing can be performed using:
-
-- Browser WebSocket Client
-- Postman WebSocket
-- Custom HTML Client
-
-## Current Status
-
-### Milestone 1 Completed
-- Authentication
-- Role-Based Access
-- Vehicle Management
-- Dashboard API
-
-### Milestone 2 Completed
-- Shipment Tracking
-- Trip Scheduling
-- GPS Tracking
-- ETA Calculation
-- Route Optimization
-- Traffic-Aware Route Planning
-- Delivery Status Monitoring
-- Fleet Monitoring
-- Dashboard Enhancements
-- WebSocket Real-Time Tracking
-
-## Developed By
-
-Amisha Krishnan
-
-MCA Student  
-St. Aloysius (Deemed to be University), Mangalore
-
-Backend Development using FastAPI & PostgreSQL.
+```text
+                    ┌──────────────────────┐
+                    │      Frontend        │
+                    │       React          │
+                    └──────────┬───────────┘
+                               │
+                               │ HTTP / API
+                               ▼
+                    ┌──────────────────────┐
+                    │       Backend        │
+                    │       FastAPI        │
+                    └──────────┬───────────┘
+                               │
+                ┌──────────────┼──────────────┐
+                │              │              │
+                ▼              ▼              ▼
+        ┌────────────┐  ┌────────────┐  ┌────────────┐
+        │ PostgreSQL │  │   Redis    │  │  Celery    │
+        │  Database  │  │   Cache /  │  │ Background │
+        │            │  │   Broker   │  │   Jobs     │
+        └────────────┘  └────────────┘  └────────────┘
