@@ -1,10 +1,11 @@
+import os
 from datetime import datetime, timedelta
 from jose import jwt
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 
 # Secret key
-SECRET_KEY = "fleetflow_secret_key"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # JWT algorithm
 ALGORITHM = "HS256"
