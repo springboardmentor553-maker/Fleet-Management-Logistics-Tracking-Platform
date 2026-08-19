@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import enum
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Date, Time, UniqueConstraint
 from app.database import Base
@@ -7,20 +8,35 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.enums import MaintenanceCategory
 from app.enums import AlertStatus,AttendanceStatus
+=======
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy.orm import relationship
+from app.database import Base
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
+<<<<<<< HEAD
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     role = Column(String, nullable=False)
 
+=======
+    username = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False)
+
+    vehicles = relationship("Vehicle", back_populates="user")
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 class Driver(Base):
     __tablename__ = "drivers"
 
+<<<<<<< HEAD
     driver_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     phone = Column(String, nullable=False)
@@ -31,10 +47,19 @@ class Driver(Base):
     attendance = relationship("DriverAttendance", back_populates="driver")
     fuel_records = relationship("FuelRecord",back_populates="driver")
 
+=======
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    license_number = Column(String(100), unique=True, nullable=False)
+    phone = Column(String(20), nullable=False)
+
+    shipments = relationship("Shipment", back_populates="driver")
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
+<<<<<<< HEAD
     vehicle_id = Column(Integer, primary_key=True, index=True)
     vehicle_number = Column(String, unique=True, nullable=False)
     vehicle_type = Column(String, nullable=False)
@@ -56,10 +81,25 @@ class Vehicle(Base):
 
 
 
+=======
+    id = Column(Integer, primary_key=True, index=True)
+    vehicle_number = Column(String(50), unique=True, nullable=False)
+    vehicle_type = Column(String(50), nullable=False)
+    capacity = Column(Float, nullable=False)
+    fuel_type = Column(String(30), nullable=False)
+    fuel_level = Column(Float, default=100)
+    fuel_status = Column(String(30), default="Sufficient")
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    user = relationship("User", back_populates="vehicles")
+    shipments = relationship("Shipment", back_populates="vehicle")
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
 
 class Shipment(Base):
     __tablename__ = "shipments"
 
+<<<<<<< HEAD
     shipment_id = Column(Integer, primary_key=True, index=True)
 
     shipment_type = Column(String, nullable=False)
@@ -245,3 +285,18 @@ class MaintenanceAlert(Base):
     next_service_date=Column(DateTime)
     vehicle=relationship("Vehicle", back_populates="maintenance_alerts")
     maintenance = relationship("Maintenance",back_populates="alerts")
+=======
+    id = Column(Integer, primary_key=True, index=True)
+    source = Column(String(100), nullable=False)
+    destination = Column(String(100), nullable=False)
+    shipment_type = Column(String(50), nullable=False)
+    weight = Column(Float, nullable=False)
+    status = Column(String(30), default="Pending")
+    eta = Column(String(50))
+
+    driver_id = Column(Integer, ForeignKey("drivers.id"))
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"))
+
+    driver = relationship("Driver", back_populates="shipments")
+    vehicle = relationship("Vehicle", back_populates="shipments")
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a

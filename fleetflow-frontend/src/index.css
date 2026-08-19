@@ -1,0 +1,91 @@
+/* Reset */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f6fa;
+  overflow-x: hidden;
+}
+
+/* Root */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Links */
+
+a {
+  text-decoration: none;
+}
+
+/* Cards */
+
+.card {
+  border: none;
+  border-radius: 10px;
+}
+
+/* Tables */
+
+table {
+  background: white;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 240px;
+  height: calc(100vh - 60px);
+  position: fixed;
+  top: 60px;
+  left: 0;
+  background-color: #212529;
+  color: white;
+  overflow-y: auto;
+}
+
+.sidebar a {
+  color: white;
+  display: block;
+  padding: 12px 15px;
+  border-radius: 5px;
+}
+
+.sidebar a:hover {
+  background-color: #495057;
+}
+
+/* Navbar */
+
+.navbar {
+  height: 60px;
+}
+
+/* Main Content */
+
+.main-content {
+  margin-left: 240px;
+  margin-top: 60px;
+  padding: 20px;
+}
+
+/* Dashboard Cards */
+
+.dashboard-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transition: 0.3s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+}

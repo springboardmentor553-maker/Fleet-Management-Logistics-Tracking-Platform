@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Environment files
 .env
 .env.*
@@ -18,3 +19,11 @@ dist/
 # Editor
 .vscode/
 .idea/
+=======
+venv/
+__pycache__/
+*.pyc
+fleetflow-frontend/node_modules/
+.env
+.vscode/
+>>>>>>> 3fe352e492c5f4e3aad06022327550a07322882a
