@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Inter, Arial, sans-serif;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(20, 184, 166, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      #071412 0%,
+      #0d211d 50%,
+      #10251f 100%
+    );
+
+  color: #e6f4f1;
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #071412;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #28544a;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
+}
+
+/* Common cards */
+
+.glass-card {
+  background: rgba(13, 33, 29, 0.85);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(40, 84, 74, 0.7);
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Inputs */
+
+.dark-input {
+  width: 100%;
+
+  background: #071412;
+
+  border: 1px solid #28544a;
+
+  color: white;
+
+  border-radius: 10px;
+
+  padding: 11px 14px;
+
+  outline: none;
+}
+
+.dark-input::placeholder {
+  color: #769d93;
+}
+
+.dark-input:focus {
+  border-color: #14b8a6;
+
+  box-shadow:
+    0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+/* Primary button */
+
+.primary-btn {
+  background:
+    linear-gradient(
+      135deg,
+      #0d9488,
+      #059669
+    );
+
+  color: white;
+
+  padding: 10px 18px;
+
+  border-radius: 10px;
+
+  font-weight: 600;
+
+  transition: 0.2s;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 25px rgba(5, 150, 105, 0.3);
+}
+
+/* Danger button */
+
+.danger-btn {
+  background:
+    linear-gradient(
+      135deg,
+      #dc2626,
+      #ef4444
+    );
+
+  color: white;
+
+  padding: 10px 18px;
+
+  border-radius: 10px;
+
+  font-weight: 600;
+}
+
+/* White cards */
+
+.bg-white {
+  color: #0f2924;
+}
+
+.bg-white table {
+  color: #0f2924;
+}
+
+.bg-white td {
+  color: #365c53;
+}
+
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4 {
+  color: #0f2924;
+}
+
+.bg-white p {
+  color: #466b62;
+}

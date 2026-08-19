@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FleetFlow WebSocket Test</title>
+</head>
+<body>
+
+<h2>FleetFlow WebSocket Test</h2>
+
+<button onclick="connect()">Connect</button>
+
+<pre id="messages"></pre>
+
+<script>
+let socket;
+
+function connect() {
+    socket = new WebSocket("ws://127.0.0.1:8000/ws/tracking/1");
+
+    socket.onopen = function () {
+        document.getElementById("messages").textContent += "Connected\n\n";
+    };
+
+    socket.onmessage = function (event) {
+        document.getElementById("messages").textContent +=
+            event.data + "\n\n";
+    };
+
+    socket.onclose = function () {
+        document.getElementById("messages").textContent += "Disconnected\n";
+    };
+
+    socket.onerror = function () {
+        document.getElementById("messages").textContent += "Error\n";
+    };
+}
+</script>
+
+</body>
+</html>

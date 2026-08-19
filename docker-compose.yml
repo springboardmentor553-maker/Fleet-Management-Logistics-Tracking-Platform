@@ -1,0 +1,96 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: fleetflow-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres@123
+      POSTGRES_DB: fleet_flow_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fleet_flow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  redis:
+    image: redis:7
+    container_name: fleetflow-redis
+
+    ports:
+      - "6379:6379"
+
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: fleetflow-backend
+
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  celery:
+    build:
+      context: ./backend
+
+    container_name: fleetflow-celery
+
+    env_file:
+      - ./backend/.env
+
+    command: celery -A app.celery.celery_app worker --loglevel=info
+
+    depends_on:
+      - backend
+      - redis
+
+
+  celery-beat:
+    build:
+      context: ./backend
+
+    container_name: fleetflow-celery-beat
+
+    env_file:
+      - ./backend/.env
+
+    command: celery -A app.celery.celery_app beat --loglevel=info
+
+    depends_on:
+      - backend
+      - redis
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: fleetflow-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
