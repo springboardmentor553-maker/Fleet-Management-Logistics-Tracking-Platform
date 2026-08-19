@@ -104,6 +104,10 @@ app.add_middleware(
 
     allow_origins=[
 
+        # Deployed frontend
+        "https://fleetflow-frontend-5mmb.onrender.com",
+
+        # Local development
         "http://localhost:5173",
 
         "http://127.0.0.1:5173",
