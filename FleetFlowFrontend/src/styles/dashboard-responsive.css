@@ -1,0 +1,393 @@
+/* =========================================
+   FLEETFLOW DASHBOARD RESPONSIVE CSS
+   ========================================= */
+
+
+/* ---------- Main Dashboard ---------- */
+
+.dashboard-page {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+  min-height: 100vh;
+  padding: 25px;
+  background: #f4f6f9;
+  overflow-x: hidden;
+}
+
+
+/* ---------- Header ---------- */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 30px;
+  color: #222;
+}
+
+.dashboard-subtitle {
+  margin-top: 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+
+/* ---------- Loading ---------- */
+
+.dashboard-loading {
+  margin-left: 260px;
+  padding: 30px;
+}
+
+
+/* =========================================
+   DASHBOARD CARDS
+   ========================================= */
+
+.dashboard-cards {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(180px, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+}
+
+
+/* ---------- Individual Card ---------- */
+
+.dashboard-card {
+  min-width: 0;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  color: white;
+
+  text-align: center;
+
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.15);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 7px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card h3 {
+  margin: 0;
+
+  font-size: 17px;
+
+  font-weight: 500;
+}
+
+.dashboard-card h1 {
+  margin: 12px 0 0;
+
+  font-size: 32px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================
+   ANALYTICS
+   ========================================= */
+
+.dashboard-analytics {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+
+  margin-top: 35px;
+
+  width: 100%;
+}
+
+
+.analytics-card {
+  background: white;
+
+  border-radius: 12px;
+
+  padding: 22px;
+
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.1);
+
+  min-width: 0;
+}
+
+.analytics-card h3 {
+  margin-top: 0;
+
+  margin-bottom: 20px;
+
+  font-size: 20px;
+}
+
+.analytics-item {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid #eee;
+}
+
+.analytics-item:last-child {
+  border-bottom: none;
+}
+
+.analytics-item span {
+  color: #555;
+}
+
+.analytics-item strong {
+  font-size: 18px;
+}
+
+
+/* =========================================
+   LAPTOP
+   <= 1366px
+   ========================================= */
+
+@media (max-width: 1366px) {
+
+  .dashboard-page {
+    padding: 20px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns:
+      repeat(3, minmax(180px, 1fr));
+  }
+}
+
+
+/* =========================================
+   TABLET
+   <= 1024px
+   ========================================= */
+
+@media (max-width: 1024px) {
+
+  .dashboard-page {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 18px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns:
+      repeat(2, minmax(180px, 1fr));
+
+    gap: 16px;
+  }
+
+  .dashboard-analytics {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header h1 {
+    font-size: 26px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   <= 768px
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .dashboard-page {
+
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 15px;
+
+    min-height: 100vh;
+  }
+
+  .dashboard-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 10px;
+  }
+
+  .dashboard-header h1 {
+
+    font-size: 23px;
+
+    line-height: 1.3;
+  }
+
+  .dashboard-subtitle {
+
+    font-size: 13px;
+  }
+
+
+  /* Cards */
+
+  .dashboard-cards {
+
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+
+    margin-top: 20px;
+  }
+
+
+  .dashboard-card {
+
+    width: 100%;
+
+    padding: 18px;
+  }
+
+  .dashboard-card h3 {
+
+    font-size: 16px;
+  }
+
+  .dashboard-card h1 {
+
+    font-size: 30px;
+  }
+
+
+  /* Analytics */
+
+  .dashboard-analytics {
+
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+
+    margin-top: 25px;
+  }
+
+  .analytics-card {
+
+    padding: 18px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   <= 480px
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .dashboard-page {
+
+    padding: 10px;
+  }
+
+  .dashboard-header h1 {
+
+    font-size: 20px;
+  }
+
+  .dashboard-card {
+
+    padding: 15px;
+
+    border-radius: 10px;
+  }
+
+  .dashboard-card h3 {
+
+    font-size: 15px;
+  }
+
+  .dashboard-card h1 {
+
+    font-size: 27px;
+  }
+
+  .analytics-card {
+
+    padding: 15px;
+  }
+
+  .analytics-card h3 {
+
+    font-size: 18px;
+  }
+
+  .analytics-item {
+
+    font-size: 14px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL MOBILE
+   <= 360px
+   ========================================= */
+
+@media (max-width: 360px) {
+
+  .dashboard-page {
+
+    padding: 8px;
+  }
+
+  .dashboard-header h1 {
+
+    font-size: 18px;
+  }
+
+  .dashboard-card {
+
+    padding: 13px;
+  }
+
+  .dashboard-card h1 {
+
+    font-size: 24px;
+  }
+
+}

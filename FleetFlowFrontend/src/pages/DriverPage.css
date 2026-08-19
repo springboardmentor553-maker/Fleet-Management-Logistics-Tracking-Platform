@@ -1,0 +1,178 @@
+/* ==============================
+   DESKTOP
+============================== */
+
+.page-container {
+  margin-left: 260px;
+  padding: 25px;
+  padding-top: 30px;
+  background: #f4f6f9;
+  min-height: 100vh;
+  width: calc(100% - 260px);
+  box-sizing: border-box;
+}
+
+/* Header */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Driver list header */
+
+.driver-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Charts */
+
+.chart-container {
+  min-width: 0;
+}
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media (max-width: 768px) {
+
+  .page-container {
+    margin-left: 0 !important;
+
+    width: 100% !important;
+
+    /*
+      Important:
+      Gives space below the mobile Navbar
+    */
+    padding-top: 90px !important;
+
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 20px !important;
+
+    min-height: 100vh;
+
+    box-sizing: border-box;
+  }
+
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+  }
+
+  .page-header h2 {
+    font-size: 23px;
+    line-height: 1.3;
+
+    white-space: normal;
+
+    margin: 0;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    line-height: 1.5;
+
+    white-space: normal;
+  }
+
+  .refresh-button {
+    width: 100%;
+  }
+
+  /* Summary cards */
+
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card-body {
+    overflow-x: auto;
+  }
+
+  /* Charts */
+
+  .chart-container {
+    overflow: hidden;
+    padding: 8px !important;
+  }
+
+  /* Driver list */
+
+  .driver-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .driver-list-header h5 {
+    white-space: nowrap;
+    font-size: 16px;
+  }
+
+  /* Table can scroll horizontally */
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 700px;
+  }
+}
+
+
+/* ==============================
+   SMALL MOBILE
+============================== */
+
+@media (max-width: 480px) {
+
+  .page-container {
+    padding-top: 90px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .page-header h2 {
+    font-size: 20px;
+  }
+
+  .page-header p {
+    font-size: 13px;
+  }
+
+  .card-body {
+    padding: 12px;
+  }
+
+  .card h5 {
+    font-size: 15px;
+  }
+
+  .card h2 {
+    font-size: 24px;
+  }
+
+  .chart-container {
+    padding: 5px !important;
+  }
+
+}

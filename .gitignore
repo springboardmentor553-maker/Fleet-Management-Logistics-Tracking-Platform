@@ -1,29 +1,67 @@
-# Virtual Environment
-venv/
-
+# ================================
 # Python
+# ================================
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
 
-# Environment Variables
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables
 .env
+.env.*
+!.env.example
 
+# ================================
+# Node / React / Vite
+# ================================
+node_modules/
+dist/
+build/
+.vite/
+
+# ================================
 # VS Code
+# ================================
 .vscode/
 
+# ================================
 # Logs
+# ================================
 *.log
 
-# Alembic cache
-backend/alembic/__pycache__/
+# ================================
+# Database
+# ================================
+*.db
+*.sqlite
+*.sqlite3
 
+# ================================
 # OS files
+# ================================
 .DS_Store
 Thumbs.db
-# Frontend
-frontend/node_modules/
-frontend/dist/
 
-# Backend virtual environment
-backend/venv/
-freightflow.db
+# ================================
+# FleetFlow specific
+# ================================
+FleetFlowFrontend/node_modules/
+FleetFlowFrontend/dist/
+
+FleetManagementBackend/venv/
+FleetManagementBackend/.venv/
+FleetManagementBackend/__pycache__/
+node_modules/
+.venv/
+.env
+# Backups / database dumps
+FleetFlowFrontend_BACKUP/
+FleetManagementBackend_BACKUP/
+FleetManagementBackend/app_OLD/
+*.sql
+*.dump

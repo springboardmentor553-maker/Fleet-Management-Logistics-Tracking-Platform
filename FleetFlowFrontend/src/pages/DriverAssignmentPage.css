@@ -1,0 +1,471 @@
+/* =========================================
+   DRIVER ASSIGNMENT PAGE
+   ========================================= */
+
+.driver-assignment-page {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+
+  min-height: 100vh;
+
+  padding: 25px;
+
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.assignment-summary {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+
+  margin-bottom: 25px;
+}
+
+.assignment-summary-card {
+  min-width: 0;
+
+  background: white;
+
+  border-radius: 8px;
+
+  padding: 20px;
+
+  text-align: center;
+
+  box-sizing: border-box;
+}
+
+.assignment-summary-card h5 {
+  margin-bottom: 10px;
+
+  white-space: normal;
+
+  word-break: normal;
+}
+
+.assignment-summary-card h2 {
+  margin: 0;
+
+  font-size: 30px;
+}
+
+
+/* =========================================
+   ASSIGNMENT FORM
+   ========================================= */
+
+.assignment-form-card {
+  width: 100%;
+
+  min-width: 0;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  margin-bottom: 25px;
+}
+
+.assignment-form {
+  width: 100%;
+}
+
+
+/* =========================================
+   ASSIGNMENT TABLE
+   ========================================= */
+
+.assignment-table-card {
+  width: 100%;
+
+  min-width: 0;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  margin-top: 25px;
+}
+
+.assignment-table-container {
+  width: 100%;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.assignment-table {
+  width: 100%;
+
+  min-width: 850px;
+
+  border-collapse: collapse;
+}
+
+.assignment-table th,
+.assignment-table td {
+  padding: 10px;
+
+  white-space: nowrap;
+
+  vertical-align: middle;
+}
+
+
+/* =========================================
+   CHARTS
+   ========================================= */
+
+.assignment-charts {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+
+  margin-top: 25px;
+
+  box-sizing: border-box;
+}
+
+.assignment-chart-card {
+  width: 100%;
+
+  min-width: 0;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+.assignment-chart-body {
+  width: 100%;
+
+  min-width: 0;
+
+  padding: 15px;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+
+/* =========================================
+   CHART RESPONSIVENESS
+   ========================================= */
+
+.assignment-chart-body
+.recharts-responsive-container {
+  max-width: 100% !important;
+}
+
+
+/* =========================================
+   LAPTOP
+   1025px - 1366px
+   ========================================= */
+
+@media (min-width: 1025px) and (max-width: 1366px) {
+
+  .driver-assignment-page {
+    width: calc(100% - 240px);
+
+    margin-left: 240px;
+
+    padding: 20px;
+  }
+
+  .assignment-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 15px;
+  }
+
+  .assignment-summary-card {
+    padding: 15px;
+  }
+
+  .assignment-summary-card h5 {
+    font-size: 15px;
+  }
+
+  .assignment-summary-card h2 {
+    font-size: 26px;
+  }
+
+  /* Keep charts inside the content area */
+
+  .assignment-charts {
+    width: 100%;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 15px;
+  }
+
+  .assignment-chart-card {
+    min-width: 0;
+  }
+
+  .assignment-chart-body {
+    padding: 8px;
+  }
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1024px) {
+
+  .driver-assignment-page {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 18px;
+  }
+
+  .assignment-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 15px;
+  }
+
+  /*
+     Move charts completely into the
+     available right/content area.
+  */
+
+  .assignment-charts {
+    width: 100%;
+
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+  }
+
+  .assignment-chart-card {
+    width: 100%;
+
+    min-width: 0;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .driver-assignment-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 75px 15px 20px;
+
+    box-sizing: border-box;
+  }
+
+  .driver-assignment-page h2 {
+    font-size: 23px;
+
+    word-break: normal;
+  }
+
+
+  /* Summary */
+
+  .assignment-summary {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .assignment-summary-card {
+    width: 100%;
+
+    padding: 15px;
+  }
+
+  .assignment-summary-card h2 {
+    font-size: 26px;
+  }
+
+
+  /* Charts */
+
+  .assignment-charts {
+    width: 100%;
+
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+
+    margin-top: 20px;
+  }
+
+  .assignment-chart-card {
+    width: 100%;
+
+    min-width: 0;
+  }
+
+  .assignment-chart-body {
+    width: 100%;
+
+    padding: 5px;
+
+    overflow: hidden;
+  }
+
+
+  /* Form */
+
+  .assignment-form-card {
+    width: 100%;
+  }
+
+  .assignment-form .row {
+    margin-left: 0;
+
+    margin-right: 0;
+  }
+
+  .assignment-form [class*="col-"] {
+    width: 100%;
+
+    margin-bottom: 10px;
+  }
+
+
+  /* Table */
+
+  .assignment-table-card {
+    width: 100%;
+  }
+
+  .assignment-table-container {
+    overflow-x: auto;
+  }
+
+  .assignment-table {
+    min-width: 800px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .driver-assignment-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 70px 10px 15px;
+  }
+
+  .driver-assignment-page h2 {
+    font-size: 20px;
+  }
+
+
+  .assignment-summary-card {
+    padding: 12px;
+  }
+
+  .assignment-summary-card h5 {
+    font-size: 14px;
+  }
+
+  .assignment-summary-card h2 {
+    font-size: 24px;
+  }
+
+
+  .assignment-charts {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .assignment-chart-body {
+    padding: 2px;
+  }
+
+
+  .assignment-table {
+    min-width: 800px;
+  }
+}
+
+
+/* =========================================
+   EXTRA PROTECTION AGAINST SIDEBAR OVERLAP
+   ========================================= */
+
+.driver-assignment-page,
+.assignment-charts,
+.assignment-chart-card,
+.assignment-chart-body {
+  max-width: 100%;
+}
+
+.assignment-chart-card {
+  position: relative;
+}
+
+
+/* Prevent long headings from pushing layout */
+
+.assignment-chart-card .card-header {
+  overflow-wrap: normal;
+
+  word-break: normal;
+}
+
+
+/* =========================================
+   MOBILE NAVBAR PROTECTION
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .driver-assignment-page {
+    position: relative;
+
+    z-index: 1;
+  }
+}

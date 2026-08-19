@@ -1,0 +1,391 @@
+/* =========================================
+   FUEL ANALYTICS PAGE
+   ========================================= */
+
+.fuel-page {
+  margin-left: 260px;
+
+  width: calc(100% - 260px);
+
+  min-height: 100vh;
+
+  padding: 30px;
+
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   PAGE HEADER
+   ========================================= */
+
+.fuel-header {
+  margin-bottom: 25px;
+}
+
+.fuel-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  color: #1f2937;
+
+  white-space: normal;
+}
+
+.fuel-header p {
+  margin-top: 8px;
+
+  color: #6b7280;
+
+  font-size: 15px;
+
+  white-space: normal;
+}
+
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.fuel-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+
+  margin-bottom: 25px;
+}
+
+
+/* =========================================
+   FUEL CARD
+   ========================================= */
+
+.fuel-card {
+  min-width: 0;
+
+  background: white;
+
+  padding: 25px 20px;
+
+  border-radius: 10px;
+
+  text-align: center;
+
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.08);
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+.fuel-card h5 {
+  margin: 0 0 15px;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  color: #374151;
+
+  white-space: normal;
+}
+
+.fuel-card h2 {
+  margin: 0;
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  white-space: normal;
+
+  overflow-wrap: break-word;
+}
+
+.fuel-card h4 {
+  margin: 0;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  white-space: normal;
+
+  overflow-wrap: break-word;
+}
+
+
+/* =========================================
+   CARD COLORS
+   ========================================= */
+
+.primary-card {
+  border: 2px solid #0d6efd;
+}
+
+.primary-card h2 {
+  color: #0d6efd;
+}
+
+
+.success-card {
+  border: 2px solid #198754;
+}
+
+.success-card h2 {
+  color: #198754;
+}
+
+
+.warning-card {
+  border: 2px solid #ffc107;
+}
+
+.warning-card h2 {
+  color: #d39e00;
+}
+
+
+.danger-card {
+  border: 2px solid #dc3545;
+}
+
+.danger-card h4 {
+  color: #dc3545;
+}
+
+
+.info-card {
+  border: 2px solid #0dcaf0;
+}
+
+.info-card h4 {
+  color: #0aa2c0;
+}
+
+
+/* =========================================
+   FUEL TABLE CARD
+   ========================================= */
+
+.fuel-table-card {
+  width: 100%;
+
+  background: white;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.08);
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE HEADER
+   ========================================= */
+
+.fuel-table-header {
+  width: 100%;
+
+  padding: 15px 20px;
+
+  background: #212529;
+
+  color: white;
+
+  font-size: 18px;
+
+  font-weight: 600;
+
+  box-sizing: border-box;
+
+  white-space: normal;
+}
+
+
+/* =========================================
+   TABLE BODY
+   ========================================= */
+
+.fuel-table-body {
+  width: 100%;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE WRAPPER
+   ========================================= */
+
+.fuel-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* =========================================
+   TABLE
+   ========================================= */
+
+.fuel-table {
+  width: 100%;
+
+  min-width: 650px;
+
+  border-collapse: collapse;
+
+  table-layout: auto;
+}
+
+.fuel-table th,
+.fuel-table td {
+  padding: 12px 15px;
+
+  border: 1px solid #dee2e6;
+
+  text-align: left;
+
+  white-space: normal;
+
+  word-break: normal;
+
+  overflow-wrap: break-word;
+}
+
+
+/* TABLE HEADER */
+
+.fuel-table th {
+  background: #212529;
+
+  color: white;
+
+  font-weight: 600;
+}
+
+
+/* TABLE ROW */
+
+.fuel-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+
+/* EMPTY */
+
+.empty-fuel {
+  text-align: center !important;
+
+  color: #6c757d;
+
+  padding: 25px !important;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1024px) {
+
+  .fuel-page {
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+
+    padding: 20px;
+  }
+
+  .fuel-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .fuel-page {
+    margin-left: 0;
+
+    width: 100%;
+
+    padding:
+      80px
+      15px
+      20px;
+  }
+
+  .fuel-header h2 {
+    font-size: 23px;
+  }
+
+  .fuel-summary {
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+  }
+
+  .fuel-table-body {
+    padding: 10px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .fuel-page {
+    padding:
+      75px
+      10px
+      15px;
+  }
+
+  .fuel-header h2 {
+    font-size: 20px;
+  }
+
+  .fuel-card {
+    padding: 20px 15px;
+  }
+
+  .fuel-card h2 {
+    font-size: 25px;
+  }
+
+  .fuel-card h4 {
+    font-size: 18px;
+  }
+
+}

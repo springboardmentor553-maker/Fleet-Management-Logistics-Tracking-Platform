@@ -1,0 +1,472 @@
+/* =========================================
+   MAINTENANCE ALERT PAGE
+   ========================================= */
+
+.maintenance-alert-page {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+
+  min-height: 100vh;
+
+  padding: 25px;
+
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   PAGE HEADINGS
+   ========================================= */
+
+.maintenance-alert-page h2,
+.maintenance-alert-page h3 {
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+
+/* =========================================
+   FORM CARD
+   ========================================= */
+
+.maintenance-alert-form {
+  width: 100%;
+  max-width: 100%;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+.maintenance-alert-form .card-body {
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   FORM INPUTS
+   ========================================= */
+
+.maintenance-alert-form input,
+.maintenance-alert-form textarea,
+.maintenance-alert-form select {
+  width: 100%;
+  max-width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   MAINTENANCE ALERT TABLE CARD
+   ========================================= */
+
+.maintenance-alert-table {
+  width: 100%;
+  max-width: 100%;
+
+  margin-top: 25px;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE OWN HORIZONTAL SCROLL
+   ========================================= */
+
+.maintenance-alert-table-container {
+  width: 100%;
+  max-width: 100%;
+
+  display: block;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* =========================================
+   TABLE
+   ========================================= */
+
+.maintenance-alert-table-container table {
+  width: max-content;
+
+  min-width: 1000px;
+
+  margin-bottom: 0;
+
+  border-collapse: collapse;
+}
+
+
+/* =========================================
+   TABLE HEADER + CELLS
+   ========================================= */
+
+.maintenance-alert-table-container th,
+.maintenance-alert-table-container td {
+  padding: 10px;
+
+  vertical-align: middle;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   MESSAGE COLUMN
+   ========================================= */
+
+.maintenance-alert-message {
+  max-width: 300px;
+
+  white-space: normal !important;
+
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+   ========================================= */
+
+.maintenance-alert-actions {
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   DESKTOP
+   ========================================= */
+
+@media (min-width: 1367px) {
+
+  .maintenance-alert-page {
+    width: calc(100% - 260px);
+
+    margin-left: 260px;
+
+    padding: 25px;
+  }
+
+  .maintenance-alert-table-container {
+    width: 100%;
+
+    overflow-x: auto;
+  }
+
+  .maintenance-alert-table-container table {
+    min-width: 1000px;
+  }
+
+}
+
+
+/* =========================================
+   LAPTOP
+   769px - 1366px
+   ========================================= */
+
+@media (min-width: 769px) and (max-width: 1366px) {
+
+  .maintenance-alert-page {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 20px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  /* Table card stays inside content area */
+
+  .maintenance-alert-table {
+    width: 100%;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+  }
+
+
+  /* ONLY THIS AREA SCROLLS */
+
+  .maintenance-alert-table-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    display: block;
+
+    box-sizing: border-box;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+
+  /* Wide table creates scrollbar */
+
+  .maintenance-alert-table-container table {
+    width: max-content;
+
+    min-width: 1000px;
+  }
+
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1024px) and (min-width: 769px) {
+
+  .maintenance-alert-page {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 18px;
+  }
+
+
+  .maintenance-alert-table-container {
+    width: 100%;
+
+    overflow-x: auto;
+  }
+
+
+  .maintenance-alert-table-container table {
+    min-width: 950px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .maintenance-alert-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 90px 15px 25px;
+
+    min-height: 100vh;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  /* PAGE TITLE */
+
+  .maintenance-alert-page h2 {
+    font-size: 23px;
+
+    line-height: 1.3;
+
+    white-space: normal;
+
+    word-break: normal;
+
+    overflow-wrap: break-word;
+  }
+
+
+  .maintenance-alert-page h3 {
+    font-size: 20px;
+  }
+
+
+  /* FORM */
+
+  .maintenance-alert-form {
+    width: 100%;
+
+    max-width: 100%;
+  }
+
+
+  .maintenance-alert-form .row {
+    margin-left: 0;
+
+    margin-right: 0;
+  }
+
+
+  .maintenance-alert-form [class*="col-"] {
+    width: 100%;
+
+    max-width: 100%;
+
+    padding-left: 0;
+
+    padding-right: 0;
+
+    margin-bottom: 15px;
+  }
+
+
+  /* INPUTS */
+
+  .maintenance-alert-form input,
+  .maintenance-alert-form textarea,
+  .maintenance-alert-form select {
+    width: 100%;
+
+    max-width: 100%;
+
+    font-size: 16px;
+  }
+
+
+  /* BUTTONS */
+
+  .maintenance-alert-form .btn {
+    width: 100%;
+
+    margin-bottom: 10px;
+  }
+
+
+  /* TABLE */
+
+  .maintenance-alert-table {
+    width: 100%;
+
+    max-width: 100%;
+
+    margin-top: 20px;
+  }
+
+
+  .maintenance-alert-table-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    display: block;
+  }
+
+
+  .maintenance-alert-table-container table {
+    width: max-content;
+
+    min-width: 900px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .maintenance-alert-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 85px 10px 20px;
+  }
+
+
+  .maintenance-alert-page h2 {
+    font-size: 20px;
+
+    line-height: 1.3;
+  }
+
+
+  .maintenance-alert-form {
+    width: 100%;
+  }
+
+
+  .maintenance-alert-form .card-header {
+    padding: 12px;
+  }
+
+
+  .maintenance-alert-form .card-body {
+    padding: 12px;
+  }
+
+
+  .maintenance-alert-table {
+    margin-top: 15px;
+  }
+
+
+  .maintenance-alert-table-container {
+    width: 100%;
+
+    overflow-x: auto;
+  }
+
+
+  .maintenance-alert-table-container table {
+    min-width: 900px;
+  }
+
+
+  .maintenance-alert-form input,
+  .maintenance-alert-form textarea,
+  .maintenance-alert-form select {
+    font-size: 16px;
+  }
+
+
+  .maintenance-alert-form .btn {
+    width: 100%;
+
+    margin-bottom: 8px;
+  }
+
+}

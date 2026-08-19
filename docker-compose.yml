@@ -1,0 +1,139 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: fleetflow-postgres
+
+    environment:
+      POSTGRES_DB: fleetflow_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fleetflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: fleetflow-redis
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+
+  backend:
+    build:
+      context: ./FleetManagementBackend
+      dockerfile: Dockerfile
+
+    container_name: fleetflow-backend
+
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fleetflow_db
+
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
+      REDIS_URL: redis://redis:6379/0
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    restart: unless-stopped
+
+
+  celery:
+    build:
+      context: ./FleetManagementBackend
+      dockerfile: Dockerfile
+
+    container_name: fleetflow-celery
+
+    command: celery -A app.celery.celery_app worker --loglevel=info
+
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fleetflow_db
+
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    restart: unless-stopped
+
+
+  celery-beat:
+    build:
+      context: ./FleetManagementBackend
+      dockerfile: Dockerfile
+
+    container_name: fleetflow-celery-beat
+
+    command: celery -A app.celery.celery_app beat --loglevel=info
+
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fleetflow_db
+
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    restart: unless-stopped
+
+
+  frontend:
+    build:
+      context: ./FleetFlowFrontend
+      dockerfile: Dockerfile
+
+    container_name: fleetflow-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  redis_data:

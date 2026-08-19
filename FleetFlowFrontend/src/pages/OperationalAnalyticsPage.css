@@ -1,0 +1,919 @@
+/* =========================================
+   OPERATIONAL ANALYTICS PAGE
+========================================= */
+
+.operational-page {
+  margin-left: 260px;
+
+  width: calc(100% - 260px);
+
+  min-height: 100vh;
+
+  padding: 30px;
+
+  box-sizing: border-box;
+
+  background: #f4f6f9;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.operational-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  margin-bottom: 25px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+.operational-header h2 {
+  margin: 0;
+
+  color: #212529;
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+.operational-header p {
+  margin: 7px 0 0;
+
+  color: #6c757d;
+
+  font-size: 15px;
+}
+
+
+/* =========================================
+   REFRESH BUTTON
+========================================= */
+
+.refresh-button {
+  border: none;
+
+  background: #2563eb;
+
+  color: white;
+
+  padding: 10px 18px;
+
+  border-radius: 7px;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+}
+
+.refresh-button:hover {
+  background: #1d4ed8;
+}
+
+
+/* =========================================
+   ANALYTICS CARD
+========================================= */
+
+.analytics-card {
+  width: 100%;
+
+  min-width: 0;
+
+  margin-bottom: 20px;
+
+  background: white;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.08);
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   CARD HEADER
+========================================= */
+
+.analytics-card-header {
+  padding: 14px 18px;
+
+  color: white;
+
+  font-size: 17px;
+
+  font-weight: 600;
+}
+
+.success-header {
+  background: #198754;
+}
+
+.primary-header {
+  background: #0d6efd;
+}
+
+.warning-header {
+  background: #f59e0b;
+}
+
+.secondary-header {
+  background: #6c757d;
+}
+
+.info-header {
+  background: #0dcaf0;
+}
+
+
+/* =========================================
+   CARD BODY
+========================================= */
+
+.analytics-card-body {
+  width: 100%;
+
+  min-width: 0;
+
+  padding: 18px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   DELIVERY SUMMARY
+========================================= */
+
+.delivery-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 15px;
+
+  width: 100%;
+}
+
+.delivery-item {
+  text-align: center;
+
+  padding: 10px;
+}
+
+.delivery-item h5 {
+  margin: 0 0 8px;
+
+  color: #6c757d;
+
+  font-size: 15px;
+
+  font-weight: 600;
+}
+
+.delivery-item h2 {
+  margin: 0;
+
+  font-size: 30px;
+
+  font-weight: 700;
+}
+
+.success-text {
+  color: #198754;
+}
+
+.primary-text {
+  color: #0d6efd;
+}
+
+
+/* =========================================
+   TABLE WRAPPER
+========================================= */
+
+.table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.analytics-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  margin: 0;
+
+  table-layout: auto;
+}
+
+.analytics-table th {
+  background: #f8f9fa;
+
+  color: #495057;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  padding: 12px 14px;
+
+  text-align: left;
+
+  border-bottom: 1px solid #dee2e6;
+
+  white-space: nowrap;
+}
+
+.analytics-table td {
+  padding: 12px 14px;
+
+  font-size: 14px;
+
+  color: #343a40;
+
+  border-bottom: 1px solid #eeeeee;
+
+  white-space: nowrap;
+}
+
+.analytics-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.total-row {
+  background: #f1f3f5;
+}
+
+.empty-cell {
+  text-align: center;
+
+  color: #6c757d;
+
+  padding: 20px !important;
+}
+
+.empty-message {
+  text-align: center;
+
+  color: #6c757d;
+
+  margin: 10px 0;
+}
+
+
+/* =========================================
+   PIE CHART
+========================================= */
+
+.shipment-chart {
+  width: 100%;
+
+  min-width: 0;
+
+  margin-top: 25px;
+
+  box-sizing: border-box;
+}
+
+.shipment-chart h4 {
+  text-align: center;
+
+  margin: 0 0 10px;
+
+  font-size: 18px;
+
+  color: #343a40;
+
+  font-weight: 600;
+}
+
+
+/*
+   Important:
+   Chart gets a controlled responsive
+   container instead of a fixed width.
+*/
+
+.pie-chart-container {
+  width: 100%;
+
+  max-width: 650px;
+
+  height: 360px;
+
+  margin: 0 auto;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+.analytics-loading {
+  min-height: 300px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+}
+
+.analytics-loading h4 {
+  margin: 0;
+
+  color: #495057;
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
+
+.analytics-error {
+  background: white;
+
+  border-radius: 10px;
+
+  padding: 30px;
+
+  margin-top: 20px;
+
+  text-align: center;
+
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.analytics-error h4 {
+  color: #dc3545;
+
+  margin-bottom: 10px;
+}
+
+.analytics-error p {
+  color: #6c757d;
+}
+
+.retry-button {
+  border: none;
+
+  background: #0d6efd;
+
+  color: white;
+
+  padding: 10px 18px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   LARGE DESKTOP
+   1201px+
+========================================= */
+
+@media (min-width: 1201px) {
+
+  .operational-page {
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+
+    padding: 30px;
+  }
+
+}
+
+
+/* =========================================
+   LARGE LAPTOP
+   1025px - 1200px
+
+   SIDEBAR = 220px
+========================================= */
+
+@media (min-width: 1025px) and (max-width: 1200px) {
+
+  .operational-page {
+    margin-left: 220px;
+
+    width: calc(100% - 220px);
+
+    padding: 25px 25px 25px 45px;
+  }
+
+  .operational-header h2 {
+    font-size: 25px;
+  }
+
+  .analytics-card-body {
+    padding: 16px;
+  }
+
+  .pie-chart-container {
+    height: 340px;
+
+    max-width: 600px;
+  }
+
+}
+
+
+/* =========================================
+   LAPTOP
+   769px - 1024px
+
+   SIDEBAR = 220px
+
+   Small extra space on left,
+   but NOT too much.
+========================================= */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  .operational-page {
+    margin-left: 220px !important;
+
+    width: calc(100% - 220px) !important;
+
+    padding:
+      20px
+      20px
+      25px
+      45px !important;
+
+    min-height: 100vh;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  /* Header */
+
+  .operational-header {
+    align-items: flex-start;
+
+    gap: 15px;
+
+    margin-bottom: 22px;
+  }
+
+  .operational-header h2 {
+    font-size: 24px;
+  }
+
+  .operational-header p {
+    font-size: 14px;
+  }
+
+
+  /* Cards */
+
+  .analytics-card {
+    margin-bottom: 18px;
+  }
+
+  .analytics-card-header {
+    padding: 12px 15px;
+
+    font-size: 16px;
+  }
+
+  .analytics-card-body {
+    padding: 15px;
+  }
+
+
+  /* Delivery */
+
+  .delivery-summary {
+    gap: 10px;
+  }
+
+  .delivery-item {
+    padding: 8px;
+  }
+
+  .delivery-item h5 {
+    font-size: 14px;
+  }
+
+  .delivery-item h2 {
+    font-size: 27px;
+  }
+
+
+  /* Table */
+
+  .analytics-table th,
+  .analytics-table td {
+    padding: 10px 12px;
+  }
+
+
+  /* Pie chart */
+
+  .shipment-chart {
+    margin-top: 20px;
+  }
+
+  .pie-chart-container {
+    width: 100%;
+
+    max-width: 550px;
+
+    height: 330px;
+
+    margin-left: auto;
+
+    margin-right: auto;
+  }
+
+}
+
+
+/* =========================================
+   TABLET
+   577px - 768px
+
+   Sidebar becomes mobile menu
+========================================= */
+
+@media (min-width: 577px) and (max-width: 768px) {
+
+  .operational-page {
+    margin-left: 0;
+
+    width: 100%;
+
+    padding:
+      80px
+      15px
+      25px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  .operational-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+  .operational-header h2 {
+    font-size: 24px;
+  }
+
+  .operational-header p {
+    font-size: 14px;
+  }
+
+  .refresh-button {
+    width: auto;
+  }
+
+
+  /* Delivery */
+
+  .delivery-summary {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+
+  /* Tables */
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .analytics-table {
+    min-width: 550px;
+  }
+
+
+  /* Pie */
+
+  .pie-chart-container {
+    width: 100%;
+
+    max-width: 500px;
+
+    height: 330px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+   <= 576px
+========================================= */
+
+@media (max-width: 576px) {
+
+  .operational-page {
+    margin-left: 0;
+
+    width: 100%;
+
+    min-height: 100vh;
+
+    padding:
+      75px
+      10px
+      20px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  /* Header */
+
+  .operational-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+  }
+
+  .operational-header h2 {
+    font-size: 21px;
+
+    line-height: 1.3;
+  }
+
+  .operational-header p {
+    font-size: 13px;
+
+    line-height: 1.5;
+  }
+
+  .refresh-button {
+    width: 100%;
+
+    padding: 10px;
+  }
+
+
+  /* Cards */
+
+  .analytics-card {
+    margin-bottom: 15px;
+
+    border-radius: 8px;
+  }
+
+  .analytics-card-header {
+    padding: 11px 13px;
+
+    font-size: 15px;
+  }
+
+  .analytics-card-body {
+    padding: 12px;
+  }
+
+
+  /* Delivery summary */
+
+  .delivery-summary {
+    grid-template-columns:
+      1fr 1fr;
+
+    gap: 5px;
+  }
+
+  .delivery-item {
+    padding: 10px 5px;
+  }
+
+  .delivery-item:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .delivery-item h5 {
+    font-size: 13px;
+
+    line-height: 1.3;
+  }
+
+  .delivery-item h2 {
+    font-size: 25px;
+  }
+
+
+  /* Tables */
+
+  .table-wrapper {
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+  }
+
+  .analytics-table {
+    min-width: 500px;
+  }
+
+  .analytics-table th,
+  .analytics-table td {
+    padding: 9px 10px;
+
+    font-size: 13px;
+  }
+
+
+  /* Shipment chart */
+
+  .shipment-chart {
+    width: 100%;
+
+    margin-top: 20px;
+
+    overflow: hidden;
+  }
+
+  .shipment-chart h4 {
+    font-size: 16px;
+
+    margin-bottom: 5px;
+  }
+
+
+  /*
+     Important for mobile:
+     The chart is not allowed to become
+     wider than the card.
+  */
+
+  .pie-chart-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    height: 320px;
+
+    margin: 0 auto;
+
+    overflow: hidden;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   <= 400px
+========================================= */
+
+@media (max-width: 400px) {
+
+  .operational-page {
+    padding:
+      72px
+      8px
+      18px;
+  }
+
+
+  .operational-header h2 {
+    font-size: 19px;
+  }
+
+  .operational-header p {
+    font-size: 12px;
+  }
+
+
+  .analytics-card-header {
+    font-size: 14px;
+
+    padding: 10px 12px;
+  }
+
+  .analytics-card-body {
+    padding: 10px;
+  }
+
+
+  .delivery-item h5 {
+    font-size: 12px;
+  }
+
+  .delivery-item h2 {
+    font-size: 23px;
+  }
+
+
+  .analytics-table {
+    min-width: 470px;
+  }
+
+  .analytics-table th,
+  .analytics-table td {
+    font-size: 12px;
+
+    padding: 8px;
+  }
+
+
+  /* Smaller but completely visible pie chart */
+
+  .pie-chart-container {
+    height: 290px;
+
+    width: 100%;
+
+    max-width: 100%;
+  }
+
+  .shipment-chart h4 {
+    font-size: 15px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL MOBILE
+   <= 360px
+========================================= */
+
+@media (max-width: 360px) {
+
+  .operational-page {
+    padding-left: 6px;
+
+    padding-right: 6px;
+  }
+
+  .analytics-card-body {
+    padding: 8px;
+  }
+
+  .pie-chart-container {
+    height: 270px;
+  }
+
+}

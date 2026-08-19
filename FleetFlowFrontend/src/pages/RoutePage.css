@@ -1,0 +1,67 @@
+.route-page {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  min-height: 100vh;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.route-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.route-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  .route-page {
+    margin-left: 0 !important;
+    width: 100% !important;
+
+    /* Space below mobile Navbar */
+    padding: 90px 15px 30px 15px !important;
+  }
+
+  .route-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .route-title {
+    display: block !important;
+    visibility: visible !important;
+
+    text-align: center;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 25px;
+  }
+}
+
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 480px) {
+
+  .route-page {
+    padding-top: 85px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .route-title {
+    font-size: 21px;
+  }
+}

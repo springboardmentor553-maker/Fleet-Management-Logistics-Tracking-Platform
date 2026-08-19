@@ -1,0 +1,159 @@
+/* =========================================
+   VEHICLE PAGE
+   ========================================= */
+
+.app-page {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+
+  min-height: 100vh;
+
+  padding: 25px;
+
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   VEHICLE PAGE HEADER
+   ========================================= */
+
+.vehicle-page h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+
+  font-size: 28px;
+
+  color: #222;
+}
+
+
+/* =========================================
+   MESSAGES
+   ========================================= */
+
+.success-message {
+  color: green;
+
+  padding: 10px;
+
+  background: #eaf7ea;
+
+  border-radius: 6px;
+}
+
+.error-message {
+  color: red;
+
+  padding: 10px;
+
+  background: #fdeaea;
+
+  border-radius: 6px;
+}
+
+
+/* =========================================
+   CHARTS
+   ========================================= */
+
+.vehicle-charts {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+
+  margin-top: 25px;
+
+  width: 100%;
+}
+
+.vehicle-chart-card {
+  min-width: 0;
+
+  background: white;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+}
+
+.vehicle-chart-body {
+  width: 100%;
+
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1024px) {
+
+  .app-page {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 18px;
+  }
+
+  .vehicle-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .app-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 75px 15px 20px;
+  }
+
+  .vehicle-page h2 {
+    font-size: 23px;
+  }
+
+  .vehicle-charts {
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .app-page {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 70px 10px 15px;
+  }
+
+  .vehicle-page h2 {
+    font-size: 20px;
+  }
+}

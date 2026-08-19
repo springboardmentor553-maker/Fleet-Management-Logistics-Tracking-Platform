@@ -1,0 +1,254 @@
+/* =========================================
+   SHIPMENT PAGE
+   ========================================= */
+
+.shipment-page {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+
+  min-height: 100vh;
+
+  padding: 25px;
+
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+
+  /* Don't cut table content */
+  overflow-x: visible;
+}
+
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.shipment-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 25px;
+}
+
+.shipment-summary-card {
+  min-width: 0;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.shipment-summary-card h5 {
+  margin-bottom: 10px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.shipment-summary-card h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+
+/* =========================================
+   CHARTS
+   ========================================= */
+
+.shipment-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 25px;
+}
+
+.shipment-chart-card {
+  min-width: 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.shipment-chart-body {
+  width: 100%;
+  min-width: 0;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE
+   ========================================= */
+
+.shipment-table-card {
+  width: 100%;
+  min-width: 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.shipment-table-container {
+  width: 100%;
+  max-width: 100%;
+
+  /* Allow table to scroll */
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.shipment-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+}
+
+.shipment-table th,
+.shipment-table td {
+  padding: 10px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.shipment-table select {
+  min-width: 150px;
+}
+
+
+/* =========================================
+   LAPTOP
+   ========================================= */
+
+@media (max-width: 1200px) {
+
+  .shipment-page {
+    width: calc(100% - 260px);
+    margin-left: 260px;
+    padding: 20px;
+  }
+
+  .shipment-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .shipment-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .shipment-table-container {
+    overflow-x: auto;
+  }
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 992px) {
+
+  .shipment-page {
+    width: calc(100% - 260px);
+    margin-left: 260px;
+    padding: 18px;
+  }
+
+  .shipment-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shipment-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .shipment-page {
+    width: 100%;
+    margin-left: 0;
+
+    /* Space below mobile navbar */
+    padding: 85px 15px 20px;
+
+    overflow-x: hidden;
+  }
+
+  .shipment-page h2 {
+    font-size: 23px;
+    margin-bottom: 20px;
+  }
+
+  .shipment-summary {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .shipment-summary-card {
+    padding: 15px;
+  }
+
+  .shipment-summary-card h2 {
+    font-size: 26px;
+  }
+
+  .shipment-charts {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .shipment-chart-body {
+    padding: 8px;
+  }
+
+  .shipment-table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .shipment-table {
+    min-width: 800px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 480px) {
+
+  .shipment-page {
+    width: 100%;
+    margin-left: 0;
+    padding: 80px 10px 15px;
+  }
+
+  .shipment-page h2 {
+    font-size: 20px;
+  }
+
+  .shipment-summary-card {
+    padding: 12px;
+  }
+
+  .shipment-chart-body {
+    padding: 5px;
+  }
+
+  .shipment-table {
+    min-width: 750px;
+  }
+}

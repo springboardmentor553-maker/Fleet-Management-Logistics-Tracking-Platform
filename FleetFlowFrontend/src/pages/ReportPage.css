@@ -1,0 +1,591 @@
+/* =========================================
+   REPORT PAGE
+========================================= */
+
+.report-page {
+  margin-left: 260px;
+
+  width: calc(100% - 260px);
+
+  min-height: 100vh;
+
+  /* 35px extra space from sidebar */
+  padding: 30px 30px 30px 65px;
+
+  box-sizing: border-box;
+
+  background: #f4f6f9;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.report-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+.report-title {
+  min-width: 0;
+}
+
+.report-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  color: #212529;
+
+  line-height: 1.3;
+}
+
+.report-header p {
+  margin-top: 8px;
+
+  margin-bottom: 0;
+
+  color: #6c757d;
+
+  font-size: 15px;
+}
+
+
+/* =========================================
+   REPORT ACTIONS
+========================================= */
+
+.report-actions {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+.report-actions button {
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   REPORT ROW
+========================================= */
+
+.report-row {
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+.report-loading {
+  text-align: center;
+
+  padding-top: 80px;
+}
+
+
+/* =========================================
+   LARGE DESKTOP
+   1201px+
+========================================= */
+
+@media (min-width: 1201px) {
+
+  .report-page {
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+
+    /*
+      Sidebar = 260px
+      Extra content space = 35px
+    */
+    padding: 30px 30px 30px 65px;
+  }
+
+}
+
+
+/* =========================================
+   LAPTOP
+   1025px - 1200px
+========================================= */
+
+@media (min-width: 1025px) and (max-width: 1200px) {
+
+  .report-page {
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+
+    /*
+      Move content slightly right
+    */
+    padding: 25px 25px 25px 55px;
+  }
+
+  .report-header {
+    margin-bottom: 25px;
+  }
+
+  .report-header h2 {
+    font-size: 26px;
+  }
+
+  .report-header p {
+    font-size: 14px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL LAPTOP / TABLET
+   769px - 1024px
+
+   Sidebar = 220px
+========================================= */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  .report-page {
+
+    /*
+      Sidebar width
+    */
+    margin-left: 220px !important;
+
+    width: calc(100% - 220px) !important;
+
+    min-height: 100vh;
+
+    /*
+      35px extra space from sidebar
+    */
+    padding: 20px 20px 25px 55px !important;
+
+    box-sizing: border-box;
+
+    background: #f4f6f9;
+
+    overflow-x: hidden;
+  }
+
+
+  /* =====================================
+     HEADER
+  ===================================== */
+
+  .report-header {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+  }
+
+
+  .report-header h2 {
+
+    font-size: 24px;
+
+    line-height: 1.3;
+  }
+
+
+  .report-header p {
+
+    font-size: 14px;
+
+    line-height: 1.5;
+  }
+
+
+  /* =====================================
+     BUTTONS
+  ===================================== */
+
+  .report-actions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    flex-shrink: 0;
+  }
+
+
+  .report-actions button {
+
+    white-space: nowrap;
+
+    font-size: 13px;
+  }
+
+
+  /* =====================================
+     BOOTSTRAP ROW
+  ===================================== */
+
+  .report-page .row {
+
+    margin-left: 0;
+
+    margin-right: 0;
+  }
+
+
+  /* =====================================
+     BOOTSTRAP COLUMNS
+  ===================================== */
+
+  .report-page .col-12,
+  .report-page .col-md-6 {
+
+    padding-left: 6px;
+
+    padding-right: 6px;
+  }
+
+
+  /* =====================================
+     CARDS
+  ===================================== */
+
+  .report-page .card {
+
+    width: 100%;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+  }
+
+
+  .report-page .card-header {
+
+    padding: 13px 15px;
+  }
+
+
+  .report-page .card-body {
+
+    padding: 15px;
+  }
+
+
+  /* =====================================
+     TEXT
+  ===================================== */
+
+  .report-page h1 {
+
+    font-size: 32px;
+  }
+
+  .report-page h2 {
+
+    font-size: 25px;
+  }
+
+  .report-page h3 {
+
+    font-size: 25px;
+  }
+
+  .report-page h5 {
+
+    font-size: 16px;
+  }
+
+}
+
+
+/* =========================================
+   TABLET
+   577px - 768px
+
+   Sidebar becomes mobile overlay
+========================================= */
+
+@media (min-width: 577px) and (max-width: 768px) {
+
+  .report-page {
+
+    margin-left: 0 !important;
+
+    width: 100% !important;
+
+    min-height: 100vh;
+
+    padding: 90px 15px 25px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  .report-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+  }
+
+
+  .report-header h2 {
+
+    font-size: 24px;
+  }
+
+
+  .report-header p {
+
+    font-size: 14px;
+  }
+
+
+  .report-actions {
+
+    width: 100%;
+  }
+
+
+  .report-actions button {
+
+    flex: 1;
+
+    min-width: 120px;
+  }
+
+
+  .report-page .row {
+
+    margin-left: 0;
+
+    margin-right: 0;
+  }
+
+
+  .report-page .col-12,
+  .report-page .col-md-6 {
+
+    padding-left: 5px;
+
+    padding-right: 5px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+   <= 576px
+========================================= */
+
+@media (max-width: 576px) {
+
+  .report-page {
+
+    margin-left: 0 !important;
+
+    width: 100% !important;
+
+    min-height: 100vh;
+
+    padding: 85px 15px 20px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  .report-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+  }
+
+
+  .report-header h2 {
+
+    font-size: 22px;
+
+    line-height: 1.3;
+  }
+
+
+  .report-header p {
+
+    font-size: 13px;
+
+    line-height: 1.5;
+  }
+
+
+  .report-actions {
+
+    width: 100%;
+
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+
+  .report-actions button {
+
+    width: 100%;
+  }
+
+
+  .report-page .row {
+
+    margin-left: 0;
+
+    margin-right: 0;
+  }
+
+
+  .report-page .col-12,
+  .report-page .col-md-6 {
+
+    padding-left: 0;
+
+    padding-right: 0;
+  }
+
+
+  .report-page .card {
+
+    width: 100%;
+
+    margin-bottom: 15px;
+  }
+
+
+  .report-page .card-header {
+
+    padding: 12px 15px;
+  }
+
+
+  .report-page .card-header h5 {
+
+    font-size: 15px;
+  }
+
+
+  .report-page .card-body {
+
+    padding: 15px;
+  }
+
+
+  .report-page h1 {
+
+    font-size: 30px;
+  }
+
+
+  .report-page h2 {
+
+    font-size: 23px;
+  }
+
+
+  .report-page h3 {
+
+    font-size: 24px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL MOBILE
+   <= 400px
+========================================= */
+
+@media (max-width: 400px) {
+
+  .report-page {
+
+    padding: 85px 10px 20px;
+  }
+
+
+  .report-header h2 {
+
+    font-size: 20px;
+  }
+
+
+  .report-header p {
+
+    font-size: 12px;
+  }
+
+
+  .report-page .card-body {
+
+    padding: 12px;
+  }
+
+
+  .report-page h3 {
+
+    font-size: 22px;
+  }
+
+
+  .report-page h1 {
+
+    font-size: 28px;
+  }
+
+}
