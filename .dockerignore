@@ -1,0 +1,29 @@
+# Root .dockerignore — applies to backend build context (context: .)
+
+# Python virtual environment and cache
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment secrets — never bake into image
+.env
+
+# Git metadata
+.git/
+.gitignore
+
+# Frontend source (not needed for backend image)
+frontend/
+
+# IDE and OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Test and temp files
+*.log
+*.tmp

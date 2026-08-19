@@ -1,0 +1,25 @@
+# Frontend .dockerignore — applies to frontend build context (context: ./frontend)
+
+# Node modules — reinstalled cleanly inside image by npm ci
+node_modules/
+
+# Environment secrets — never bake into image
+.env
+.env.*
+
+# Git metadata
+.git/
+.gitignore
+
+# Build artifacts (rebuilt inside image)
+dist/
+
+# IDE and OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Test files
+*.log
+*.tmp

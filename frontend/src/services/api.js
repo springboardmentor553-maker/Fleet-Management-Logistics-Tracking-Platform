@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  // Empty baseURL: all requests go through the Vite dev proxy,
-  // avoiding cross-origin issues during development.
-  baseURL: "",
+  // Use VITE_API_URL if configured (for production/cloud), otherwise empty string
+  // which routes via Vite dev proxy under local development.
+  baseURL: import.meta.env.VITE_API_URL || "",
 });
 
 // Add a request interceptor to include the JWT token
