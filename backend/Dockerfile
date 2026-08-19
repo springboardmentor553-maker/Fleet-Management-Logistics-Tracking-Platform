@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -m alembic upgrade 2c3e30562e25 && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python -m alembic upgrade 596923c8893a && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"]
