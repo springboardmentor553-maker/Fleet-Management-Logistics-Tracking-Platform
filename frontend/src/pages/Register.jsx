@@ -48,7 +48,6 @@ function Register() {
     role: formData.role,
   }
 );
-
       alert(
         response.data?.message ||
           "Registration successful"
