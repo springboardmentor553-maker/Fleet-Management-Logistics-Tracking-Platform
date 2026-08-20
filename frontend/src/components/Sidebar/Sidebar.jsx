@@ -14,6 +14,8 @@ import {
     FaBell,
     FaUserCircle,
     FaCog,
+    FaChartLine,
+    FaGasPump,
 } from "react-icons/fa";
 
 import "./Sidebar.css";
@@ -254,6 +256,24 @@ function Sidebar() {
             roles: [
                 "admin",
                 "user",
+            ],
+        },
+
+        {
+            name: "Operational Analytics",
+            path: "/operational-analytics",
+            icon: <FaChartLine />,
+            roles: [
+                "admin",
+            ],
+        },
+
+        {
+            name: "Fuel Monitoring",
+            path: "/fuel-monitoring",
+            icon: <FaGasPump />,
+            roles: [
+                "admin",
             ],
         },
 

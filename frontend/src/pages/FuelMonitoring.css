@@ -1,0 +1,1200 @@
+/* ==========================================================
+   FUEL MONITORING PAGE
+========================================================== */
+
+.fuel-monitoring-page {
+    width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.fuel-monitoring-header {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 25px;
+
+    margin-bottom: 30px;
+
+    box-sizing: border-box;
+}
+
+.fuel-monitoring-header > div {
+    min-width: 0;
+    flex: 1;
+}
+
+.fuel-monitoring-header h1 {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 34px;
+    font-weight: 700;
+
+    line-height: 1.2;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-monitoring-header p {
+    margin: 8px 0 0;
+
+    color: #6b7280;
+
+    font-size: 15px;
+
+    line-height: 1.5;
+
+    overflow-wrap: break-word;
+}
+
+/* ==========================================================
+   REFRESH BUTTON
+========================================================== */
+
+.fuel-refresh-btn {
+    flex-shrink: 0;
+
+    height: 42px;
+
+    padding: 0 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 0.3s ease,
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+
+    box-sizing: border-box;
+}
+
+.fuel-refresh-btn:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 12px
+        rgba(37, 99, 235, 0.20);
+}
+
+.fuel-refresh-btn:active {
+    transform: translateY(0);
+}
+
+.fuel-refresh-btn svg {
+    flex-shrink: 0;
+}
+
+/* ==========================================================
+   ERROR
+========================================================== */
+
+.fuel-error {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 15px 18px;
+
+    margin-bottom: 25px;
+
+    box-sizing: border-box;
+
+    border-radius: 10px;
+
+    background: #fee2e2;
+
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    line-height: 1.5;
+}
+
+.fuel-error svg {
+    flex-shrink: 0;
+}
+
+/* ==========================================================
+   SUMMARY GRID
+========================================================== */
+
+.fuel-summary-grid {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 22px;
+
+    margin-bottom: 25px;
+
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   SUMMARY CARD
+========================================================== */
+
+.fuel-summary-card {
+    width: 100%;
+    min-width: 0;
+
+    min-height: 145px;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.fuel-summary-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 9px 25px
+        rgba(0, 0, 0, 0.09);
+}
+
+/* ==========================================================
+   SUMMARY CARD ICON
+========================================================== */
+
+.fuel-card-icon {
+    width: 60px;
+    height: 60px;
+
+    min-width: 60px;
+    max-width: 60px;
+
+    flex: 0 0 60px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+
+    background: #e8f1ff;
+
+    color: #2563eb;
+
+    font-size: 25px;
+
+    box-sizing: border-box;
+}
+
+.fuel-card-icon svg {
+    flex-shrink: 0;
+}
+
+/* ==========================================================
+   SUMMARY CARD CONTENT
+========================================================== */
+
+.fuel-summary-card > div:last-child {
+    min-width: 0;
+
+    flex: 1;
+
+    overflow: hidden;
+}
+
+/* ==========================================================
+   SUMMARY CARD LABEL
+========================================================== */
+
+.fuel-summary-card p {
+    width: 100%;
+
+    margin: 0 0 8px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    line-height: 1.4;
+
+    white-space: normal;
+
+    overflow-wrap: break-word;
+
+    word-break: normal;
+}
+
+/* ==========================================================
+   SUMMARY CARD VALUE
+========================================================== */
+
+.fuel-summary-card h2 {
+    width: 100%;
+
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 29px;
+
+    font-weight: 700;
+
+    line-height: 1.15;
+
+    display: flex;
+
+    align-items: baseline;
+
+    flex-wrap: wrap;
+
+    gap: 5px;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-summary-card h2 small {
+    margin: 0;
+
+    color: #6b7280;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+}
+
+/* ==========================================================
+   MAIN GRID
+========================================================== */
+
+.fuel-main-grid {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 25px;
+
+    margin-bottom: 25px;
+
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   MAIN PANEL
+========================================================== */
+
+.fuel-panel {
+    width: 100%;
+    min-width: 0;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+    overflow: hidden;
+}
+
+/* ==========================================================
+   PANEL HEADER
+========================================================== */
+
+.fuel-panel-header {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    box-sizing: border-box;
+}
+
+.fuel-panel-header > div {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.fuel-panel-header h2 {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    line-height: 1.3;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-panel-header p {
+    margin: 7px 0 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-panel-icon {
+    flex-shrink: 0;
+
+    color: #2563eb;
+
+    font-size: 27px;
+}
+
+.fuel-warning-icon {
+    flex-shrink: 0;
+
+    color: #d97706;
+
+    font-size: 27px;
+}
+
+/* ==========================================================
+   FUEL EFFICIENCY CONTENT
+========================================================== */
+
+.fuel-efficiency-content {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 35px;
+
+    margin-top: 30px;
+
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   EFFICIENCY CIRCLE
+========================================================== */
+
+.fuel-efficiency-circle {
+    width: 155px;
+    height: 155px;
+
+    min-width: 155px;
+    min-height: 155px;
+
+    flex: 0 0 155px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e8f1ff;
+
+    border:
+        12px solid #2563eb;
+
+    box-sizing: border-box;
+
+    text-align: center;
+}
+
+.fuel-efficiency-circle > div {
+    min-width: 0;
+}
+
+.fuel-efficiency-circle strong {
+    display: block;
+
+    color: #172b4d;
+
+    font-size: 30px;
+
+    line-height: 1;
+}
+
+.fuel-efficiency-circle span {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #6b7280;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+/* ==========================================================
+   EFFICIENCY INFORMATION
+========================================================== */
+
+.fuel-efficiency-info {
+    flex: 1;
+
+    min-width: 0;
+
+    width: 100%;
+}
+
+.fuel-info-row {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 12px 0;
+
+    box-sizing: border-box;
+
+    border-bottom:
+        1px solid #e5e7eb;
+}
+
+.fuel-info-row:last-child {
+    border-bottom: none;
+}
+
+.fuel-info-row span {
+    min-width: 0;
+
+    flex: 1;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-info-row strong {
+    flex-shrink: 0;
+
+    color: #172b4d;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+/* ==========================================================
+   FUEL ALERT CONTENT
+========================================================== */
+
+.fuel-alert-content {
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+
+    margin-top: 30px;
+
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   ALERT NUMBER CARD
+========================================================== */
+
+.fuel-alert-number {
+    width: 100%;
+    min-width: 0;
+
+    padding: 22px;
+
+    box-sizing: border-box;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    border:
+        1px solid #e5e7eb;
+
+    text-align: center;
+
+    overflow: hidden;
+}
+
+.fuel-alert-number strong {
+    display: block;
+
+    color: #172b4d;
+
+    font-size: 32px;
+
+    line-height: 1.2;
+
+    margin-bottom: 7px;
+}
+
+.fuel-alert-number span {
+    display: block;
+
+    color: #6b7280;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    line-height: 1.4;
+
+    overflow-wrap: break-word;
+}
+
+/* ==========================================================
+   ALERT MESSAGE
+========================================================== */
+
+.fuel-alert-message {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-top: 22px;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+    border-radius: 10px;
+
+    background: #fffbeb;
+
+    border:
+        1px solid #fde68a;
+
+    color: #92400e;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    overflow: hidden;
+}
+
+.fuel-alert-message svg {
+    flex-shrink: 0;
+
+    margin-top: 2px;
+}
+
+.fuel-alert-message span {
+    min-width: 0;
+
+    flex: 1;
+
+    overflow-wrap: break-word;
+}
+
+/* ==========================================================
+   TABLE CARD
+========================================================== */
+
+.fuel-table-card {
+    width: 100%;
+    min-width: 0;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+    overflow: hidden;
+}
+
+/* ==========================================================
+   TABLE HEADER
+========================================================== */
+
+.fuel-table-header {
+    width: 100%;
+    min-width: 0;
+
+    padding-bottom: 22px;
+
+    margin-bottom: 5px;
+
+    border-bottom:
+        1px solid #e5e7eb;
+}
+
+.fuel-table-header h2 {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    line-height: 1.3;
+
+    overflow-wrap: break-word;
+}
+
+.fuel-table-header p {
+    margin: 7px 0 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    overflow-wrap: break-word;
+}
+
+/* ==========================================================
+   TABLE WRAPPER
+========================================================== */
+
+.fuel-table-wrapper {
+    width: 100%;
+    min-width: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding-top: 10px;
+
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   TABLE
+========================================================== */
+
+.fuel-table {
+    width: 100%;
+
+    min-width: 700px;
+
+    border-collapse: collapse;
+}
+
+.fuel-table th {
+    padding: 18px 15px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    text-align: center;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.fuel-table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.fuel-table th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.fuel-table td {
+    padding: 18px 15px;
+
+    border-bottom:
+        1px solid #e5e7eb;
+
+    color: #374151;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+.fuel-table tbody tr {
+    transition:
+        background 0.2s ease;
+}
+
+.fuel-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.fuel-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================
+   TABLE STATUS
+========================================================== */
+
+.fuel-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 90px;
+
+    padding: 7px 13px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    box-sizing: border-box;
+}
+
+.fuel-status.normal {
+    background: #dbeafe;
+
+    color: #2563eb;
+}
+
+.fuel-status.efficient {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+.fuel-status.warning {
+    background: #fef3c7;
+
+    color: #d97706;
+}
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.fuel-monitoring-loading {
+    width: 100%;
+    min-width: 0;
+
+    min-height: 250px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    color: #6b7280;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+    box-sizing: border-box;
+}
+
+.fuel-monitoring-loading svg {
+    flex-shrink: 0;
+
+    color: #2563eb;
+
+    font-size: 24px;
+}
+
+/* ==========================================================
+   LARGE DESKTOP
+========================================================== */
+
+@media (max-width: 1250px) {
+    .fuel-summary-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ==========================================================
+   TABLET / SMALL LAPTOP
+========================================================== */
+
+@media (max-width: 1000px) {
+    .fuel-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 768px) {
+    .fuel-monitoring-page {
+        padding: 20px;
+    }
+
+    /* ------------------------------------------------------
+       HEADER
+     ------------------------------------------------------ */
+
+    .fuel-monitoring-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+    .fuel-monitoring-header h1 {
+        font-size: 28px;
+    }
+
+    .fuel-monitoring-header p {
+        font-size: 14px;
+    }
+
+    .fuel-refresh-btn {
+        width: auto;
+    }
+
+    /* ------------------------------------------------------
+       SUMMARY
+     ------------------------------------------------------ */
+
+    .fuel-summary-grid {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+    .fuel-summary-card {
+        min-height: 130px;
+
+        padding: 20px;
+    }
+
+    /* ------------------------------------------------------
+       EFFICIENCY
+     ------------------------------------------------------ */
+
+    .fuel-efficiency-content {
+        flex-direction: column;
+
+        align-items: center;
+
+        gap: 25px;
+    }
+
+    .fuel-efficiency-info {
+        width: 100%;
+    }
+
+    /* ------------------------------------------------------
+       ALERT
+     ------------------------------------------------------ */
+
+    .fuel-alert-content {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    /* ------------------------------------------------------
+       TABLE
+     ------------------------------------------------------ */
+
+    .fuel-table-card {
+        padding: 20px;
+    }
+}
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 550px) {
+    .fuel-monitoring-page {
+        padding: 15px;
+    }
+
+    /* ------------------------------------------------------
+       HEADER
+     ------------------------------------------------------ */
+
+    .fuel-monitoring-header h1 {
+        font-size: 25px;
+    }
+
+    .fuel-refresh-btn {
+        width: 100%;
+    }
+
+    /* ------------------------------------------------------
+       SUMMARY CARD
+     ------------------------------------------------------ */
+
+    .fuel-summary-card {
+        padding: 18px;
+
+        gap: 15px;
+    }
+
+    .fuel-card-icon {
+        width: 52px;
+        height: 52px;
+
+        min-width: 52px;
+        max-width: 52px;
+
+        flex-basis: 52px;
+
+        font-size: 22px;
+    }
+
+    .fuel-summary-card p {
+        font-size: 13px;
+    }
+
+    .fuel-summary-card h2 {
+        font-size: 25px;
+    }
+
+    .fuel-summary-card h2 small {
+        font-size: 12px;
+    }
+
+    /* ------------------------------------------------------
+       PANELS
+     ------------------------------------------------------ */
+
+    .fuel-panel {
+        padding: 20px;
+    }
+
+    .fuel-panel-header h2 {
+        font-size: 20px;
+    }
+
+    /* ------------------------------------------------------
+       EFFICIENCY CIRCLE
+     ------------------------------------------------------ */
+
+    .fuel-efficiency-circle {
+        width: 135px;
+        height: 135px;
+
+        min-width: 135px;
+        min-height: 135px;
+
+        flex-basis: 135px;
+
+        border-width: 10px;
+    }
+
+    .fuel-efficiency-circle strong {
+        font-size: 27px;
+    }
+
+    /* ------------------------------------------------------
+       INFO ROW
+     ------------------------------------------------------ */
+
+    .fuel-info-row {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
+    }
+
+    .fuel-info-row span {
+        flex: 1 1 50%;
+    }
+
+    .fuel-info-row strong {
+        flex: 0 0 auto;
+    }
+
+    /* ------------------------------------------------------
+       ALERT
+     ------------------------------------------------------ */
+
+    .fuel-alert-content {
+        grid-template-columns: 1fr;
+    }
+
+    /* ------------------------------------------------------
+       TABLE CARD
+     ------------------------------------------------------ */
+
+    .fuel-table-card {
+        padding: 18px;
+    }
+}
+
+/* ==========================================================
+   VERY SMALL MOBILE
+========================================================== */
+
+@media (max-width: 380px) {
+    .fuel-monitoring-page {
+        padding: 12px;
+    }
+
+    .fuel-summary-card {
+        padding: 15px;
+
+        gap: 12px;
+    }
+
+    .fuel-card-icon {
+        width: 48px;
+        height: 48px;
+
+        min-width: 48px;
+        max-width: 48px;
+
+        flex-basis: 48px;
+
+        border-radius: 13px;
+
+        font-size: 20px;
+    }
+
+    .fuel-summary-card h2 {
+        font-size: 23px;
+    }
+
+    .fuel-summary-card h2 small {
+        font-size: 11px;
+    }
+
+    .fuel-panel {
+        padding: 16px;
+    }
+
+    .fuel-table-card {
+        padding: 15px;
+    }
+}

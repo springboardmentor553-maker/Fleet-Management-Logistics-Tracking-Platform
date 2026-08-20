@@ -1,0 +1,786 @@
+/* ==========================================================
+   FLEET PERFORMANCE PAGE
+========================================================== */
+
+.fleet-performance-page {
+    width: 100%;
+    min-height: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.fleet-performance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.fleet-performance-header h1 {
+    margin: 0;
+    color: #172b4d;
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.fleet-performance-header p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+
+/* ==========================================================
+   REFRESH BUTTON
+========================================================== */
+
+.fleet-performance-refresh {
+    height: 42px;
+    padding: 0 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.3s ease;
+}
+
+.fleet-performance-refresh:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.fleet-performance-refresh:active {
+    transform: translateY(0);
+}
+
+
+/* ==========================================================
+   ERROR
+========================================================== */
+
+.fleet-performance-error {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 15px 18px;
+    margin-bottom: 25px;
+
+    border-radius: 10px;
+
+    background: #fee2e2;
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+
+    font-size: 15px;
+    font-weight: 600;
+}
+
+
+/* ==========================================================
+   SUMMARY CARDS
+========================================================== */
+
+.fleet-performance-cards {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 22px;
+
+    margin-bottom: 25px;
+}
+
+
+.fleet-performance-card {
+    min-height: 145px;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    transition: 0.3s ease;
+}
+
+
+.fleet-performance-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 9px 25px
+        rgba(0, 0, 0, 0.09);
+}
+
+
+/* ==========================================================
+   CARD ICON
+========================================================== */
+
+.fleet-performance-card-icon {
+    width: 60px;
+    height: 60px;
+
+    flex-shrink: 0;
+
+    border-radius: 16px;
+
+    background: #e8f1ff;
+
+    color: #2563eb;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 25px;
+}
+
+
+/* ==========================================================
+   CARD TEXT
+========================================================== */
+
+.fleet-performance-card h3 {
+    margin: 0 0 8px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.fleet-performance-card strong {
+    color: #172b4d;
+
+    font-size: 30px;
+
+    font-weight: 700;
+}
+
+
+/* ==========================================================
+   MAIN PERFORMANCE GRID
+========================================================== */
+
+.fleet-performance-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 25px;
+
+    margin-bottom: 25px;
+}
+
+
+/* ==========================================================
+   PANEL
+========================================================== */
+
+.fleet-performance-panel {
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+}
+
+
+/* ==========================================================
+   PANEL HEADER
+========================================================== */
+
+.fleet-performance-panel-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+.fleet-performance-panel h2 {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+
+.fleet-performance-panel p {
+    margin: 7px 0 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+.fleet-performance-panel-icon {
+    color: #2563eb;
+
+    font-size: 27px;
+
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   UTILIZATION
+========================================================== */
+
+.fleet-utilization-content {
+    display: flex;
+
+    align-items: center;
+
+    gap: 35px;
+
+    margin-top: 30px;
+}
+
+
+/* ==========================================================
+   UTILIZATION CIRCLE
+========================================================== */
+
+.fleet-utilization-circle {
+    width: 155px;
+    height: 155px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #e8f1ff;
+
+    border: 12px solid #2563eb;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+
+.fleet-utilization-circle strong {
+    display: block;
+
+    color: #172b4d;
+
+    font-size: 30px;
+
+    line-height: 1;
+}
+
+
+.fleet-utilization-circle span {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #6b7280;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================================
+   UTILIZATION DETAILS
+========================================================== */
+
+.fleet-utilization-details {
+    flex: 1;
+
+    min-width: 0;
+}
+
+
+.fleet-detail-row {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 11px 0;
+
+    border-bottom:
+        1px solid #e5e7eb;
+}
+
+
+.fleet-detail-row:last-child {
+    border-bottom: none;
+}
+
+
+.fleet-detail-row span {
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+.fleet-detail-row strong {
+    color: #172b4d;
+
+    font-size: 15px;
+}
+
+
+/* ==========================================================
+   TRIP STATISTICS
+========================================================== */
+
+.fleet-trip-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+
+    margin-top: 25px;
+}
+
+
+.fleet-trip-stat {
+    padding: 18px;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    border:
+        1px solid #e5e7eb;
+
+    text-align: center;
+}
+
+
+.fleet-trip-stat span {
+    display: block;
+
+    color: #6b7280;
+
+    font-size: 13px;
+
+    margin-bottom: 8px;
+}
+
+
+.fleet-trip-stat strong {
+    color: #172b4d;
+
+    font-size: 25px;
+}
+
+
+/* ==========================================================
+   PERFORMANCE PROGRESS
+========================================================== */
+
+.fleet-performance-progress {
+    margin-top: 30px;
+}
+
+
+.fleet-performance-progress-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 9px;
+}
+
+
+.fleet-performance-progress-header span {
+    color: #374151;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.fleet-performance-progress-header strong {
+    color: #2563eb;
+
+    font-size: 14px;
+}
+
+
+.fleet-performance-progress-track {
+    width: 100%;
+
+    height: 10px;
+
+    overflow: hidden;
+
+    background: #e5e7eb;
+
+    border-radius: 20px;
+}
+
+
+.fleet-performance-progress-bar {
+    height: 100%;
+
+    background: #2563eb;
+
+    border-radius: 20px;
+
+    transition: width 0.4s ease;
+}
+
+
+/* ==========================================================
+   FLEET STATUS PANEL
+========================================================== */
+
+.fleet-status-panel {
+    width: 100%;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+}
+
+
+.fleet-status-header {
+    margin-bottom: 25px;
+}
+
+
+.fleet-status-panel h2 {
+    margin: 0;
+
+    color: #172b4d;
+
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+
+.fleet-status-panel p {
+    margin: 7px 0 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+/* ==========================================================
+   FLEET STATUS GRID
+========================================================== */
+
+.fleet-status-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+}
+
+
+.fleet-status-item {
+    padding: 18px;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    border:
+        1px solid #e5e7eb;
+}
+
+
+.fleet-status-item-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+
+.fleet-status-item-top span {
+    color: #6b7280;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.fleet-status-item-top strong {
+    color: #172b4d;
+
+    font-size: 20px;
+}
+
+
+/* ==========================================================
+   STATUS PROGRESS
+========================================================== */
+
+.fleet-status-progress {
+    width: 100%;
+
+    height: 8px;
+
+    overflow: hidden;
+
+    background: #e5e7eb;
+
+    border-radius: 20px;
+}
+
+
+.fleet-status-progress-bar {
+    height: 100%;
+
+    background: #2563eb;
+
+    border-radius: 20px;
+
+    transition: width 0.4s ease;
+}
+
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.fleet-performance-loading {
+    width: 100%;
+
+    min-height: 250px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    color: #6b7280;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+}
+
+
+/* ==========================================================
+   RESPONSIVE - 1200px
+========================================================== */
+
+@media (max-width: 1200px) {
+
+    .fleet-performance-cards {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .fleet-status-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE - 900px
+========================================================== */
+
+@media (max-width: 900px) {
+
+    .fleet-performance-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE - 768px
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .fleet-performance-page {
+        padding: 20px;
+    }
+
+
+    .fleet-performance-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+
+    .fleet-performance-header h1 {
+        font-size: 28px;
+    }
+
+
+    .fleet-performance-cards {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+
+    .fleet-utilization-content {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .fleet-trip-stats {
+        grid-template-columns: 1fr;
+    }
+
+
+    .fleet-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE - 480px
+========================================================== */
+
+@media (max-width: 480px) {
+
+    .fleet-performance-page {
+        padding: 15px;
+    }
+
+
+    .fleet-performance-header h1 {
+        font-size: 25px;
+    }
+
+
+    .fleet-performance-panel,
+    .fleet-status-panel {
+        padding: 20px;
+    }
+
+
+    .fleet-utilization-circle {
+        width: 135px;
+        height: 135px;
+    }
+
+
+    .fleet-performance-card {
+        padding: 20px;
+    }
+
+
+    .fleet-performance-card-icon {
+        width: 52px;
+        height: 52px;
+
+        font-size: 22px;
+    }
+
+
+    .fleet-performance-card strong {
+        font-size: 27px;
+    }
+
+}

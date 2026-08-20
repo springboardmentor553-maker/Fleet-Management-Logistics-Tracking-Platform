@@ -10,6 +10,7 @@ from app.models.vehicle import Vehicle
 from app.models.shipment import Shipment
 from app.models.trip import Trip
 from app.models.notification import Notification
+from app.models.fuel_record import FuelRecord
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

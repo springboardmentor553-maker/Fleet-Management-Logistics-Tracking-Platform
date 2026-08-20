@@ -18,6 +18,22 @@ import MapPage from "./pages/MapPage";
 
 
 // ==========================================================
+// EXISTING ADMIN PAGES
+// ==========================================================
+
+import OperationalAnalytics from "./pages/OperationalAnalytics";
+import FleetPerformance from "./pages/FleetPerformance";
+// import FuelMonitoring from "./pages/FuelMonitoring";
+
+// ==========================================================
+// FUEL MONITORING
+// ==========================================================
+
+import FuelMonitoring
+    from "./pages/FuelMonitoring";
+
+
+// ==========================================================
 // GET CURRENT USER
 // ==========================================================
 
@@ -29,10 +45,14 @@ function getCurrentUser() {
             sessionStorage.getItem("user");
 
         if (!storedUser) {
+
             return null;
+
         }
 
-        return JSON.parse(storedUser);
+        return JSON.parse(
+            storedUser
+        );
 
     } catch (error) {
 
@@ -52,13 +72,21 @@ function getCurrentUser() {
 
 function clearAuthentication() {
 
-    sessionStorage.removeItem("token");
+    sessionStorage.removeItem(
+        "token"
+    );
 
-    sessionStorage.removeItem("token_type");
+    sessionStorage.removeItem(
+        "token_type"
+    );
 
-    sessionStorage.removeItem("user");
+    sessionStorage.removeItem(
+        "user"
+    );
 
-    sessionStorage.removeItem("user_email");
+    sessionStorage.removeItem(
+        "user_email"
+    );
 }
 
 
@@ -71,7 +99,9 @@ function ProtectedRoute({
 }) {
 
     const token =
-        sessionStorage.getItem("token");
+        sessionStorage.getItem(
+            "token"
+        );
 
     const user =
         getCurrentUser();
@@ -84,10 +114,12 @@ function ProtectedRoute({
     if (!token) {
 
         return (
+
             <Navigate
                 to="/login"
                 replace
             />
+
         );
     }
 
@@ -101,10 +133,12 @@ function ProtectedRoute({
         clearAuthentication();
 
         return (
+
             <Navigate
                 to="/login"
                 replace
             />
+
         );
     }
 
@@ -123,7 +157,9 @@ function RoleRoute({
 }) {
 
     const token =
-        sessionStorage.getItem("token");
+        sessionStorage.getItem(
+            "token"
+        );
 
     const user =
         getCurrentUser();
@@ -138,10 +174,12 @@ function RoleRoute({
         clearAuthentication();
 
         return (
+
             <Navigate
                 to="/login"
                 replace
             />
+
         );
     }
 
@@ -163,14 +201,18 @@ function RoleRoute({
     // ======================================================
 
     if (
-        !allowedRoles.includes(userRole)
+        !allowedRoles.includes(
+            userRole
+        )
     ) {
 
         return (
+
             <Navigate
                 to="/dashboard"
                 replace
             />
+
         );
     }
 
@@ -188,6 +230,7 @@ function App() {
     return (
 
         <Routes>
+
 
             {/* ==================================================
                 LOGIN
@@ -208,10 +251,12 @@ function App() {
             <Route
                 path="/"
                 element={
+
                     <Navigate
                         to="/dashboard"
                         replace
                     />
+
                 }
             />
 
@@ -232,8 +277,14 @@ function App() {
                 }
             >
 
+
                 {/* ==================================================
                     AUTHENTICATED USERS
+                ================================================== */}
+
+
+                {/* ==================================================
+                    DASHBOARD
                 ================================================== */}
 
                 <Route
@@ -243,12 +294,22 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    SHIPMENTS
+                ================================================== */}
+
                 <Route
                     path="/shipments"
                     element={
                         <Shipments />
                     }
                 />
+
+
+                {/* ==================================================
+                    TRIPS
+                ================================================== */}
 
                 <Route
                     path="/trips"
@@ -257,6 +318,11 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    LIVE MAP
+                ================================================== */}
+
                 <Route
                     path="/map"
                     element={
@@ -264,12 +330,22 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    NOTIFICATIONS
+                ================================================== */}
+
                 <Route
                     path="/notifications"
                     element={
                         <Notifications />
                     }
                 />
+
+
+                {/* ==================================================
+                    PROFILE
+                ================================================== */}
 
                 <Route
                     path="/profile"
@@ -281,6 +357,11 @@ function App() {
 
                 {/* ==================================================
                     ADMIN ONLY
+                ================================================== */}
+
+
+                {/* ==================================================
+                    DRIVERS
                 ================================================== */}
 
                 <Route
@@ -300,6 +381,11 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    VEHICLES
+                ================================================== */}
+
                 <Route
                     path="/vehicles"
                     element={
@@ -316,6 +402,11 @@ function App() {
 
                     }
                 />
+
+
+                {/* ==================================================
+                    SETTINGS
+                ================================================== */}
 
                 <Route
                     path="/settings"
@@ -334,6 +425,73 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    OPERATIONAL ANALYTICS
+                ================================================== */}
+
+                <Route
+                    path="/operational-analytics"
+                    element={
+
+                        <RoleRoute
+                            allowedRoles={[
+                                "admin",
+                            ]}
+                        >
+
+                            <OperationalAnalytics />
+
+                        </RoleRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    FLEET PERFORMANCE
+                ================================================== */}
+
+                <Route
+                    path="/fleet-performance"
+                    element={
+
+                        <RoleRoute
+                            allowedRoles={[
+                                "admin",
+                            ]}
+                        >
+
+                            <FleetPerformance />
+
+                        </RoleRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    FUEL MONITORING
+                ================================================== */}
+
+                <Route
+                    path="/fuel-monitoring"
+                    element={
+
+                        <RoleRoute
+                            allowedRoles={[
+                                "admin",
+                            ]}
+                        >
+
+                            <FuelMonitoring />
+
+                        </RoleRoute>
+
+                    }
+                />
+
+
             </Route>
 
 
@@ -344,12 +502,15 @@ function App() {
             <Route
                 path="*"
                 element={
+
                     <Navigate
                         to="/login"
                         replace
                     />
+
                 }
             />
+
 
         </Routes>
     );
