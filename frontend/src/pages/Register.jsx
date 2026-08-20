@@ -40,17 +40,14 @@ function Register() {
       setLoading(true);
 
       const response = await api.post(
-        "/auth/register",
-        null,
-        {
-          params: {
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            role: formData.role,
-          },
-        }
-      );
+  "/auth/register",
+  {
+    username: formData.name,
+    email: formData.email,
+    password: formData.password,
+    role: formData.role,
+  }
+);
 
       alert(
         response.data?.message ||
