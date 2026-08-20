@@ -41,14 +41,16 @@ function Register() {
 
       const response = await api.post(
   "/auth/register",
+  null,
   {
-    username: formData.name,
-    email: formData.email,
-    password: formData.password,
-    role: formData.role,
+    params: {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+    },
   }
-);
-      alert(
+);      alert(
         response.data?.message ||
           "Registration successful"
       );
