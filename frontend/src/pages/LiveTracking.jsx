@@ -212,11 +212,9 @@ function LiveTracking() {
     // CREATE WEBSOCKET
     // =================================================
 
-    const socket = new WebSocket(
-      `ws://127.0.0.1:8000/ws/tracking/${tripId}`
-    );
-
-
+   const socket = new WebSocket(
+  `wss://fleet-management-logistics-tracking-8kvz.onrender.com/ws/tracking/${tripId}`
+);
     // =================================================
     // CONNECTED
     // =================================================
