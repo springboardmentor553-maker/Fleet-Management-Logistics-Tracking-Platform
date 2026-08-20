@@ -9,6 +9,7 @@ from app.dashboard import router as dashboard_router
 from app.trip import router as trip_router
 from app.maintenance import router as maintenance_router
 from app.driver_assignment import router as driver_assignment_router
+from app.driver_attendance import router as driver_attendance_router
 from app.fuel_record import router as fuel_record_router
 from app.analytics import router as analytics_router
 from app.maintenance_alert import router as maintenance_alert_router
@@ -73,6 +74,12 @@ app.include_router(
     driver_assignment_router,
     prefix="/driver-assignments",
     tags=["Driver Assignments"]
+)
+
+app.include_router(
+    driver_attendance_router,
+    prefix="/driver-attendance",
+    tags=["Driver Attendance"]
 )
 
 app.include_router(

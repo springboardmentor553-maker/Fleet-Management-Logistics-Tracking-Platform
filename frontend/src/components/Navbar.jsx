@@ -2,14 +2,14 @@ import { FaBell, FaUserCircle } from "react-icons/fa";
 
 function Navbar() {
   return (
-    <header className="bg-white h-20 shadow-sm flex items-center justify-between px-8">
+    <header className="bg-slate-900 h-20 border-b border-slate-800 flex items-center justify-between px-8">
 
       <div>
-        <h1 className="text-2xl font-bold text-darkblue-800">
+        <h1 className="text-2xl font-bold text-white">
           Logistics Management Platform
         </h1>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-400">
           Welcome back, Admin
         </p>
       </div>

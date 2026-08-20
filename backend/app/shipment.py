@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.schemas.common import MessageResponse
 
 from app.dependencies import (
@@ -24,19 +25,27 @@ from app.services.eta_service import calculate_eta
 
 from datetime import datetime
 
+
 router = APIRouter()
 
 
-# -----------------------------
-# Add Shipment
+# ============================================================
+# ADD SHIPMENT
 # Admin Only
-# -----------------------------
-@router.post("/", response_model=ShipmentResponse)
+# ============================================================
+
+@router.post(
+    "/",
+    response_model=ShipmentResponse
+)
 def add_shipment(
     shipment: ShipmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
+    current_user: User = Depends(
+        require_role("admin")
+    )
 ):
+
     shipment_count = db.query(Shipment).count() + 1
 
     tracking_number = f"FLT{shipment_count:06d}"
@@ -61,11 +70,15 @@ def add_shipment(
     return new_shipment
 
 
-# -----------------------------
-# View All Shipments
+# ============================================================
+# VIEW ALL SHIPMENTS
 # Admin + Fleet Manager + Dispatcher
-# -----------------------------
-@router.get("/", response_model=list[ShipmentResponse])
+# ============================================================
+
+@router.get(
+    "/",
+    response_model=list[ShipmentResponse]
+)
 def get_all_shipments(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -76,14 +89,174 @@ def get_all_shipments(
         )
     )
 ):
+
     return db.query(Shipment).all()
 
 
-# -----------------------------
-# View Single Shipment
+# ============================================================
+# SHIPMENT TRACKING
 # Admin + Fleet Manager + Dispatcher + Driver
-# -----------------------------
-@router.get("/{shipment_id}", response_model=ShipmentResponse)
+#
+# IMPORTANT:
+# This route is placed BEFORE /{shipment_id}
+# ============================================================
+
+@router.get(
+    "/{tracking_number}/status",
+    response_model=ShipmentTrackingResponse
+)
+def track_shipment(
+    tracking_number: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_role(
+            "admin",
+            "fleet manager",
+            "dispatcher",
+            "driver",
+        )
+    ),
+):
+
+    # --------------------------------------------------------
+    # Find shipment using tracking number
+    # --------------------------------------------------------
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.tracking_number == tracking_number
+        )
+        .first()
+    )
+
+    if shipment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipment not found."
+        )
+
+    # --------------------------------------------------------
+    # Find trip associated with shipment
+    # --------------------------------------------------------
+
+    trip = (
+        db.query(Trip)
+        .filter(
+            Trip.shipment_id == shipment.id
+        )
+        .first()
+    )
+
+    # A shipment can exist without a trip.
+    # Therefore, don't make tracking fail just because
+    # a trip has not been created yet.
+    #
+    # We will return shipment information and show
+    # driver/vehicle/ETA as unavailable.
+    # --------------------------------------------------------
+
+    driver = None
+    vehicle = None
+    eta = None
+
+    if trip:
+
+        # ----------------------------------------------------
+        # Find driver
+        # ----------------------------------------------------
+
+        if trip.driver_id:
+
+            driver = (
+                db.query(Driver)
+                .filter(
+                    Driver.id == trip.driver_id
+                )
+                .first()
+            )
+
+        # ----------------------------------------------------
+        # Find vehicle
+        # ----------------------------------------------------
+
+        if trip.vehicle_id:
+
+            vehicle = (
+                db.query(Vehicle)
+                .filter(
+                    Vehicle.id == trip.vehicle_id
+                )
+                .first()
+            )
+
+        # ----------------------------------------------------
+        # Calculate ETA
+        # ----------------------------------------------------
+
+        route = {
+            "distance_text": (
+                f"{trip.distance} km"
+                if trip.distance is not None
+                else "Not available"
+            ),
+            "duration_seconds": 0,
+        }
+
+        eta_result = calculate_eta(
+            route["duration_seconds"]
+        )
+
+        eta = eta_result.get(
+            "estimated_arrival_time"
+        )
+
+    # --------------------------------------------------------
+    # Return tracking information
+    # --------------------------------------------------------
+
+    return {
+        "tracking_number": shipment.tracking_number,
+
+        "current_status": (
+            shipment.status.value
+            if hasattr(shipment.status, "value")
+            else shipment.status
+        ),
+
+        "driver_name": (
+            driver.name
+            if driver
+            else "Not Assigned"
+        ),
+
+        "vehicle_registration_number": (
+            vehicle.vehicle_number
+            if vehicle
+            else "Not Assigned"
+        ),
+
+        "pickup_location": (
+            shipment.pickup_location
+        ),
+
+        "destination": (
+            shipment.delivery_location
+        ),
+
+        "eta": eta or "Not available",
+    }
+
+
+# ============================================================
+# VIEW SINGLE SHIPMENT
+# Admin + Fleet Manager + Dispatcher + Driver
+# ============================================================
+
+@router.get(
+    "/{shipment_id}",
+    response_model=ShipmentResponse
+)
 def get_shipment(
     shipment_id: int,
     db: Session = Depends(get_db),
@@ -96,9 +269,14 @@ def get_shipment(
         )
     )
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if shipment is None:
         raise HTTPException(
@@ -109,11 +287,15 @@ def get_shipment(
     return shipment
 
 
-# -----------------------------
-# Update Shipment
+# ============================================================
+# UPDATE SHIPMENT
 # Admin + Fleet Manager
-# -----------------------------
-@router.put("/{shipment_id}", response_model=ShipmentResponse)
+# ============================================================
+
+@router.put(
+    "/{shipment_id}",
+    response_model=ShipmentResponse
+)
 def update_shipment(
     shipment_id: int,
     shipment: ShipmentUpdate,
@@ -125,9 +307,14 @@ def update_shipment(
         )
     )
 ):
-    db_shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    db_shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if not db_shipment:
         raise HTTPException(
@@ -135,10 +322,16 @@ def update_shipment(
             detail="Shipment not found."
         )
 
-    update_data = shipment.model_dump(exclude_unset=True)
+    update_data = shipment.model_dump(
+        exclude_unset=True
+    )
 
     for key, value in update_data.items():
-        setattr(db_shipment, key, value)
+        setattr(
+            db_shipment,
+            key,
+            value
+        )
 
     db.commit()
     db.refresh(db_shipment)
@@ -146,19 +339,30 @@ def update_shipment(
     return db_shipment
 
 
-# -----------------------------
-# Delete Shipment
+# ============================================================
+# DELETE SHIPMENT
 # Admin Only
-# -----------------------------
-@router.delete("/{shipment_id}", response_model=MessageResponse)
+# ============================================================
+
+@router.delete(
+    "/{shipment_id}",
+    response_model=MessageResponse
+)
 def delete_shipment(
     shipment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
+    current_user: User = Depends(
+        require_role("admin")
+    )
 ):
-    db_shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    db_shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if not db_shipment:
         raise HTTPException(
@@ -171,63 +375,4 @@ def delete_shipment(
 
     return {
         "message": "Shipment deleted successfully."
-    }
-
-# -----------------------------
-# Shipment Tracking
-# -----------------------------
-@router.get(
-    "/{tracking_number}/status",
-    response_model=ShipmentTrackingResponse
-)
-def track_shipment(
-    tracking_number: str,
-    db: Session = Depends(get_db),
-):
-    shipment = db.query(Shipment).filter(
-        Shipment.tracking_number == tracking_number
-    ).first()
-
-    if shipment is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Shipment not found."
-        )
-
-    trip = db.query(Trip).filter(
-        Trip.shipment_id == shipment.id
-    ).first()
-
-    if trip is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Trip not found for this shipment."
-        )
-
-    driver = db.query(Driver).filter(
-        Driver.id == trip.driver_id
-    ).first()
-
-    vehicle = db.query(Vehicle).filter(
-        Vehicle.id == trip.vehicle_id
-    ).first()
-
-    route = {
-        "distance_text": f"{trip.distance} km",
-        "duration_seconds": 0,
-    }
-
-    eta = calculate_eta(route["duration_seconds"])
-
-    return {
-        "tracking_number": shipment.tracking_number,
-        "current_status": shipment.status.value,
-        "driver_name": driver.name if driver else "Not Assigned",
-        "vehicle_registration_number": (
-            vehicle.vehicle_number
-            if vehicle else "Not Assigned"
-            ),
-        "pickup_location": shipment.pickup_location,
-        "destination": shipment.delivery_location,
-        "eta": eta["estimated_arrival_time"],
     }

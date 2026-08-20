@@ -14,6 +14,8 @@ import RoutesPage from "./pages/Routes";
 import Maintenance from "./pages/Maintenance";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
+import Fuel from "./pages/Fuel";
+import Analytics from "./pages/Analytics";
 
 function App() {
   return (
@@ -95,6 +97,19 @@ function App() {
           }
         />
 
+        {/* Fuel Monitoring */}
+        <Route
+        path="/fuel"
+        element={
+        <ProtectedRoute>
+          <Layout>
+            <Fuel />
+            </Layout>
+            </ProtectedRoute>
+          }
+          />
+          
+
         {/* Maintenance */}
         <Route
           path="/maintenance"
@@ -138,6 +153,18 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Settings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Analytics */}
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Analytics />
               </Layout>
             </ProtectedRoute>
           }

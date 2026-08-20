@@ -1,50 +1,61 @@
 import { useEffect, useState } from "react";
 
 import {
+  FaGasPump,
   FaTruck,
-  FaUserTie,
+  FaChartLine,
   FaRoute,
   FaCheckCircle,
-  FaTools,
-  FaBox,
+  FaClock,
+  FaTimesCircle,
 } from "react-icons/fa";
 
-import { getDashboard } from "../services/dashboardService";
+import {
+  getFuelAnalytics,
+  getOperationsAnalytics,
+} from "../services/analyticsService";
 
-function Dashboard() {
-  const [stats, setStats] = useState(null);
+function Analytics() {
+  const [fuel, setFuel] = useState(null);
+  const [operations, setOperations] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadDashboard = async () => {
+    const loadAnalytics = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const dashboardData = await getDashboard();
+        const [fuelData, operationsData] =
+          await Promise.all([
+            getFuelAnalytics(),
+            getOperationsAnalytics(),
+          ]);
 
-        setStats(dashboardData);
+        setFuel(fuelData);
+        setOperations(operationsData);
       } catch (err) {
         console.error(err);
 
         setError(
           err.response?.data?.detail ||
-            "Failed to load fleet dashboard."
+            "Failed to load analytics."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    loadDashboard();
+    loadAnalytics();
   }, []);
 
   if (loading) {
     return (
       <div className="min-h-full bg-slate-950 text-slate-100 flex items-center justify-center">
         <p className="text-lg font-medium">
-          Loading fleet dashboard...
+          Loading analytics...
         </p>
       </div>
     );
@@ -60,63 +71,177 @@ function Dashboard() {
     );
   }
 
-  if (!stats) {
-    return null;
-  }
-
-  const utilization =
-    stats.totalVehicles > 0
-      ? (
-          (stats.activeVehicles /
-            stats.totalVehicles) *
-          100
-        ).toFixed(1)
-      : 0;
-
   return (
     <div className="min-h-full bg-slate-950 text-slate-100 p-6">
 
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">
-          Fleet Operations Dashboard
+          Fleet Analytics
         </h1>
 
         <p className="text-slate-400 mt-2">
-          Current overview of fleet, drivers, trips and shipments.
+          Fuel usage and operational performance overview.
         </p>
       </div>
 
-      {/* VEHICLE METRICS */}
-      <div className="mb-8">
+      {/* ============================= */}
+      {/* FUEL ANALYTICS */}
+      {/* ============================= */}
 
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            Fleet Overview
+      <section className="mb-10">
+
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold text-white">
+            Fuel Analytics
           </h2>
 
           <p className="text-sm text-slate-500 mt-1">
-            Current vehicle availability and maintenance status
+            Fuel consumption and cost analysis.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
 
-          {/* TOTAL VEHICLES */}
+          {/* TOTAL FUEL */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <div className="flex items-center justify-between">
 
               <div>
                 <p className="text-sm text-slate-400">
-                  Total Vehicles
+                  Total Fuel Consumed
                 </p>
 
                 <p className="text-3xl font-bold text-white mt-2">
-                  {stats.totalVehicles}
+                  {fuel?.totalFuelConsumed ?? 0}
                 </p>
 
                 <p className="text-xs text-slate-500 mt-2">
-                  Registered in fleet
+                  Liters
+                </p>
+              </div>
+
+              <div className="w-11 h-11 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <FaGasPump />
+              </div>
+
+            </div>
+          </div>
+
+          {/* TOTAL COST */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div className="flex items-center justify-between">
+
+              <div>
+                <p className="text-sm text-slate-400">
+                  Total Fuel Cost
+                </p>
+
+                <p className="text-3xl font-bold text-white mt-2">
+                  ₹{fuel?.totalFuelCost ?? 0}
+                </p>
+
+                <p className="text-xs text-slate-500 mt-2">
+                  Total expenditure
+                </p>
+              </div>
+
+              <div className="w-11 h-11 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <FaChartLine />
+              </div>
+
+            </div>
+          </div>
+
+          {/* AVERAGE CONSUMPTION */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div className="flex items-center justify-between">
+
+              <div>
+                <p className="text-sm text-slate-400">
+                  Average Fuel Consumption
+                </p>
+
+                <p className="text-3xl font-bold text-white mt-2">
+                  {fuel?.averageFuelConsumption ?? 0}
+                </p>
+
+                <p className="text-xs text-slate-500 mt-2">
+                  Average consumption
+                </p>
+              </div>
+
+              <div className="w-11 h-11 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center">
+                <FaGasPump />
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* HIGHEST / LOWEST */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+
+            <p className="text-sm text-slate-400">
+              Vehicle with Highest Fuel Usage
+            </p>
+
+            <p className="text-xl font-semibold text-white mt-3">
+              {fuel?.highestFuelUsageVehicle || "N/A"}
+            </p>
+
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+
+            <p className="text-sm text-slate-400">
+              Vehicle with Lowest Fuel Usage
+            </p>
+
+            <p className="text-xl font-semibold text-white mt-3">
+              {fuel?.lowestFuelUsageVehicle || "N/A"}
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* ============================= */}
+      {/* OPERATIONS ANALYTICS */}
+      {/* ============================= */}
+
+      <section>
+
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold text-white">
+            Operational Analytics
+          </h2>
+
+          <p className="text-sm text-slate-500 mt-1">
+            Delivery and trip performance overview.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+
+          {/* TOTAL DELIVERIES */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+                <p className="text-sm text-slate-400">
+                  Total Deliveries
+                </p>
+
+                <p className="text-3xl font-bold text-white mt-2">
+                  {operations?.totalDeliveries ?? 0}
                 </p>
               </div>
 
@@ -125,23 +250,22 @@ function Dashboard() {
               </div>
 
             </div>
+
           </div>
 
-          {/* ACTIVE VEHICLES */}
+
+          {/* SUCCESSFUL */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
             <div className="flex items-center justify-between">
 
               <div>
                 <p className="text-sm text-slate-400">
-                  Active Vehicles
+                  Successful Deliveries
                 </p>
 
                 <p className="text-3xl font-bold text-white mt-2">
-                  {stats.activeVehicles}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  Currently operational
+                  {operations?.successfulDeliveries ?? 0}
                 </p>
               </div>
 
@@ -150,268 +274,119 @@ function Dashboard() {
               </div>
 
             </div>
+
           </div>
 
-          {/* MAINTENANCE */}
+
+          {/* DELAYED */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
             <div className="flex items-center justify-between">
 
               <div>
                 <p className="text-sm text-slate-400">
-                  Vehicles Under Maintenance
+                  Delayed Deliveries
                 </p>
 
                 <p className="text-3xl font-bold text-white mt-2">
-                  {stats.vehiclesUnderMaintenance}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  Currently unavailable
+                  {operations?.delayedDeliveries ?? 0}
                 </p>
               </div>
 
               <div className="w-11 h-11 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center">
-                <FaTools />
+                <FaClock />
               </div>
 
             </div>
+
           </div>
 
-        </div>
-      </div>
 
-      {/* DRIVER METRICS */}
-      <div className="mb-8">
-
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            Driver Overview
-          </h2>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Current driver availability and assignments
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-
-          {/* TOTAL DRIVERS */}
+          {/* CANCELLED */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
             <div className="flex items-center justify-between">
 
               <div>
                 <p className="text-sm text-slate-400">
-                  Total Drivers
+                  Cancelled Deliveries
                 </p>
 
                 <p className="text-3xl font-bold text-white mt-2">
-                  {stats.totalDrivers}
+                  {operations?.cancelledDeliveries ?? 0}
+                </p>
+              </div>
+
+              <div className="w-11 h-11 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
+                <FaTimesCircle />
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* AVERAGE DISTANCE */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+                <p className="text-sm text-slate-400">
+                  Average Trip Distance
+                </p>
+
+                <p className="text-3xl font-bold text-white mt-2">
+                  {operations?.averageTripDistance ?? 0}
                 </p>
 
                 <p className="text-xs text-slate-500 mt-2">
-                  Registered drivers
+                  Distance per trip
                 </p>
               </div>
 
               <div className="w-11 h-11 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                <FaUserTie />
-              </div>
-
-            </div>
-          </div>
-
-          {/* AVAILABLE DRIVERS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm text-slate-400">
-                  Available Drivers
-                </p>
-
-                <p className="text-3xl font-bold text-white mt-2">
-                  {stats.availableDrivers}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  Ready for assignment
-                </p>
-              </div>
-
-              <div className="w-11 h-11 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <FaCheckCircle />
-              </div>
-
-            </div>
-          </div>
-
-          {/* ASSIGNED DRIVERS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm text-slate-400">
-                  Assigned Drivers
-                </p>
-
-                <p className="text-3xl font-bold text-white mt-2">
-                  {stats.assignedDrivers}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  Currently assigned
-                </p>
-              </div>
-
-              <div className="w-11 h-11 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                <FaUserTie />
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* TRIP & SHIPMENT METRICS */}
-      <div className="mb-8">
-
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            Operations Overview
-          </h2>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Current trip and shipment activity
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-
-          {/* TOTAL TRIPS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm text-slate-400">
-                  Total Trips
-                </p>
-
-                <p className="text-3xl font-bold text-white mt-2">
-                  {stats.totalTrips}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  All recorded trips
-                </p>
-              </div>
-
-              <div className="w-11 h-11 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
                 <FaRoute />
               </div>
 
             </div>
+
           </div>
 
-          {/* COMPLETED TRIPS */}
+
+          {/* AVERAGE DELIVERY TIME */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
             <div className="flex items-center justify-between">
 
               <div>
                 <p className="text-sm text-slate-400">
-                  Completed Trips
+                  Average Delivery Time
                 </p>
 
                 <p className="text-3xl font-bold text-white mt-2">
-                  {stats.completedTrips}
+                  {operations?.averageDeliveryTime ?? 0}
                 </p>
 
                 <p className="text-xs text-slate-500 mt-2">
-                  Successfully completed
+                  Average time per delivery
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <FaCheckCircle />
-              </div>
-
-            </div>
-          </div>
-
-          {/* ACTIVE SHIPMENTS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm text-slate-400">
-                  Active Shipments
-                </p>
-
-                <p className="text-3xl font-bold text-white mt-2">
-                  {stats.activeShipments}
-                </p>
-
-                <p className="text-xs text-slate-500 mt-2">
-                  Currently in operation
-                </p>
-              </div>
-
-              <div className="w-11 h-11 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                <FaBox />
+              <div className="w-11 h-11 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                <FaClock />
               </div>
 
             </div>
+
           </div>
 
         </div>
-      </div>
 
-      {/* FLEET UTILIZATION */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-
-        <div className="flex items-center justify-between mb-5">
-
-          <div>
-            <h2 className="text-lg font-semibold text-white">
-              Fleet Utilization
-            </h2>
-
-            <p className="text-sm text-slate-500 mt-1">
-              Active vehicles as a percentage of the total fleet
-            </p>
-          </div>
-
-          <span className="text-2xl font-bold text-white">
-            {utilization}%
-          </span>
-
-        </div>
-
-        <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-
-          <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-500"
-            style={{
-              width: `${utilization}%`,
-            }}
-          />
-
-        </div>
-
-        <div className="flex justify-between mt-3 text-xs text-slate-500">
-          <span>
-            {stats.activeVehicles} active
-          </span>
-
-          <span>
-            {stats.totalVehicles} total
-          </span>
-        </div>
-
-      </div>
+      </section>
 
     </div>
   );
 }
 
-export default Dashboard;
+export default Analytics;

@@ -17,6 +17,7 @@ from app.schemas.driver_assignment import (
 
 from app.schemas.common import MessageResponse
 
+
 router = APIRouter()
 
 
@@ -72,12 +73,20 @@ def assign_driver(
         raise HTTPException(
             status_code=400,
             detail="Driver is not available."
-            )
+        )
 
     # -----------------------------
     # Vehicle Availability Check
     # -----------------------------
-    active_vehicle = db.query(DriverAssignment).filter(
+    if vehicle.status.lower() != "available":
+            raise HTTPException(
+                status_code=400,
+                detail="Vehicle is not available."
+            )
+    
+    active_vehicle = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.vehicle_id == assignment.vehicle_id,
         DriverAssignment.assignment_status == "ASSIGNED"
     ).first()
@@ -88,20 +97,30 @@ def assign_driver(
             detail="Vehicle is already assigned."
         )
 
+    # -----------------------------
+    # Create Assignment
+    # -----------------------------
     new_assignment = DriverAssignment(
         driver_id=assignment.driver_id,
         vehicle_id=assignment.vehicle_id,
         trip_id=assignment.trip_id,
         assignment_status=assignment.assignment_status,
         remarks=assignment.remarks,
-        )
+    )
 
     db.add(new_assignment)
 
-# -----------------------------
-# Update Driver Status
-# -----------------------------
-    driver.status = "assigned"
+    # -----------------------------
+    # Update Driver Status
+    # -----------------------------
+    if assignment.assignment_status == "ASSIGNED":
+        driver.status = "assigned"
+
+    elif assignment.assignment_status in [
+        "COMPLETED",
+        "CANCELLED",
+    ]:
+        driver.status = "available"
 
     db.commit()
     db.refresh(new_assignment)
@@ -112,7 +131,10 @@ def assign_driver(
 # -----------------------------
 # View All Assignments
 # -----------------------------
-@router.get("/", response_model=list[DriverAssignmentResponse])
+@router.get(
+    "/",
+    response_model=list[DriverAssignmentResponse]
+)
 def get_assignments(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -129,7 +151,10 @@ def get_assignments(
 # -----------------------------
 # View Single Assignment
 # -----------------------------
-@router.get("/{assignment_id}", response_model=DriverAssignmentResponse)
+@router.get(
+    "/{assignment_id}",
+    response_model=DriverAssignmentResponse
+)
 def get_assignment(
     assignment_id: int,
     db: Session = Depends(get_db),
@@ -141,7 +166,9 @@ def get_assignment(
         )
     ),
 ):
-    assignment = db.query(DriverAssignment).filter(
+    assignment = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.id == assignment_id
     ).first()
 
@@ -157,7 +184,10 @@ def get_assignment(
 # -----------------------------
 # Update Assignment
 # -----------------------------
-@router.put("/{assignment_id}", response_model=DriverAssignmentResponse)
+@router.put(
+    "/{assignment_id}",
+    response_model=DriverAssignmentResponse
+)
 def update_assignment(
     assignment_id: int,
     assignment: DriverAssignmentUpdate,
@@ -169,7 +199,9 @@ def update_assignment(
         )
     ),
 ):
-    db_assignment = db.query(DriverAssignment).filter(
+    db_assignment = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.id == assignment_id
     ).first()
 
@@ -179,10 +211,34 @@ def update_assignment(
             detail="Assignment not found."
         )
 
-    update_data = assignment.model_dump(exclude_unset=True)
+    driver = db.query(Driver).filter(
+        Driver.id == db_assignment.driver_id
+    ).first()
+
+    update_data = assignment.model_dump(
+        exclude_unset=True
+    )
 
     for key, value in update_data.items():
-        setattr(db_assignment, key, value)
+        setattr(
+            db_assignment,
+            key,
+            value
+        )
+
+    # -----------------------------
+    # Automatically Update Driver Status
+    # -----------------------------
+    if driver:
+
+        if db_assignment.assignment_status == "ASSIGNED":
+            driver.status = "assigned"
+
+        elif db_assignment.assignment_status in [
+            "COMPLETED",
+            "CANCELLED",
+        ]:
+            driver.status = "available"
 
     db.commit()
     db.refresh(db_assignment)
@@ -193,7 +249,10 @@ def update_assignment(
 # -----------------------------
 # Remove Assignment
 # -----------------------------
-@router.delete("/{assignment_id}", response_model=MessageResponse)
+@router.delete(
+    "/{assignment_id}",
+    response_model=MessageResponse
+)
 def delete_assignment(
     assignment_id: int,
     db: Session = Depends(get_db),
@@ -201,7 +260,9 @@ def delete_assignment(
         require_role("admin")
     ),
 ):
-    assignment = db.query(DriverAssignment).filter(
+    assignment = db.query(
+        DriverAssignment
+    ).filter(
         DriverAssignment.id == assignment_id
     ).first()
 
@@ -210,6 +271,15 @@ def delete_assignment(
             status_code=404,
             detail="Assignment not found."
         )
+
+    # Get driver before deleting assignment
+    driver = db.query(Driver).filter(
+        Driver.id == assignment.driver_id
+    ).first()
+
+    # Make driver available again
+    if driver:
+        driver.status = "available"
 
     db.delete(assignment)
     db.commit()

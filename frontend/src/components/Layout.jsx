@@ -3,7 +3,7 @@ import Navbar from "./Navbar";
 
 function Layout({ children }) {
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-slate-950 text-slate-100">
 
       <Sidebar />
 
@@ -11,7 +11,7 @@ function Layout({ children }) {
 
         <Navbar />
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 bg-slate-950">
           {children}
         </main>
 

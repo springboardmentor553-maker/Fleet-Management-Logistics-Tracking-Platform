@@ -7,7 +7,7 @@ const API = axios.create({
 export const getDashboard = async () => {
   const token = localStorage.getItem("token");
 
-  const response = await API.get("/dashboard", {
+  const response = await API.get("/dashboard/fleet", {
     headers: {
       Authorization: `Bearer ${token}`,
     },

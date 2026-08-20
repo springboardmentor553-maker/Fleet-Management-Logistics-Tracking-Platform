@@ -8,26 +8,79 @@ from app.database import Base
 class Trip(Base):
     __tablename__ = "trips"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    shipment_id = Column(Integer, ForeignKey("shipments.id"), nullable=False)
-    driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=False)
-    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
+    shipment_id = Column(
+        Integer,
+        ForeignKey("shipments.id"),
+        nullable=False
+    )
 
-    start_location = Column(String, nullable=False)
-    end_location = Column(String, nullable=False)
+    driver_id = Column(
+        Integer,
+        ForeignKey("drivers.id"),
+        nullable=False
+    )
 
-    pickup_latitude = Column(Float, nullable=True)
-    pickup_longitude = Column(Float, nullable=True)
-    
-    destination_latitude = Column(Float, nullable=True)
-    destination_longitude = Column(Float, nullable=True)
+    vehicle_id = Column(
+        Integer,
+        ForeignKey("vehicles.id"),
+        nullable=False
+    )
 
-    start_time = Column(DateTime, default=datetime.utcnow)
-    end_time = Column(DateTime, nullable=True)
+    start_location = Column(
+        String,
+        nullable=False
+    )
 
-    distance = Column(Float, nullable=True)
-    status = Column(String, default="ONGOING")
+    end_location = Column(
+        String,
+        nullable=False
+    )
+
+    pickup_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    pickup_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    destination_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    destination_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    start_time = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    end_time = Column(
+        DateTime,
+        nullable=True
+    )
+
+    distance = Column(
+        Float,
+        nullable=True
+    )
+
+    status = Column(
+        String,
+        default="ONGOING"
+    )
 
     shipment = relationship(
         "Shipment",
@@ -47,5 +100,6 @@ class Trip(Base):
     assignment = relationship(
         "DriverAssignment",
         back_populates="trip",
-        uselist=False
+        uselist=False,
+        cascade="all, delete-orphan"
     )

@@ -7,9 +7,11 @@ import {
   FaRoute,
   FaTools,
   FaChartBar,
+  FaChartLine,
   FaBell,
   FaCog,
   FaSignOutAlt,
+  FaGasPump,
 } from "react-icons/fa";
 
 const navigation = [
@@ -23,14 +25,18 @@ const navigation = [
       { name: "Shipments", icon: FaBox, path: "/shipments" },
     ],
   },
+
   {
     title: "Management",
     items: [
       { name: "Routes", icon: FaRoute, path: "/routes" },
       { name: "Maintenance", icon: FaTools, path: "/maintenance" },
+      { name: "Fuel", icon: FaGasPump, path: "/fuel" },
+      { name: "Analytics", icon: FaChartLine, path: "/analytics" },
       { name: "Reports", icon: FaChartBar, path: "/reports" },
     ],
   },
+
   {
     title: "System",
     items: [

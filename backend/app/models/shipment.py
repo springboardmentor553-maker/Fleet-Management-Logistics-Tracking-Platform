@@ -11,9 +11,11 @@ class Shipment(Base):
     __tablename__ = "shipments"
 
     id = Column(Integer, primary_key=True, index=True)
+
     tracking_number = Column(String, unique=True, nullable=False)
     sender_name = Column(String, nullable=False)
     receiver_name = Column(String, nullable=False)
+
     pickup_location = Column(String, nullable=False)
     delivery_location = Column(String, nullable=False)
 
@@ -25,7 +27,10 @@ class Shipment(Base):
 
     weight = Column(Float, nullable=False)
 
-    created_date = Column(DateTime, default=datetime.utcnow)
+    created_date = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
 
     assigned_driver_id = Column(
         Integer,
@@ -42,5 +47,6 @@ class Shipment(Base):
     trip = relationship(
         "Trip",
         back_populates="shipment",
-        uselist=False
+        uselist=False,
+        cascade="all, delete-orphan"
     )

@@ -9,7 +9,6 @@ from app.models.shipment import Shipment
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 
-
 from app.enums import ShipmentStatus
 from app.services.google_maps import get_coordinates
 from app.services.directions import get_route
@@ -42,7 +41,7 @@ def add_trip(
             "fleet manager",
             "dispatcher",
         )
-    )
+    ),
 ):
 
     # -----------------------------
@@ -55,7 +54,7 @@ def add_trip(
     if shipment is None:
         raise HTTPException(
             status_code=404,
-            detail="Shipment not found."
+            detail="Shipment not found.",
         )
 
     # -----------------------------
@@ -68,7 +67,7 @@ def add_trip(
     if existing_trip:
         raise HTTPException(
             status_code=400,
-            detail="Shipment is already assigned to a trip."
+            detail="Shipment is already assigned to a trip.",
         )
 
     # -----------------------------
@@ -81,7 +80,7 @@ def add_trip(
     if driver is None:
         raise HTTPException(
             status_code=404,
-            detail="Driver not found."
+            detail="Driver not found.",
         )
 
     # -----------------------------
@@ -94,7 +93,7 @@ def add_trip(
     if vehicle is None:
         raise HTTPException(
             status_code=404,
-            detail="Vehicle not found."
+            detail="Vehicle not found.",
         )
 
     # -----------------------------
@@ -102,13 +101,13 @@ def add_trip(
     # -----------------------------
     active_driver_trip = db.query(Trip).filter(
         Trip.driver_id == trip.driver_id,
-        Trip.status == "ONGOING"
+        Trip.status == "ONGOING",
     ).first()
 
     if active_driver_trip:
         raise HTTPException(
             status_code=400,
-            detail="Driver already has an active trip."
+            detail="Driver already has an active trip.",
         )
 
     # -----------------------------
@@ -116,16 +115,16 @@ def add_trip(
     # -----------------------------
     active_vehicle_trip = db.query(Trip).filter(
         Trip.vehicle_id == trip.vehicle_id,
-        Trip.status == "ONGOING"
+        Trip.status == "ONGOING",
     ).first()
 
     if active_vehicle_trip:
         raise HTTPException(
             status_code=400,
-            detail="Vehicle already has an active trip."
+            detail="Vehicle already has an active trip.",
         )
 
-        # -----------------------------
+    # -----------------------------
     # Get Pickup & Destination Coordinates
     # -----------------------------
     try:
@@ -140,22 +139,23 @@ def add_trip(
     except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail=str(e)
+            detail=str(e),
         )
 
     # -----------------------------
     # Get Route Information
     # -----------------------------
     route = get_route(
-    pickup_latitude,
-    pickup_longitude,
-    destination_latitude,
-    destination_longitude,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
     )
+
     print("Distance:", route["distance_text"])
     print("Duration:", route["duration_text"])
     print("Polyline:", route["polyline"])
-    
+
     # -----------------------------
     # Create Trip
     # -----------------------------
@@ -178,7 +178,7 @@ def add_trip(
 
         distance=route["distance_meters"] / 1000,
         status=trip.status,
-        )
+    )
 
     # -----------------------------
     # Assign Shipment to Trip
@@ -190,6 +190,7 @@ def add_trip(
     db.refresh(new_trip)
 
     return new_trip
+
 
 # -----------------------------
 # View All Trips
@@ -203,9 +204,10 @@ def get_all_trips(
             "fleet manager",
             "dispatcher",
         )
-    )
+    ),
 ):
     return db.query(Trip).all()
+
 
 # -----------------------------
 # View Single Trip
@@ -221,8 +223,9 @@ def get_trip(
             "dispatcher",
             "driver",
         )
-    )
+    ),
 ):
+
     trip = db.query(Trip).filter(
         Trip.id == trip_id
     ).first()
@@ -230,11 +233,10 @@ def get_trip(
     if trip is None:
         raise HTTPException(
             status_code=404,
-            detail="Trip not found."
+            detail="Trip not found.",
         )
 
     return trip
-
 
 
 # -----------------------------
@@ -250,8 +252,9 @@ def update_trip(
             "admin",
             "fleet manager",
         )
-    )
+    ),
 ):
+
     db_trip = db.query(Trip).filter(
         Trip.id == trip_id
     ).first()
@@ -259,7 +262,7 @@ def update_trip(
     if db_trip is None:
         raise HTTPException(
             status_code=404,
-            detail="Trip not found."
+            detail="Trip not found.",
         )
 
     update_data = trip.model_dump(exclude_unset=True)
@@ -290,6 +293,7 @@ def update_trip(
 
     return db_trip
 
+
 # -----------------------------
 # Delete Trip
 # -----------------------------
@@ -299,8 +303,9 @@ def delete_trip(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role("admin")
-    )
+    ),
 ):
+
     db_trip = db.query(Trip).filter(
         Trip.id == trip_id
     ).first()
@@ -308,7 +313,7 @@ def delete_trip(
     if db_trip is None:
         raise HTTPException(
             status_code=404,
-            detail="Trip not found."
+            detail="Trip not found.",
         )
 
     # Make the shipment available again
@@ -323,8 +328,9 @@ def delete_trip(
     db.commit()
 
     return {
-        "message": "Trip deleted successfully."
+        "message": "Trip deleted successfully.",
     }
+
 
 # -----------------------------
 # Get Route Details
@@ -342,6 +348,7 @@ def get_trip_route(
         )
     ),
 ):
+
     trip = db.query(Trip).filter(
         Trip.id == trip_id
     ).first()
@@ -349,9 +356,24 @@ def get_trip_route(
     if trip is None:
         raise HTTPException(
             status_code=404,
-            detail="Trip not found."
+            detail="Trip not found.",
         )
 
+    # Check that coordinates exist
+    if (
+        trip.pickup_latitude is None
+        or trip.pickup_longitude is None
+        or trip.destination_latitude is None
+        or trip.destination_longitude is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Trip does not have valid pickup and destination coordinates.",
+        )
+
+    # -----------------------------
+    # Get Route
+    # -----------------------------
     route = get_route(
         trip.pickup_latitude,
         trip.pickup_longitude,
@@ -359,17 +381,27 @@ def get_trip_route(
         trip.destination_longitude,
     )
 
-    eta = calculate_eta(route["duration_seconds"])
+    eta = calculate_eta(
+        route["duration_seconds"]
+    )
 
     print(route)
 
+    # -----------------------------
+    # Return Route Details
+    # -----------------------------
     return {
-    "pickup_location": trip.start_location,
-    "destination": trip.end_location,
-    "distance": route["distance_text"],
-    "estimated_travel_time": route["duration_text"],
-    "route_summary": route.get("summary", "No route summary available"),
+        "pickup_location": trip.start_location,
+        "destination": trip.end_location,
+        "distance": route["distance_text"],
+        "estimated_travel_time": route["duration_text"],
+        "route_summary": route.get(
+            "summary",
+            "No route summary available",
+        ),
+        "polyline": route.get("polyline"),
     }
+
 
 # -----------------------------
 # Get ETA
@@ -387,6 +419,7 @@ def get_trip_eta(
         )
     ),
 ):
+
     trip = db.query(Trip).filter(
         Trip.id == trip_id
     ).first()
@@ -394,7 +427,7 @@ def get_trip_eta(
     if trip is None:
         raise HTTPException(
             status_code=404,
-            detail="Trip not found."
+            detail="Trip not found.",
         )
 
     route = get_route(
@@ -409,8 +442,13 @@ def get_trip_eta(
     )
 
     return {
-    "trip_id": trip.id,
-    "distance": route["distance_text"],
-    "estimated_travel_duration": eta["estimated_travel_duration"],
-    "estimated_arrival_time": eta["estimated_arrival_time"],
+        "pickup_location": trip.start_location,
+        "destination": trip.end_location,
+        "distance": route["distance_text"],
+        "estimated_travel_time": route["duration_text"],
+        "route_summary": route.get(
+            "summary",
+            "No route summary available",
+        ),
+        "eta": eta,
     }

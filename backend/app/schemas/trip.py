@@ -47,5 +47,5 @@ class RouteResponse(BaseModel):
     destination: str
     distance: str
     estimated_travel_time: str
-    estimated_arrival_time: str
     route_summary: str
+    polyline: Optional[str] = None
