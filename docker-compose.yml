@@ -41,15 +41,14 @@ services:
     container_name: fleetflow-backend
 
     environment:
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: fleetflow_db
-
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
-      REDIS_URL: redis://redis:6379/0
-
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      APP_NAME: FleetFlow API
+      ENV: production
+      REDIS_URL: ${REDIS_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     ports:
       - "8000:8000"
 
@@ -72,14 +71,14 @@ services:
     command: celery -A app.celery.celery_app worker --loglevel=info
 
     environment:
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: fleetflow_db
-
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      APP_NAME: FleetFlow API
+      ENV: production
+      REDIS_URL: ${REDIS_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
     depends_on:
       postgres:
@@ -100,15 +99,13 @@ services:
     command: celery -A app.celery.celery_app beat --loglevel=info
 
     environment:
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: fleetflow_db
-
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleetflow_db
-      REDIS_URL: redis://redis:6379/0
-
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      APP_NAME: FleetFlow API
+      ENV: production
+      REDIS_URL: ${REDIS_URL}
     depends_on:
       postgres:
         condition: service_healthy

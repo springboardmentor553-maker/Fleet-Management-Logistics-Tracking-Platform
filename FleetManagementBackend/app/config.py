@@ -1,29 +1,20 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DB_USER: str = "postgres"
-    DB_PASSWORD: str = "postgres"
-    DB_HOST: str = "postgres"
-    DB_PORT: str = "5432"
-    DB_NAME: str = "fleetflow_db"
+    DATABASE_URL: str
 
-    APP_NAME: str = "FleetFlow API"
-    ENV: str = "development"
-
-    SECRET_KEY: str = "Ash843"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    @property
-    def DATABASE_URL(self) -> str:
-        return (
-            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        )
+    APP_NAME: str = "FleetFlow API"
+    ENV: str = "production"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+    )
 
 
 settings = Settings()
