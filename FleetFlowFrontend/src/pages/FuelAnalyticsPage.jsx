@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 
 import "./FuelAnalyticsPage.css";
 
-const API_URL = "http://127.0.0.1:8000/analytics";
+const API_URL = "https://fleetflow-backend-90o5.onrender.com/analytics";
 
 function FuelAnalyticsPage() {
   const [fuelRecords, setFuelRecords] = useState([]);

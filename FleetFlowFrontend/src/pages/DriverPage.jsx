@@ -18,7 +18,7 @@ import {
 
 import "./DriverPage.css";
 
-const API_URL = "http://127.0.0.1:8000/drivers";
+const API_URL = "https://fleetflow-backend-90o5.onrender.com/drivers";
 
 export default function DriverPage() {
   const [drivers, setDrivers] = useState([]);

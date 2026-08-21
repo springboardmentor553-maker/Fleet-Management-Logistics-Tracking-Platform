@@ -13,7 +13,7 @@ import {
 
 import "./OperationalAnalyticsPage.css";
 
-const BASE_URL = "http://127.0.0.1:8000/dashboard";
+const BASE_URL = "https://fleetflow-backend-90o5.onrender.com/dashboard";
 
 const defaultDeliverySuccess = {
   total_deliveries: 0,

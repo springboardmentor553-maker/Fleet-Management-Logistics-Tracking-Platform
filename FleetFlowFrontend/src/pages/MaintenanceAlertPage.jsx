@@ -3,7 +3,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./MaintenanceAlertPage.css";
 
-const API_URL = "http://127.0.0.1:8000/maintenance-alerts";
+const API_URL = "https://fleetflow-backend-90o5.onrender.com/maintenance-alerts";
 
 function MaintenanceAlertPage() {
   const [alerts, setAlerts] = useState([]);

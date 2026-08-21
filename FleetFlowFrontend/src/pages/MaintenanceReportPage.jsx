@@ -3,7 +3,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./MaintenanceReportPage.css";
 
-const API_URL = "http://127.0.0.1:8000/reports/maintenance";
+const API_URL = "https://fleetflow-backend-90o5.onrender.com/reports/maintenance";
 
 function MaintenanceReportPage() {
   const [report, setReport] = useState(null);

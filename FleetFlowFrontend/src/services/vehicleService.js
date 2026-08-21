@@ -1,7 +1,7 @@
 import axios from "axios";
 import { authHeader } from "./authService";
 
-const API = "http://127.0.0.1:8000/vehicles";
+const API = "https://fleetflow-backend-90o5.onrender.com/vehicles";
 
 // Get all vehicles
 export const getVehicles = async () => {
