@@ -5,6 +5,7 @@ import {
   FaEdit,
   FaTrash,
   FaTimes,
+  FaSearch,
 } from "react-icons/fa";
 
 import {
@@ -29,6 +30,8 @@ function Fuel() {
   const [showModal, setShowModal] = useState(false);
   const [fuelToEdit, setFuelToEdit] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const [vehicleSearch, setVehicleSearch] = useState("");
 
   const [formData, setFormData] = useState({
     vehicle_id: "",
@@ -340,6 +343,35 @@ function Fuel() {
       : 0;
 
   // ==========================================
+  // VEHICLE SEARCH
+  // ==========================================
+
+  const filteredFuelRecords = fuelRecords.filter(
+    (record) => {
+      const query = vehicleSearch
+        .trim()
+        .toLowerCase();
+
+      if (!query) {
+        return true;
+      }
+
+      const vehicleNumber = getVehicleNumber(
+        record.vehicle_id
+      ).toLowerCase();
+
+      const vehicleId = String(
+        record.vehicle_id
+      ).toLowerCase();
+
+      return (
+        vehicleNumber.includes(query) ||
+        vehicleId.includes(query)
+      );
+    }
+  );
+
+  // ==========================================
   // LOADING
   // ==========================================
 
@@ -457,6 +489,45 @@ function Fuel() {
 
       </div>
 
+      {/* SEARCH VEHICLE */}
+
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-6">
+
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+
+          <div className="flex-1 relative">
+
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+
+            <input
+              type="text"
+              value={vehicleSearch}
+              onChange={(e) =>
+                setVehicleSearch(e.target.value)
+              }
+              placeholder="Search vehicle number or vehicle ID..."
+              className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg pl-11 pr-4 py-3 text-sm outline-none focus:border-blue-500"
+            />
+
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setVehicleSearch("")}
+            className="px-5 py-3 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm"
+          >
+            Clear
+          </button>
+
+        </div>
+
+        <p className="text-xs text-slate-500 mt-3">
+          Showing {filteredFuelRecords.length} of{" "}
+          {fuelRecords.length} fuel records
+        </p>
+
+      </div>
+
       {/* TABLE */}
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
@@ -523,7 +594,7 @@ function Fuel() {
 
             <tbody>
 
-              {fuelRecords.map((record) => (
+              {filteredFuelRecords.map((record) => (
 
                 <tr
                   key={record.id}
@@ -534,8 +605,16 @@ function Fuel() {
                     #{record.id}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-white font-medium">
-                    {getVehicleNumber(record.vehicle_id)}
+                  <td className="px-6 py-4">
+
+                    <div className="text-sm text-white font-medium">
+                      {getVehicleNumber(record.vehicle_id)}
+                    </div>
+
+                    <div className="text-xs text-slate-500 mt-1">
+                      Vehicle ID: {record.vehicle_id}
+                    </div>
+
                   </td>
 
                   <td className="px-6 py-4 text-sm text-slate-300">
@@ -603,7 +682,7 @@ function Fuel() {
 
               ))}
 
-              {fuelRecords.length === 0 && (
+              {filteredFuelRecords.length === 0 && (
 
                 <tr>
 
@@ -611,7 +690,9 @@ function Fuel() {
                     colSpan="9"
                     className="text-center py-12 text-slate-500"
                   >
-                    No fuel records found.
+                    {vehicleSearch
+                      ? "No fuel records found for this vehicle."
+                      : "No fuel records found."}
                   </td>
 
                 </tr>

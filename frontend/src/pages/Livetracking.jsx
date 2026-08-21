@@ -918,6 +918,7 @@ function LiveTracking() {
               {/* GOOGLE MAP */}
 
               <LiveTrackingMap
+                tripId={selectedTripId}
                 polyline={route.polyline}
                 pickupLocation={
                   route.pickup_location

@@ -1,93 +1,264 @@
+import {
+  FaEdit,
+  FaTrash,
+  FaUser,
+} from "react-icons/fa";
+
 import { deleteVehicle } from "../services/vehicleService";
+
+const getStatusClasses = (status) => {
+  const normalized = String(
+    status || ""
+  ).toLowerCase();
+
+  if (normalized === "available") {
+    return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+  }
+
+  if (
+    normalized === "on trip" ||
+    normalized === "assigned"
+  ) {
+    return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+  }
+
+  if (normalized === "maintenance") {
+    return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+  }
+
+  return "bg-slate-700/50 text-slate-400 border-slate-600";
+};
 
 function VehicleTable({
   vehicles,
+  assignedDriverByVehicleId,
   onEdit,
   onVehicleDeleted,
 }) {
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this vehicle?")) return;
+
+    if (
+      !window.confirm(
+        "Delete this vehicle? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
 
     try {
+
       await deleteVehicle(id);
 
       onVehicleDeleted(id);
 
     } catch (error) {
+
       console.error(error);
-      alert("Failed to delete vehicle.");
+
+      alert(
+        error.response?.data?.detail ||
+          "Failed to delete vehicle."
+      );
     }
   };
 
+  // EMPTY STATE
+  if (vehicles.length === 0) {
+    return (
+      <div className="flex min-h-72 flex-col items-center justify-center px-6 py-12 text-center">
+
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
+          <FaUser size={20} />
+        </div>
+
+        <h3 className="text-base font-semibold text-slate-200">
+          No vehicles found
+        </h3>
+
+        <p className="mt-1 max-w-sm text-sm text-slate-500">
+          Try changing your search or register a new
+          vehicle to add it to the fleet registry.
+        </p>
+
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm mt-10 p-6">
+    <div className="overflow-x-auto">
 
-      <h2 className="text-xl font-semibold mb-6">
-        Recent Vehicles
-      </h2>
+      <table className="min-w-[1050px] w-full">
 
-      <table className="w-full">
+        <thead>
 
-        <thead className="border-b">
+          <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wider text-slate-500">
 
-          <tr className="text-left text-slate-500">
-            <th className="pb-3">Vehicle No.</th>
-            <th className="pb-3">Type</th>
-            <th className="pb-3">Capacity</th>
-            <th className="pb-3">Fuel</th>
-            <th className="pb-3">Status</th>
-            <th className="pb-3">Actions</th>
+            <th className="px-5 py-4 font-semibold">
+              Vehicle ID / Plate
+            </th>
+
+            <th className="px-5 py-4 font-semibold">
+              Type
+            </th>
+
+            <th className="px-5 py-4 font-semibold">
+              Capacity
+            </th>
+
+            <th className="px-5 py-4 font-semibold">
+              Fuel Type
+            </th>
+
+            <th className="px-5 py-4 font-semibold">
+              Driver
+            </th>
+
+            <th className="px-5 py-4 font-semibold">
+              Status
+            </th>
+
+            <th className="px-5 py-4 text-right font-semibold">
+              Actions
+            </th>
+
           </tr>
 
         </thead>
 
         <tbody>
 
-          {vehicles.map((vehicle) => (
+          {vehicles.map((vehicle) => {
 
-            <tr
-              key={vehicle.id}
-              className="border-b last:border-none hover:bg-slate-50"
-            >
+            const driver =
+              assignedDriverByVehicleId?.[
+                vehicle.id
+              ];
 
-              <td className="py-4">
-                {vehicle.vehicle_number}
-              </td>
+            return (
+              <tr
+                key={vehicle.id}
+                className="border-b border-slate-800/80 transition hover:bg-slate-800/40 last:border-b-0"
+              >
 
-              <td>{vehicle.vehicle_type}</td>
+                {/* VEHICLE */}
+                <td className="px-5 py-5">
 
-              <td>{vehicle.capacity} Tons</td>
+                  <div>
 
-              <td>{vehicle.fuel_type}</td>
+                    <p className="font-semibold text-white">
+                      {vehicle.vehicle_number}
+                    </p>
 
-              <td>{vehicle.status}</td>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Vehicle #{vehicle.id}
+                    </p>
 
-              <td className="py-4">
+                  </div>
 
-                <div className="flex gap-2">
+                </td>
 
-                  <button
-                    onClick={() => onEdit(vehicle)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg"
+                {/* TYPE */}
+                <td className="px-5 py-5 text-sm text-slate-300">
+                  {vehicle.vehicle_type || "—"}
+                </td>
+
+                {/* CAPACITY */}
+                <td className="px-5 py-5 text-sm text-slate-300">
+
+                  <span className="font-medium text-slate-200">
+                    {vehicle.capacity?.toLocaleString() || 0}
+                  </span>{" "}
+                  kg
+
+                </td>
+
+                {/* FUEL */}
+                <td className="px-5 py-5 text-sm text-slate-300">
+                  {vehicle.fuel_type || "—"}
+                </td>
+
+                {/* DRIVER */}
+                <td className="px-5 py-5">
+
+                  {driver ? (
+
+                    <div className="flex items-center gap-3">
+
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
+                        <FaUser size={12} />
+                      </div>
+
+                      <div>
+
+                        <p className="text-sm font-medium text-slate-200">
+                          {driver.name}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          Assigned
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    <span className="text-sm text-slate-500">
+                      Unassigned
+                    </span>
+
+                  )}
+
+                </td>
+
+                {/* STATUS */}
+                <td className="px-5 py-5">
+
+                  <span
+                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(
+                      vehicle.status
+                    )}`}
                   >
-                    Edit
-                  </button>
+                    {vehicle.status || "Unknown"}
+                  </span>
 
-                  <button
-                    onClick={() => handleDelete(vehicle.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg"
-                  >
-                    Delete
-                  </button>
+                </td>
 
-                </div>
+                {/* ACTIONS */}
+                <td className="px-5 py-5">
 
-              </td>
+                  <div className="flex justify-end gap-2">
 
-            </tr>
+                    <button
+                      onClick={() =>
+                        onEdit(vehicle)
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400"
+                    >
+                      <FaEdit size={12} />
+                      Edit
+                    </button>
 
-          ))}
+                    <button
+                      onClick={() =>
+                        handleDelete(vehicle.id)
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <FaTrash size={11} />
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+            );
+
+          })}
 
         </tbody>
 

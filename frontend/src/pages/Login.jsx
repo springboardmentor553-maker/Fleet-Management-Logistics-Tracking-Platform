@@ -451,9 +451,10 @@ function Login() {
 
               <button
                 type="button"
+                onClick={() => navigate("/register")}
                 className="font-bold text-blue-600 hover:text-blue-700"
               >
-                Create an account
+                Register an account
               </button>
 
             </p>

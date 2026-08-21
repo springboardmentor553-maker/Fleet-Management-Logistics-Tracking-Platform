@@ -6,9 +6,12 @@ import {
   FaCalendarAlt,
   FaCheckCircle,
   FaClock,
+  FaBell,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 import { getMaintenance } from "../services/maintenanceService";
+import { getMaintenanceAlerts } from "../services/maintenanceAlertService";
 import { getVehicles } from "../services/vehicleService";
 
 import MaintenanceModal from "../components/MaintenanceModal";
@@ -16,6 +19,7 @@ import MaintenanceModal from "../components/MaintenanceModal";
 function Maintenance() {
   const [maintenance, setMaintenance] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [alerts, setAlerts] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,13 +32,15 @@ function Maintenance() {
       setLoading(true);
       setError("");
 
-      const [maintenanceData, vehicleData] = await Promise.all([
+      const [maintenanceData, vehicleData, alertData] = await Promise.all([
         getMaintenance(),
         getVehicles(),
+        getMaintenanceAlerts(),
       ]);
 
-      setMaintenance(maintenanceData);
-      setVehicles(vehicleData);
+      setMaintenance(maintenanceData || []);
+      setVehicles(vehicleData || []);
+      setAlerts(alertData || []);
     } catch (err) {
       console.error(err);
 
@@ -107,11 +113,47 @@ function Maintenance() {
       item.maintenance_status?.toLowerCase() === "completed"
   ).length;
 
+  const healthReports = vehicles.map((vehicle) => {
+    const vehicleMaintenance = maintenance.filter(
+      (item) => item.vehicle_id === vehicle.id
+    );
+
+    const vehicleAlerts = alerts.filter(
+      (alert) =>
+        alert.vehicle_id === vehicle.id &&
+        alert.alert_status?.toLowerCase() === "pending"
+    );
+
+    const overdue = vehicleMaintenance.filter(
+      (item) =>
+        item.next_service_date &&
+        new Date(item.next_service_date) < new Date() &&
+        item.maintenance_status?.toLowerCase() !== "completed"
+    ).length;
+
+    const score = Math.max(
+      60,
+      100 - vehicleAlerts.length * 5 - overdue * 5
+    );
+
+    return {
+      ...vehicle,
+      healthScore: score,
+      pending: vehicleAlerts.length + overdue,
+    };
+  });
+
+  const pendingAlerts = alerts.filter(
+    (alert) =>
+      alert.alert_status?.toLowerCase() === "pending"
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-300 flex items-center justify-center">
         <div className="flex items-center gap-3">
           <FaTools className="text-blue-500 animate-pulse" />
+
           <span className="text-sm font-medium">
             Loading maintenance data...
           </span>
@@ -124,10 +166,13 @@ function Maintenance() {
     <div className="min-h-screen bg-slate-950 text-slate-200">
 
       {/* PAGE HEADER */}
+
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
 
         <div>
+
           <div className="flex items-center gap-3 mb-2">
+
             <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <FaTools className="text-blue-400" />
             </div>
@@ -135,12 +180,14 @@ function Maintenance() {
             <h1 className="text-2xl font-semibold text-white">
               Vehicle Maintenance
             </h1>
+
           </div>
 
           <p className="text-sm text-slate-400">
             Monitor servicing, maintenance schedules and vehicle
             maintenance history.
           </p>
+
         </div>
 
         <button
@@ -154,21 +201,163 @@ function Maintenance() {
       </div>
 
       {/* ERROR */}
+
       {error && (
         <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg px-4 py-3 text-sm">
           {error}
         </div>
       )}
 
+      {/* VEHICLE HEALTH & MAINTENANCE ALERTS */}
+
+      <section className="mb-8">
+
+        <div className="flex items-center justify-between mb-4">
+
+          <div>
+
+            <h2 className="text-base font-semibold text-white">
+              Fleet Vehicle Health Reports & Inspection Alerts
+            </h2>
+
+            <p className="text-xs text-slate-500 mt-1">
+              Current vehicle health, pending maintenance and inspection alerts.
+            </p>
+
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <FaBell className="text-amber-400" />
+            {pendingAlerts.length} pending alerts
+          </div>
+
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+          {healthReports.map((vehicle) => (
+
+            <div
+              key={vehicle.id}
+              className="bg-slate-900 border border-slate-800 rounded-xl p-5"
+            >
+
+              {/* VEHICLE + STATUS */}
+
+              <div className="flex items-center justify-between mb-4">
+
+                <span className="px-3 py-1 rounded-md bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-200">
+                  🚚 {vehicle.vehicle_number}
+                </span>
+
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                    vehicle.healthScore >= 90
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : vehicle.healthScore >= 75
+                      ? "bg-amber-500/10 text-amber-400"
+                      : "bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  {vehicle.healthScore >= 90
+                    ? "Excellent"
+                    : vehicle.healthScore >= 75
+                    ? "Good"
+                    : "Attention"}
+                </span>
+
+              </div>
+
+              {/* HEALTH SCORE */}
+
+              <div className="flex items-center justify-between text-xs mb-2">
+
+                <span className="text-slate-400">
+                  Health Score
+                </span>
+
+                <span className="font-semibold text-emerald-400">
+                  {vehicle.healthScore}%
+                </span>
+
+              </div>
+
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+
+                <div
+                  className={`h-full rounded-full ${
+                    vehicle.healthScore >= 90
+                      ? "bg-emerald-500"
+                      : vehicle.healthScore >= 75
+                      ? "bg-amber-500"
+                      : "bg-red-500"
+                  }`}
+                  style={{
+                    width: `${vehicle.healthScore}%`,
+                  }}
+                />
+
+              </div>
+
+              {/* ALERT */}
+
+              {vehicle.pending > 0 && (
+
+                <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/10 px-3 py-2 text-xs text-red-400">
+
+                  <FaExclamationTriangle className="mt-0.5 shrink-0" />
+
+                  <span>
+                    {vehicle.pending} maintenance task
+                    {vehicle.pending > 1 ? "s" : ""} pending
+                  </span>
+
+                </div>
+
+              )}
+
+              {/* FOOTER */}
+
+              <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
+
+                <span>
+                  Type: {vehicle.vehicle_type || vehicle.type || "Vehicle"}
+                </span>
+
+                <span>
+                  Pending: {vehicle.pending}
+                </span>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+        {healthReports.length === 0 && (
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-500">
+            No vehicles available for health reporting.
+          </div>
+
+        )}
+
+      </section>
+
       {/* SUMMARY CARDS */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
         {/* TOTAL */}
+
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
 
           <div className="flex items-center justify-between">
 
             <div>
+
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Total Records
               </p>
@@ -180,6 +369,7 @@ function Maintenance() {
               <p className="text-xs text-slate-500 mt-1">
                 Maintenance records
               </p>
+
             </div>
 
             <div className="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center">
@@ -191,11 +381,13 @@ function Maintenance() {
         </div>
 
         {/* IN PROGRESS */}
+
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
 
           <div className="flex items-center justify-between">
 
             <div>
+
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 In Progress
               </p>
@@ -207,6 +399,7 @@ function Maintenance() {
               <p className="text-xs text-slate-500 mt-1">
                 Vehicles currently serviced
               </p>
+
             </div>
 
             <div className="w-11 h-11 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -218,11 +411,13 @@ function Maintenance() {
         </div>
 
         {/* COMPLETED */}
+
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
 
           <div className="flex items-center justify-between">
 
             <div>
+
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Completed
               </p>
@@ -234,6 +429,7 @@ function Maintenance() {
               <p className="text-xs text-slate-500 mt-1">
                 Completed maintenance
               </p>
+
             </div>
 
             <div className="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center">
@@ -247,12 +443,15 @@ function Maintenance() {
       </div>
 
       {/* MAINTENANCE TABLE */}
+
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
 
         {/* TABLE HEADER */}
+
         <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
 
           <div>
+
             <h2 className="text-base font-semibold text-white">
               Maintenance History
             </h2>
@@ -260,6 +459,7 @@ function Maintenance() {
             <p className="text-xs text-slate-500 mt-1">
               Vehicle servicing and maintenance records
             </p>
+
           </div>
 
           <div className="text-xs text-slate-500">
@@ -340,11 +540,13 @@ function Maintenance() {
                   <td className="px-6 py-4">
 
                     <div className="flex items-center gap-2 text-sm text-slate-300">
+
                       <FaCalendarAlt className="text-slate-500 text-xs" />
 
                       {new Date(
                         record.service_date
                       ).toLocaleDateString()}
+
                     </div>
 
                   </td>
@@ -415,13 +617,16 @@ function Maintenance() {
       </div>
 
       {/* MODAL */}
+
       {showModal && (
+
         <MaintenanceModal
           onClose={closeModal}
           onSaved={handleSaved}
           vehicles={vehicles}
           maintenanceToEdit={maintenanceToEdit}
         />
+
       )}
 
     </div>

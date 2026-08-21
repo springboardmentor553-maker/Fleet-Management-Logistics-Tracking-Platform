@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from collections import defaultdict
 
 from app.dependencies import (
     get_db,
@@ -140,14 +141,81 @@ def fleet_dashboard(
         for s in shipments
     )
 
+        # ------------------------
+    # Monthly Shipment Data
+    # ------------------------
+    monthly_shipments_data = defaultdict(int)
+
+    for shipment in shipments:
+        if shipment.created_date:
+            month = shipment.created_date.strftime("%b %Y")
+            monthly_shipments_data[month] += 1
+
+    monthly_shipments = [
+        {
+            "month": month,
+            "shipments": count
+        }
+        for month, count in sorted(
+            monthly_shipments_data.items()
+        )
+    ]
+
+
+    # ------------------------
+    # Vehicle Performance
+    # ------------------------
+    vehicle_performance_data = defaultdict(int)
+
+    for trip in trips:
+        if trip.status.upper() == "COMPLETED":
+            vehicle_performance_data[
+                trip.vehicle.vehicle_number
+            ] += 1
+
+    vehicle_performance = [
+        {
+            "vehicle": vehicle,
+            "completedTrips": count
+        }
+        for vehicle, count in vehicle_performance_data.items()
+    ]
+
+
+    # ------------------------
+    # Driver Performance
+    # ------------------------
+    driver_performance_data = defaultdict(int)
+
+    for trip in trips:
+        if trip.status.upper() == "COMPLETED":
+            driver_performance_data[
+                trip.driver.name
+            ] += 1
+
+    driver_performance = [
+        {
+            "driver": driver,
+            "completedTrips": count
+        }
+        for driver, count in driver_performance_data.items()
+    ]
+
     return {
         "totalVehicles": total_vehicles,
         "activeVehicles": active_vehicles,
         "vehiclesUnderMaintenance": vehicles_under_maintenance,
+
         "totalDrivers": total_drivers,
         "availableDrivers": available_drivers,
         "assignedDrivers": assigned_drivers,
+
         "totalTrips": total_trips,
         "completedTrips": completed_trips,
+
         "activeShipments": active_shipments,
+
+        "monthlyShipments": monthly_shipments,
+        "vehiclePerformance": vehicle_performance,
+        "driverPerformance": driver_performance,
     }

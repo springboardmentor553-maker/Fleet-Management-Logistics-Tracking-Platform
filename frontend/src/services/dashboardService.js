@@ -1,17 +1,13 @@
-import axios from "axios";
+import API from "./api";
 
-const API = axios.create({
-  baseURL: "http://127.0.0.1:8000",
-});
-
+// Detailed Fleet Operations Dashboard
 export const getDashboard = async () => {
-  const token = localStorage.getItem("token");
+  const response = await API.get("/dashboard/fleet");
+  return response.data;
+};
 
-  const response = await API.get("/dashboard/fleet", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+// Fleet Summary
+export const getFleetSummary = async () => {
+  const response = await API.get("/vehicles/summary/fleet");
   return response.data;
 };
