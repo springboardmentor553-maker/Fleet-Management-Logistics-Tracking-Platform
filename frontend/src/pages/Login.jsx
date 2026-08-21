@@ -1,182 +1,1231 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { KeyRound, Mail, AlertCircle } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
-const Login = () => {
-  const { login, isAuthenticated, user } = useAuth();
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:8000";
+
+function Login() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [isSignup, setIsSignup] = useState(
+    location.pathname === "/register"
+  );
+
+  // Login
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  // Registration
+  const [fullName, setFullName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("dispatcher");
+
+  const [showLoginPassword, setShowLoginPassword] =
+    useState(false);
+
+  const [showSignupPassword, setShowSignupPassword] =
+    useState(false);
+
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
   const [loading, setLoading] = useState(false);
-  const [sessionExpired, setSessionExpired] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
-  useEffect(() => {
-    // Show session expired notification if redirected
-    if (searchParams.get('expired') === 'true') {
-      setSessionExpired(true);
-    }
-  }, [searchParams]);
+  // =========================================================
+  // SWITCH LOGIN / SIGNUP
+  // =========================================================
 
-  // If already authenticated, redirect to appropriate dashboard
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      redirectByRole(user.role);
-    }
-  }, [isAuthenticated, user]);
+  const switchMode = (signup) => {
+    setIsSignup(signup);
 
-  const redirectByRole = (role) => {
-    switch (role) {
-      case 'admin':
-        navigate('/admin');
-        break;
-      case 'manager':
-        navigate('/manager');
-        break;
-      case 'dispatcher':
-        navigate('/dispatcher');
-        break;
-      case 'driver':
-        navigate('/driver');
-        break;
-      default:
-        navigate('/unauthorized');
-    }
+    setMessage("");
+    setMessageType("");
+
+    navigate(signup ? "/register" : "/");
   };
 
-  const handleSubmit = async (e) => {
+  // =========================================================
+  // LOGIN
+  // =========================================================
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-    setSessionExpired(false);
+
+    setMessage("");
+    setMessageType("");
+
+    if (!loginEmail.trim() || !loginPassword.trim()) {
+      setMessage("Please enter your email and password.");
+      setMessageType("error");
+      return;
+    }
 
     try {
-      const loggedUser = await login(email.trim().toLowerCase(), password.trim());
-      redirectByRole(loggedUser.role);
-    } catch (err) {
-      console.error(err);
-      if (!err.response) {
-        setError('Unable to connect to the server.');
-      } else {
-        setError(
-          err.response?.data?.detail || 'Invalid email or password. Please try again.'
-        );
+      setLoading(true);
+
+      const formData = new URLSearchParams();
+
+      formData.append(
+        "username",
+        loginEmail.trim()
+      );
+
+      formData.append(
+        "password",
+        loginPassword
+      );
+
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      const data = response.data;
+
+      localStorage.setItem(
+        "token",
+        data.access_token
+      );
+
+      localStorage.setItem(
+        "role",
+        data.role
+      );
+
+      localStorage.setItem(
+        "email",
+        data.email
+      );
+
+      localStorage.setItem(
+        "full_name",
+        data.full_name || ""
+      );
+
+      setMessage("Login successful.");
+      setMessageType("success");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
+
+    } catch (error) {
+      console.error("Login Error:", error);
+
+      let errorMessage =
+        "Invalid email or password.";
+
+      if (error.response?.data?.detail) {
+        const detail =
+          error.response.data.detail;
+
+        if (typeof detail === "string") {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map(
+              (item) =>
+                item?.msg || "Invalid input"
+            )
+            .join(", ");
+        }
       }
+
+      setMessage(errorMessage);
+      setMessageType("error");
+
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#070b19] flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background ambient glow shapes */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-sky-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+  // =========================================================
+  // REGISTER
+  // =========================================================
 
-      <div className="w-full max-w-md">
-        {/* Logo and Brand Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-2xl mb-3 shadow-lg shadow-sky-500/5">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    setMessage("");
+    setMessageType("");
+
+    if (!fullName.trim()) {
+      setMessage("Please enter your full name.");
+      setMessageType("error");
+      return;
+    }
+
+    if (!signupEmail.trim()) {
+      setMessage("Please enter your email address.");
+      setMessageType("error");
+      return;
+    }
+
+    if (!signupPassword) {
+      setMessage("Please enter a password.");
+      setMessageType("error");
+      return;
+    }
+
+    if (signupPassword.length < 6) {
+      setMessage(
+        "Password must contain at least 6 characters."
+      );
+      setMessageType("error");
+      return;
+    }
+
+    if (signupPassword !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      setMessageType("error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        `${API_URL}/auth/register`,
+        {
+          full_name: fullName.trim(),
+          email: signupEmail.trim(),
+          password: signupPassword,
+          role: role,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(
+        "Registration successful:",
+        response.data
+      );
+
+      setMessage(
+        "Account created successfully. Please sign in."
+      );
+
+      setMessageType("success");
+
+      setFullName("");
+      setSignupEmail("");
+      setSignupPassword("");
+      setConfirmPassword("");
+      setRole("dispatcher");
+
+      setTimeout(() => {
+        setIsSignup(false);
+        navigate("/");
+      }, 1200);
+
+    } catch (error) {
+      console.error(
+        "Registration Error:",
+        error
+      );
+
+      let errorMessage =
+        "Registration failed.";
+
+      if (error.response?.data?.detail) {
+        const detail =
+          error.response.data.detail;
+
+        if (typeof detail === "string") {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map(
+              (item) =>
+                item?.msg ||
+                "Invalid registration data"
+            )
+            .join(", ");
+        } else if (
+          typeof detail === "object"
+        ) {
+          errorMessage =
+            detail.msg ||
+            "Invalid registration data.";
+        }
+      }
+
+      setMessage(errorMessage);
+      setMessageType("error");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================================
+  // SHARED STYLES
+  // =========================================================
+
+  const inputWrapper = {
+    position: "relative",
+    marginBottom: "18px",
+  };
+
+  const inputIcon = {
+    position: "absolute",
+    left: "16px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    fontSize: "17px",
+    color: "#64748b",
+    pointerEvents: "none",
+  };
+
+  const inputStyle = {
+    width: "100%",
+    height: "52px",
+    padding:
+      "0 48px 0 45px",
+    boxSizing: "border-box",
+    border: "1px solid #d8dee8",
+    borderRadius: "10px",
+    outline: "none",
+    fontSize: "15px",
+    color: "#0f172a",
+    background: "#ffffff",
+    transition: "all 0.2s ease",
+  };
+
+  const passwordButton = {
+    position: "absolute",
+    right: "14px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    fontSize: "16px",
+    color: "#64748b",
+    padding: "5px",
+  };
+
+  const labelStyle = {
+    display: "block",
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: "7px",
+  };
+
+  const primaryButton = {
+    width: "100%",
+    height: "52px",
+    border: "none",
+    borderRadius: "10px",
+    background:
+      "linear-gradient(135deg, #2563eb, #1d4ed8)",
+    color: "#ffffff",
+    fontSize: "15px",
+    fontWeight: "700",
+    cursor: loading
+      ? "not-allowed"
+      : "pointer",
+    opacity: loading ? 0.75 : 1,
+    boxShadow:
+      "0 8px 20px rgba(37, 99, 235, 0.22)",
+    transition: "all 0.2s ease",
+  };
+
+  // =========================================================
+  // PAGE
+  // =========================================================
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background:
+          "linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #eef2ff 100%)",
+        padding: "30px",
+        boxSizing: "border-box",
+        fontFamily:
+          "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+
+      {/* =====================================================
+          MAIN CONTAINER
+      ===================================================== */}
+
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "1050px",
+          minHeight: "620px",
+          display: "grid",
+          gridTemplateColumns:
+            "1fr 1fr",
+          background: "#ffffff",
+          borderRadius: "24px",
+          overflow: "hidden",
+          boxShadow:
+            "0 25px 70px rgba(15, 23, 42, 0.12)",
+          border:
+            "1px solid rgba(226,232,240,0.8)",
+        }}
+      >
+
+        {/* ===================================================
+            LEFT BRANDING SECTION
+        =================================================== */}
+
+        <div
+          style={{
+            position: "relative",
+            padding: "55px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            background:
+              "linear-gradient(145deg, #0f3d91 0%, #1558c0 48%, #2563eb 100%)",
+            color: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+
+          {/* Decorative circles */}
+
+          <div
+            style={{
+              position: "absolute",
+              width: "300px",
+              height: "300px",
+              borderRadius: "50%",
+              background:
+                "rgba(255,255,255,0.06)",
+              right: "-130px",
+              top: "-100px",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              width: "220px",
+              height: "220px",
+              borderRadius: "50%",
+              background:
+                "rgba(255,255,255,0.05)",
+              left: "-100px",
+              bottom: "-80px",
+            }}
+          />
+
+          {/* Brand */}
+
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2,
+            }}
+          >
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "13px",
+                marginBottom: "65px",
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+
+              <div
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "13px",
+                  background:
+                    "rgba(255,255,255,0.16)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "25px",
+                  border:
+                    "1px solid rgba(255,255,255,0.2)",
+                }}
+              >
+                🚚
+              </div>
+
+              <div>
+                <div
+                  style={{
+                    fontSize: "25px",
+                    fontWeight: "800",
+                    letterSpacing: "-0.5px",
+                  }}
+                >
+                  FleetFlow
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "11px",
+                    opacity: 0.75,
+                    letterSpacing: "1px",
+                    textTransform:
+                      "uppercase",
+                  }}
+                >
+                  Fleet Management Platform
+                </div>
+              </div>
+
+            </div>
+
+            <div
+              style={{
+                maxWidth: "420px",
+              }}
+            >
+
+              <h1
+                style={{
+                  fontSize: "42px",
+                  lineHeight: "1.1",
+                  margin: "0 0 20px",
+                  fontWeight: "800",
+                  letterSpacing:
+                    "-1.5px",
+                }}
+              >
+                Manage your fleet.
+                <br />
+                Move smarter.
+              </h1>
+
+              <p
+                style={{
+                  fontSize: "16px",
+                  lineHeight: "1.7",
+                  opacity: 0.85,
+                  margin: 0,
+                }}
+              >
+                A powerful platform to manage
+                vehicles, drivers, shipments,
+                routes and real-time fleet
+                operations from one place.
+              </p>
+
+            </div>
+
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight font-outfit">
-            FleetFlow
-          </h1>
-          <p className="text-slate-400 mt-1.5 text-sm">
-            Fleet Management & Logistics Tracking Platform
-          </p>
+
+          {/* Features */}
+
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2,
+              marginTop: "50px",
+            }}
+          >
+
+            {[
+              [
+                "✓",
+                "Real-time fleet tracking",
+              ],
+              [
+                "✓",
+                "Driver & vehicle management",
+              ],
+              [
+                "✓",
+                "Analytics and intelligent reports",
+              ],
+            ].map(
+              ([icon, text]) => (
+                <div
+                  key={text}
+                  style={{
+                    display: "flex",
+                    alignItems:
+                      "center",
+                    gap: "12px",
+                    marginBottom:
+                      "16px",
+                    fontSize: "14px",
+                    opacity: 0.92,
+                  }}
+                >
+
+                  <span
+                    style={{
+                      width: "25px",
+                      height: "25px",
+                      borderRadius: "50%",
+                      background:
+                        "rgba(255,255,255,0.14)",
+                      display: "flex",
+                      alignItems:
+                        "center",
+                      justifyContent:
+                        "center",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {icon}
+                  </span>
+
+                  {text}
+
+                </div>
+              )
+            )}
+
+          </div>
+
         </div>
 
-        {/* Login Box */}
-        <div className="glass-panel p-8 rounded-2xl shadow-2xl relative">
-          <h2 className="text-xl font-bold text-white mb-6">Log in to your account</h2>
+        {/* ===================================================
+            RIGHT AUTH SECTION
+        =================================================== */}
 
-          {sessionExpired && (
-            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-xs flex items-center gap-2">
-              <AlertCircle size={16} />
-              <span>Your session has expired. Please log in again.</span>
+        <div
+          style={{
+            padding:
+              "55px 65px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#ffffff",
+          }}
+        >
+
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "400px",
+            }}
+          >
+
+            {/* Header */}
+
+            <div
+              style={{
+                marginBottom: "28px",
+              }}
+            >
+
+              <h2
+                style={{
+                  margin:
+                    "0 0 8px",
+                  fontSize: "30px",
+                  fontWeight: "750",
+                  color: "#0f172a",
+                  letterSpacing:
+                    "-0.8px",
+                }}
+              >
+                {isSignup
+                  ? "Create your account"
+                  : "Welcome back"}
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "14px",
+                  color: "#64748b",
+                }}
+              >
+                {isSignup
+                  ? "Join FleetFlow and manage your fleet smarter."
+                  : "Sign in to continue to your FleetFlow workspace."}
+              </p>
+
             </div>
-          )}
 
-          {error && (
-            <div className="mb-5 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs flex items-center gap-2">
-              <AlertCircle size={16} className="shrink-0" />
-              <span>{error}</span>
+            {/* Login / Signup tabs */}
+
+            <div
+              style={{
+                display: "flex",
+                padding: "4px",
+                background: "#f1f5f9",
+                borderRadius: "10px",
+                marginBottom: "28px",
+              }}
+            >
+
+              <button
+                type="button"
+                onClick={() =>
+                  switchMode(false)
+                }
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "7px",
+                  background:
+                    !isSignup
+                      ? "#ffffff"
+                      : "transparent",
+                  color:
+                    !isSignup
+                      ? "#1d4ed8"
+                      : "#64748b",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  boxShadow:
+                    !isSignup
+                      ? "0 2px 6px rgba(15,23,42,0.08)"
+                      : "none",
+                }}
+              >
+                Sign In
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  switchMode(true)
+                }
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "7px",
+                  background:
+                    isSignup
+                      ? "#ffffff"
+                      : "transparent",
+                  color:
+                    isSignup
+                      ? "#1d4ed8"
+                      : "#64748b",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  boxShadow:
+                    isSignup
+                      ? "0 2px 6px rgba(15,23,42,0.08)"
+                      : "none",
+                }}
+              >
+                Create Account
+              </button>
+
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Mail size={18} />
-                </div>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@fleetflow.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
-                />
+            {/* Message */}
+
+            {message && (
+              <div
+                style={{
+                  padding:
+                    "11px 13px",
+                  borderRadius: "9px",
+                  marginBottom:
+                    "18px",
+                  fontSize: "13px",
+                  lineHeight: "1.4",
+                  background:
+                    messageType ===
+                    "success"
+                      ? "#ecfdf3"
+                      : "#fef2f2",
+                  color:
+                    messageType ===
+                    "success"
+                      ? "#15803d"
+                      : "#dc2626",
+                  border:
+                    messageType ===
+                    "success"
+                      ? "1px solid #bbf7d0"
+                      : "1px solid #fecaca",
+                }}
+              >
+                {message}
               </div>
-            </div>
+            )}
 
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+            {/* =================================================
+                LOGIN
+            ================================================= */}
+
+            {!isSignup ? (
+
+              <form onSubmit={handleLogin}>
+
+                <label style={labelStyle}>
+                  Email Address
+                </label>
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    ✉
+                  </span>
+
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={loginEmail}
+                    onChange={(e) =>
+                      setLoginEmail(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="email"
+                  />
+
+                </div>
+
+                <label style={labelStyle}>
                   Password
                 </label>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <KeyRound size={18} />
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    🔒
+                  </span>
+
+                  <input
+                    type={
+                      showLoginPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Enter your password"
+                    value={loginPassword}
+                    onChange={(e) =>
+                      setLoginPassword(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="current-password"
+                  />
+
+                  <button
+                    type="button"
+                    style={passwordButton}
+                    onClick={() =>
+                      setShowLoginPassword(
+                        !showLoginPassword
+                      )
+                    }
+                  >
+                    {showLoginPassword
+                      ? "◉"
+                      : "◌"}
+                  </button>
+
                 </div>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900/60 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
-                />
-              </div>
+
+                <div
+                  style={{
+                    textAlign: "right",
+                    margin:
+                      "-3px 0 20px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: "#2563eb",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                    onClick={() =>
+                      setMessage(
+                        "Password reset is not configured yet."
+                      )
+                    }
+                  >
+                    Forgot password?
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={primaryButton}
+                >
+                  {loading
+                    ? "Signing in..."
+                    : "Sign In"}
+                </button>
+
+                <div
+                  style={{
+                    textAlign:
+                      "center",
+                    marginTop:
+                      "22px",
+                    fontSize:
+                      "13px",
+                    color:
+                      "#64748b",
+                  }}
+                >
+                  Don't have an account?
+
+                  <span
+                    onClick={() =>
+                      switchMode(true)
+                    }
+                    style={{
+                      marginLeft:
+                        "5px",
+                      color:
+                        "#2563eb",
+                      fontWeight:
+                        "700",
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    Create one
+                  </span>
+                </div>
+
+              </form>
+
+            ) : (
+
+              /* ===============================================
+                 SIGNUP
+              =============================================== */
+
+              <form onSubmit={handleRegister}>
+
+                <label style={labelStyle}>
+                  Full Name
+                </label>
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    👤
+                  </span>
+
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) =>
+                      setFullName(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="name"
+                  />
+
+                </div>
+
+                <label style={labelStyle}>
+                  Email Address
+                </label>
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    ✉
+                  </span>
+
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={signupEmail}
+                    onChange={(e) =>
+                      setSignupEmail(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="email"
+                  />
+
+                </div>
+
+                <label style={labelStyle}>
+                  Password
+                </label>
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    🔒
+                  </span>
+
+                  <input
+                    type={
+                      showSignupPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Create a password"
+                    value={signupPassword}
+                    onChange={(e) =>
+                      setSignupPassword(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="new-password"
+                  />
+
+                  <button
+                    type="button"
+                    style={passwordButton}
+                    onClick={() =>
+                      setShowSignupPassword(
+                        !showSignupPassword
+                      )
+                    }
+                  >
+                    {showSignupPassword
+                      ? "◉"
+                      : "◌"}
+                  </button>
+
+                </div>
+
+                <label style={labelStyle}>
+                  Confirm Password
+                </label>
+
+                <div style={inputWrapper}>
+
+                  <span style={inputIcon}>
+                    🔒
+                  </span>
+
+                  <input
+                    type={
+                      showConfirmPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Confirm your password"
+                    value={
+                      confirmPassword
+                    }
+                    onChange={(e) =>
+                      setConfirmPassword(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                    autoComplete="new-password"
+                  />
+
+                  <button
+                    type="button"
+                    style={passwordButton}
+                    onClick={() =>
+                      setShowConfirmPassword(
+                        !showConfirmPassword
+                      )
+                    }
+                  >
+                    {showConfirmPassword
+                      ? "◉"
+                      : "◌"}
+                  </button>
+
+                </div>
+
+                <label style={labelStyle}>
+                  Account Role
+                </label>
+
+                <div
+                  style={{
+                    position:
+                      "relative",
+                    marginBottom:
+                      "20px",
+                  }}
+                >
+
+                  <span
+                    style={{
+                      ...inputIcon,
+                      zIndex: 1,
+                    }}
+                  >
+                    ◈
+                  </span>
+
+                  <select
+                    value={role}
+                    onChange={(e) =>
+                      setRole(
+                        e.target.value
+                      )
+                    }
+                    style={{
+                      ...inputStyle,
+                      paddingLeft:
+                        "45px",
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    <option value="dispatcher">
+                      Dispatcher
+                    </option>
+
+                    <option value="driver">
+                      Driver
+                    </option>
+
+                    <option value="manager">
+                      Fleet Manager
+                    </option>
+
+                    <option value="admin">
+                      Administrator
+                    </option>
+                  </select>
+
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={primaryButton}
+                >
+                  {loading
+                    ? "Creating account..."
+                    : "Create Account"}
+                </button>
+
+                <div
+                  style={{
+                    textAlign:
+                      "center",
+                    marginTop:
+                      "22px",
+                    fontSize:
+                      "13px",
+                    color:
+                      "#64748b",
+                  }}
+                >
+                  Already have an account?
+
+                  <span
+                    onClick={() =>
+                      switchMode(false)
+                    }
+                    style={{
+                      marginLeft:
+                        "5px",
+                      color:
+                        "#2563eb",
+                      fontWeight:
+                        "700",
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    Sign in
+                  </span>
+                </div>
+
+              </form>
+            )}
+
+            {/* Footer */}
+
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: "30px",
+                paddingTop: "18px",
+                borderTop:
+                  "1px solid #eef2f7",
+                fontSize: "11px",
+                color: "#94a3b8",
+              }}
+            >
+              © 2026 FleetFlow · Fleet Management &
+              Logistics Platform
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-6 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl transition-all shadow-lg shadow-sky-600/10 hover:shadow-sky-600/25 flex items-center justify-center disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
+          </div>
+
         </div>
+
       </div>
+
+      {/* =====================================================
+          RESPONSIVE STYLE
+      ===================================================== */}
+
+      <style>
+        {`
+          @media (max-width: 850px) {
+            .fleetflow-auth-container {
+              grid-template-columns: 1fr !important;
+              max-width: 520px !important;
+            }
+
+            .fleetflow-brand-section {
+              display: none !important;
+            }
+          }
+
+          @media (max-width: 550px) {
+            body {
+              margin: 0;
+            }
+
+            .fleetflow-auth-container {
+              border-radius: 16px !important;
+              min-height: auto !important;
+            }
+
+            input,
+            select,
+            button {
+              font-size: 14px;
+            }
+          }
+        `}
+      </style>
+
     </div>
   );
-};
+}
 
 export default Login;

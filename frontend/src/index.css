@@ -1,45 +1,2255 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+/* =========================================================
+   FLEETFLOW
+   CLEAN GLOBAL CSS
+========================================================= */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 
 body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #0b1329;
-  color: #f1f5f9;
+
+  background: #f4f7fb;
+
+  color: #172033;
+
   overflow-x: hidden;
 }
 
-/* Glassmorphism utility card styling */
-.glass-panel {
-  background: rgba(17, 25, 40, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
-/* Scrollbar customizations */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
+.fleet-layout {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  overflow-x: hidden;
 }
 
-::-webkit-scrollbar-track {
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.fleet-main {
+  min-width: 0;
+  min-height: 100vh;
+
+  margin: 0;
+
+  background: #f4f7fb;
+
+  overflow-x: hidden;
+
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease;
+}
+
+
+/* =========================================================
+   DESKTOP OPEN
+========================================================= */
+
+@media (min-width: 769px) {
+
+  .fleet-layout.sidebar-open .fleet-main {
+    width: calc(100% - 250px);
+
+    margin-left: 250px;
+  }
+
+
+  .fleet-layout.sidebar-closed .fleet-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+.fleet-page-content {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+
+  padding: 0;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.fleet-sidebar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: 250px;
+  height: 100vh;
+
+  margin: 0;
+
+  padding: 0;
+
   background: #0f172a;
+
+  z-index: 3000;
+
+  display: flex;
+
+  flex-direction: column;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  transform: translateX(-100%);
+
+  visibility: hidden;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    transform 0.3s ease,
+    visibility 0.3s ease,
+    opacity 0.2s ease;
+
+  box-shadow:
+    8px 0 25px rgba(15, 23, 42, 0.18);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+
+/* =========================================================
+   SIDEBAR OPEN
+========================================================= */
+
+.fleet-sidebar.fleet-sidebar-open {
+  transform: translateX(0);
+
+  visibility: visible;
+
+  opacity: 1;
+
+  pointer-events: auto;
 }
 
-::-webkit-scrollbar-thumb:hover {
+
+/* =========================================================
+   SIDEBAR CLOSED
+========================================================= */
+
+.fleet-sidebar.fleet-sidebar-closed {
+  transform: translateX(-100%);
+
+  visibility: hidden;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   SIDEBAR LOGO
+========================================================= */
+
+.fleet-logo {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 105px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 18px;
+
+  flex-shrink: 0;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+.fleet-logo-icon {
+  width: 46px;
+  height: 46px;
+
+  min-width: 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-size: 21px;
+}
+
+
+.fleet-logo-text {
+  margin-left: 11px;
+
+  min-width: 0;
+}
+
+
+.fleet-logo-title {
+  color: white;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  line-height: 1.1;
+}
+
+
+.fleet-logo-subtitle {
+  margin-top: 4px;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   X CLOSE BUTTON
+========================================================= */
+
+.fleet-sidebar-close {
+  position: absolute;
+
+  top: 22px;
+
+  right: 12px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: white;
+
+  color: #111827;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  z-index: 10;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.fleet-sidebar-close:hover {
+  background: #f1f5f9;
+
+  transform: scale(1.05);
+}
+
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+========================================================= */
+
+.fleet-navigation {
+  flex: 1;
+
+  min-height: 0;
+
+  padding: 13px 12px;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+}
+
+
+.fleet-navigation::-webkit-scrollbar {
+  width: 5px;
+}
+
+
+.fleet-navigation::-webkit-scrollbar-thumb {
   background: #334155;
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   SIDEBAR LINK
+========================================================= */
+
+.fleet-sidebar-link {
+  width: 100%;
+
+  min-height: 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 14px;
+
+  margin-bottom: 5px;
+
+  border-radius: 9px;
+
+  color: #dbe4f0;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.fleet-sidebar-link svg {
+  width: 19px;
+
+  min-width: 19px;
+
+  font-size: 17px;
+}
+
+
+.fleet-sidebar-link:hover {
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color: white;
+
+  transform: translateX(2px);
+}
+
+
+.fleet-sidebar-active {
+  background: #2563eb;
+
+  color: white;
+
+  box-shadow:
+    0 5px 14px rgba(37, 99, 235, 0.25);
+}
+
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
+.fleet-sidebar-bottom {
+  width: 100%;
+
+  margin-top: auto;
+
+  padding: 14px;
+
+  flex-shrink: 0;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+.fleet-user-card {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px;
+
+  margin-bottom: 10px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+}
+
+
+.fleet-user-avatar {
+  width: 38px;
+  height: 38px;
+
+  min-width: 38px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-weight: 800;
+}
+
+
+.fleet-user-name {
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+.fleet-user-role {
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+
+.fleet-logout {
+  width: 100%;
+
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 0 13px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background:
+    rgba(239, 68, 68, 0.1);
+
+  color: #fca5a5;
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+.fleet-logout:hover {
+  background:
+    rgba(239, 68, 68, 0.18);
+}
+
+
+/* =========================================================
+   OVERLAY
+========================================================= */
+
+.fleet-sidebar-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  margin: 0;
+
+  padding: 0;
+
+  background:
+    rgba(15, 23, 42, 0.55);
+
+  z-index: 2999;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+
+.fleet-layout.sidebar-open
+.fleet-sidebar-overlay {
+  opacity: 1;
+
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+
+/* =========================================================
+   DESKTOP OVERLAY
+========================================================= */
+
+@media (min-width: 769px) {
+
+  .fleet-sidebar-overlay {
+    display: none !important;
+  }
+
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.fleet-navbar {
+  position: sticky;
+
+  top: 0;
+
+  width: 100%;
+
+  min-height: 78px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 10px 24px;
+
+  background: white;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
+  box-shadow:
+    0 2px 10px rgba(15, 23, 42, 0.05);
+
+  z-index: 1000;
+}
+
+
+/* =========================================================
+   NAVBAR LEFT
+========================================================= */
+
+.fleet-navbar-left {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   HAMBURGER
+========================================================= */
+
+.fleet-menu-btn {
+  width: 40px;
+  height: 40px;
+
+  min-width: 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 7px;
+
+  background: white;
+
+  color: #111827;
+
+  cursor: pointer;
+
+  font-size: 19px;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.fleet-menu-btn:hover {
+  background: #f1f5f9;
+
+  border-color: #94a3b8;
+}
+
+
+/* =========================================================
+   NAVBAR BRAND
+========================================================= */
+
+.fleet-navbar-brand {
+  min-width: 0;
+}
+
+
+.fleet-navbar-title {
+  color: #2563eb;
+
+  font-size: 27px;
+
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+
+.fleet-navbar-subtitle {
+  margin-top: 5px;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   NAVBAR RIGHT
+========================================================= */
+
+.fleet-navbar-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-left: auto;
+}
+
+
+.fleet-navbar-time {
+  padding-right: 13px;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+
+  border-right:
+    1px solid #e2e8f0;
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+.fleet-notification-btn {
+  position: relative;
+
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #dbe3ee;
+
+  border-radius: 11px;
+
+  background: white;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  font-size: 18px;
+}
+
+
+.fleet-notification-btn:hover {
+  background: #f8fafc;
+
+  color: #2563eb;
+}
+
+
+.fleet-notification-badge {
+  position: absolute;
+
+  top: -5px;
+
+  right: -5px;
+
+  min-width: 20px;
+
+  height: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 5px;
+
+  border-radius: 50%;
+
+  background: #ef4444;
+
+  color: white;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   NAVBAR USER
+========================================================= */
+
+.fleet-navbar-user {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.fleet-navbar-avatar {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #2563eb;
+
+  font-size: 36px;
+}
+
+
+.fleet-navbar-user-name {
+  color: #172033;
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+.fleet-navbar-user-role {
+  margin-top: 3px;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+
+.fleet-navbar-arrow {
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   DASHBOARD CONTENT
+========================================================= */
+
+.dashboard-content {
+  width: 100%;
+
+  padding: 30px;
+}
+
+
+/* =========================================================
+   DASHBOARD HEADER
+========================================================= */
+
+.dashboard-header {
+  margin-bottom: 25px;
+}
+
+
+.dashboard-header h1 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 32px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.dashboard-header p {
+  margin: 7px 0 0;
+
+  color: #64748b;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   DASHBOARD ACTIONS
+========================================================= */
+
+.dashboard-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 30px;
+}
+
+
+.dashboard-action-btn {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 12px 22px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.12);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.dashboard-action-btn:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 7px 16px rgba(15, 23, 42, 0.18);
+}
+
+
+.action-blue {
+  background: #2563eb;
+}
+
+
+.action-blue:hover {
+  background: #1d4ed8;
+}
+
+
+.action-green {
+  background: #10b981;
+}
+
+
+.action-green:hover {
+  background: #059669;
+}
+
+
+.action-yellow {
+  background: #f59e0b;
+
+  color: #172033;
+}
+
+
+.action-yellow:hover {
+  background: #d97706;
+}
+
+
+/* =========================================================
+   DASHBOARD GRIDS
+========================================================= */
+
+.dashboard-stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 26px;
+
+  margin-bottom: 28px;
+}
+
+
+.dashboard-secondary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 26px;
+
+  margin-bottom: 30px;
+}
+
+
+.dashboard-bottom-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 26px;
+
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   STAT CARDS
+========================================================= */
+
+.dashboard-stat-card {
+  position: relative;
+
+  min-height: 220px;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  color: white;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.14);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+
+.dashboard-stat-card:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 18px 35px rgba(15, 23, 42, 0.2);
+}
+
+
+/* =========================================================
+   CARD COLORS
+========================================================= */
+
+.card-blue {
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #3b82f6
+    );
+}
+
+
+.card-purple {
+  background:
+    linear-gradient(
+      135deg,
+      #6d28d9,
+      #8b5cf6
+    );
+}
+
+
+.card-green {
+  background:
+    linear-gradient(
+      135deg,
+      #059669,
+      #10b981
+    );
+}
+
+
+.card-cyan {
+  background:
+    linear-gradient(
+      135deg,
+      #0891b2,
+      #22c1dc
+    );
+}
+
+
+.card-orange {
+  background:
+    linear-gradient(
+      135deg,
+      #f59e0b,
+      #fbbf24
+    );
+}
+
+
+.card-orange-red {
+  background:
+    linear-gradient(
+      135deg,
+      #f97316,
+      #fb923c
+    );
+}
+
+
+.card-red {
+  background:
+    linear-gradient(
+      135deg,
+      #ef4444,
+      #fb7185
+    );
+}
+
+
+/* =========================================================
+   CARD ICON
+========================================================= */
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.18);
+
+  font-size: 27px;
+
+  backdrop-filter: blur(4px);
+}
+
+
+.stat-watermark {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  font-size: 70px;
+
+  opacity: 0.11;
+
+  transform: rotate(-8deg);
+}
+
+
+/* =========================================================
+   CARD TEXT
+========================================================= */
+
+.stat-title {
+  position: relative;
+
+  z-index: 2;
+
+  margin-bottom: 8px;
+
+  font-size: 16px;
+
+  font-weight: 700;
+}
+
+
+.stat-number {
+  position: relative;
+
+  z-index: 2;
+
+  margin-bottom: 16px;
+
+  font-size: 38px;
+
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+
+.stat-footer {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  font-size: 14px;
+}
+
+
+.stat-footer svg {
+  color: #22c55e;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   DASHBOARD PANELS
+========================================================= */
+
+.dashboard-panel {
+  min-height: 300px;
+
+  padding: 22px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 7px 20px rgba(15, 23, 42, 0.06);
+}
+
+
+.dashboard-panel-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+
+.dashboard-panel-header h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 19px;
+
+  font-weight: 750;
+}
+
+
+.view-all-btn {
+  padding: 7px 12px;
+
+  border: 1px solid #dbe3ef;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #2563eb;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+
+.view-all-btn:hover {
+  background: #eff6ff;
+
+  border-color: #bfdbfe;
+}
+
+
+.overview-select,
+.month-select {
+  padding: 7px 12px;
+
+  border: 1px solid #dbe3ef;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   FLEET OVERVIEW
+========================================================= */
+
+.fleet-overview-content,
+.fleet-overview {
+  min-height: 220px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 45px;
+}
+
+
+/* =========================================================
+   DONUT
+========================================================= */
+
+.fleet-donut,
+.donut-chart {
+  position: relative;
+
+  width: 190px;
+  height: 190px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+}
+
+
+.fleet-donut::before {
+  content: "";
+
+  position: absolute;
+
+  width: 120px;
+  height: 120px;
+
+  background: white;
+
+  border-radius: 50%;
+}
+
+
+.donut-center,
+.donut-inner {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+
+.donut-center span,
+.donut-inner span {
+  margin-bottom: 5px;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+.donut-center strong,
+.donut-inner strong {
+  color: #172033;
+
+  font-size: 26px;
+
+  font-weight: 800;
+}
+
+
+.donut-wrapper {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* =========================================================
+   FLEET LEGEND
+========================================================= */
+
+.fleet-legend,
+.overview-legend {
+  min-width: 190px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+.legend-item,
+.legend-row {
+  display: grid;
+
+  grid-template-columns:
+    12px 1fr auto;
+
+  align-items: center;
+
+  gap: 9px;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+
+.legend-item strong,
+.legend-row strong {
+  color: #475569;
+
+  font-weight: 700;
+}
+
+
+.legend-dot,
+.dot {
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+}
+
+
+.legend-dot.green,
+.dot-green {
+  background: #10b981;
+}
+
+
+.legend-dot.blue,
+.dot-blue {
+  background: #2563eb;
+}
+
+
+.legend-dot.orange,
+.dot-orange {
+  background: #f59e0b;
+}
+
+
+.legend-dot.red,
+.dot-red {
+  background: #ef4444;
+}
+
+
+.legend-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+/* =========================================================
+   RECENT ACTIVITIES
+========================================================= */
+
+.dashboard-panel .recent-activities {
+  width: 100%;
+}
+
+
+.activities-container {
+  width: 100%;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .dashboard-stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .dashboard-secondary-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL DESKTOP / TABLET
+========================================================= */
+
+@media (max-width: 992px) {
+
+  .dashboard-content {
+    padding: 24px 20px 35px;
+  }
+
+
+  .dashboard-header h1 {
+    font-size: 28px;
+  }
+
+
+  .fleet-navbar {
+    padding-left: 20px;
+
+    padding-right: 20px;
+  }
+
+
+  .fleet-navbar-right {
+    gap: 12px;
+  }
+
+
+  .fleet-navbar-time {
+    padding-right: 12px;
+  }
+
+
+  .fleet-overview-content,
+  .fleet-overview {
+    gap: 25px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+
+  /* =========================================
+     MAIN
+  ========================================= */
+
+  .fleet-main {
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    min-height: 100vh;
+  }
+
+
+  /* =========================================
+     SIDEBAR
+     
+     IMPORTANT:
+     It overlays the page.
+     It does NOT reserve space.
+  ========================================= */
+
+  .fleet-sidebar {
+    width: 280px;
+
+    max-width: 85vw;
+
+    height: 100vh;
+
+    top: 0;
+
+    left: 0;
+
+    transform:
+      translateX(-100%);
+
+    transition:
+      transform 0.3s ease,
+      visibility 0.3s ease,
+      opacity 0.2s ease;
+
+    z-index: 3000;
+  }
+
+
+  .fleet-sidebar.fleet-sidebar-open {
+    transform:
+      translateX(0);
+  }
+
+
+  .fleet-sidebar.fleet-sidebar-closed {
+    transform:
+      translateX(-100%);
+  }
+
+
+  /* =========================================
+     NAVBAR
+  ========================================= */
+
+  .fleet-navbar {
+    width: 100%;
+
+    min-height: 68px;
+
+    padding: 10px 14px;
+
+    gap: 10px;
+  }
+
+
+  /* =========================================
+     HAMBURGER
+  ========================================= */
+
+  .fleet-menu-btn {
+    display: flex;
+
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+
+    align-items: center;
+
+    justify-content: center;
+  }
+
+
+  /* =========================================
+     BRAND
+  ========================================= */
+
+  .fleet-navbar-brand {
+    min-width: 0;
+
+    flex: 1;
+  }
+
+
+  .fleet-navbar-title {
+    font-size: 21px;
+  }
+
+
+  .fleet-navbar-subtitle {
+    display: none;
+  }
+
+
+  /* =========================================
+     RIGHT
+  ========================================= */
+
+  .fleet-navbar-right {
+    gap: 8px;
+
+    margin-left: auto;
+  }
+
+
+  .fleet-navbar-time {
+    display: none;
+  }
+
+
+  .fleet-navbar-user-name,
+  .fleet-navbar-user-role,
+  .fleet-navbar-arrow {
+    display: none;
+  }
+
+
+  .fleet-navbar-avatar {
+    width: 40px;
+    height: 40px;
+
+    font-size: 28px;
+  }
+
+
+  .fleet-notification-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+
+  /* =========================================
+     PAGE
+  ========================================= */
+
+  .dashboard-content {
+    width: 100%;
+
+    padding: 20px 15px 30px;
+  }
+
+
+  .dashboard-header h1 {
+    font-size: 25px;
+  }
+
+
+  .dashboard-header p {
+    font-size: 14px;
+  }
+
+
+  .dashboard-actions {
+    flex-wrap: wrap;
+  }
+
+
+  .dashboard-action-btn {
+    padding: 10px 16px;
+  }
+
+
+  .dashboard-stats-grid,
+  .dashboard-secondary-grid,
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .fleet-overview-content,
+  .fleet-overview {
+    flex-direction: column;
+
+    gap: 25px;
+  }
+
+
+  .fleet-legend,
+  .overview-legend {
+    width: 100%;
+
+    min-width: 0;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .fleet-sidebar {
+    width: 280px;
+
+    max-width: 88vw;
+  }
+
+
+  .fleet-navbar {
+    padding:
+      9px 10px;
+  }
+
+
+  .fleet-menu-btn {
+    width: 38px;
+
+    height: 38px;
+
+    min-width: 38px;
+  }
+
+
+  .fleet-navbar-title {
+    font-size: 19px;
+  }
+
+
+  .fleet-notification-btn {
+    width: 38px;
+
+    height: 38px;
+  }
+
+
+  .fleet-navbar-avatar {
+    width: 38px;
+
+    height: 38px;
+
+    font-size: 27px;
+  }
+
+
+  .dashboard-content {
+    padding:
+      16px 12px 25px;
+  }
+
+
+  .dashboard-header h1 {
+    font-size: 22px;
+  }
+
+
+  .dashboard-stat-card {
+    min-height: 200px;
+
+    padding: 21px;
+  }
+
+
+  .stat-number {
+    font-size: 34px;
+  }
+
+
+  .dashboard-action-btn {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .fleet-sidebar {
+    width: 270px;
+
+    max-width: 88vw;
+  }
+
+
+  .fleet-navbar-title {
+    font-size: 18px;
+  }
+
+
+  .fleet-navbar-right {
+    gap: 5px;
+  }
+
+
+  .dashboard-content {
+    padding-left: 10px;
+
+    padding-right: 10px;
+  }
+
+}
+
+/* =========================================================
+   FINAL SIDEBAR CONTROL
+   DO NOT PUT ANY SIDEBAR CSS AFTER THIS
+========================================================= */
+
+
+/* =========================================================
+   MAIN - BASE
+========================================================= */
+
+.fleet-layout .fleet-main {
+  min-height: 100vh !important;
+  min-width: 0 !important;
+
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease !important;
+}
+
+
+/* =========================================================
+   DESKTOP OPEN
+========================================================= */
+
+@media (min-width: 769px) {
+
+  /* -----------------------------------------
+     SIDEBAR OPEN
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop.sidebar-open
+  .fleet-sidebar.fleet-sidebar-open {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 250px !important;
+    height: 100vh !important;
+
+    transform: translateX(0) !important;
+
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    pointer-events: auto !important;
+
+    z-index: 3000 !important;
+  }
+
+
+  /* -----------------------------------------
+     SIDEBAR CLOSED
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop.sidebar-closed
+  .fleet-sidebar.fleet-sidebar-closed {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 250px !important;
+    height: 100vh !important;
+
+    transform: translateX(-110%) !important;
+
+    visibility: hidden !important;
+    opacity: 0 !important;
+
+    pointer-events: none !important;
+
+    z-index: 3000 !important;
+  }
+
+
+  /* -----------------------------------------
+     MAIN OPEN
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop.sidebar-open
+  .fleet-main {
+
+    width: calc(100% - 250px) !important;
+
+    margin-left: 250px !important;
+
+    padding-left: 0 !important;
+  }
+
+
+  /* -----------------------------------------
+     MAIN CLOSED
+     
+     ZERO LEFT GAP
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop.sidebar-closed
+  .fleet-main {
+
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding-left: 0 !important;
+  }
+
+
+  /* -----------------------------------------
+     ☰ ALWAYS VISIBLE
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop
+  .fleet-menu-btn {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 42px !important;
+    height: 42px !important;
+
+    cursor: pointer !important;
+  }
+
+
+  /* -----------------------------------------
+     X ALWAYS VISIBLE WHEN SIDEBAR EXISTS
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop
+  .fleet-sidebar-close {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+  }
+
+
+  /* -----------------------------------------
+     NO DESKTOP OVERLAY
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-desktop
+  .fleet-sidebar-overlay {
+
+    display: none !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  /* -----------------------------------------
+     MAIN
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile
+  .fleet-main {
+
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding-left: 0 !important;
+
+    min-height: 100vh !important;
+  }
+
+
+  /* -----------------------------------------
+     SIDEBAR OPEN
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile.sidebar-open
+  .fleet-sidebar.fleet-sidebar-open {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 280px !important;
+    max-width: 85vw !important;
+
+    height: 100vh !important;
+
+    transform: translateX(0) !important;
+
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    pointer-events: auto !important;
+
+    z-index: 3000 !important;
+  }
+
+
+  /* -----------------------------------------
+     SIDEBAR CLOSED
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile.sidebar-closed
+  .fleet-sidebar.fleet-sidebar-closed {
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 280px !important;
+
+    height: 100vh !important;
+
+    transform: translateX(-110%) !important;
+
+    visibility: hidden !important;
+    opacity: 0 !important;
+
+    pointer-events: none !important;
+
+    z-index: 3000 !important;
+  }
+
+
+  /* -----------------------------------------
+     ☰
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile
+  .fleet-menu-btn {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 42px !important;
+    height: 42px !important;
+
+    cursor: pointer !important;
+
+    z-index: 3100 !important;
+  }
+
+
+  /* -----------------------------------------
+     X
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile
+  .fleet-sidebar-close {
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 36px !important;
+    height: 36px !important;
+
+    cursor: pointer !important;
+
+    z-index: 3101 !important;
+  }
+
+
+  /* -----------------------------------------
+     OVERLAY
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile.sidebar-open
+  .fleet-sidebar-overlay {
+
+    display: block !important;
+
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    background:
+      rgba(15, 23, 42, 0.55) !important;
+
+    opacity: 1 !important;
+
+    visibility: visible !important;
+
+    pointer-events: auto !important;
+
+    z-index: 2999 !important;
+  }
+
+
+  /* -----------------------------------------
+     OVERLAY CLOSED
+  ----------------------------------------- */
+
+  .fleet-layout.fleet-mobile.sidebar-closed
+  .fleet-sidebar-overlay {
+
+    display: none !important;
+
+    opacity: 0 !important;
+
+    visibility: hidden !important;
+
+    pointer-events: none !important;
+  }
+
+}
+/* =====================================================
+   SHIPMENT MODAL
+===================================================== */
+
+.shipment-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    background: rgba(15, 23, 42, 0.65);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    overflow-y: auto;
+}
+
+.shipment-modal-overlay .modal-dialog {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+}
+
+.shipment-modal-overlay .modal-content {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }

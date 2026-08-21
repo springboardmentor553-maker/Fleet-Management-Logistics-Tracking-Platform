@@ -1,11 +1,8 @@
 node_modules
 dist
+.vite
 .git
 .gitignore
-.env
-.env.local
-.env.development
-.env.production
+Dockerfile
+.dockerignore
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
