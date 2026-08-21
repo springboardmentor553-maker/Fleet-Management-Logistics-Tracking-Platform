@@ -12,6 +12,7 @@ from app.schemas.trip import TripCreate, TripUpdate
 from app.enums.trip_status import TripStatus
 from app.enums.shipment_status import ShipmentStatus
 from app.services.shipment import get_shipment_by_id
+from app.services.maps import geocode_address
 
 
 def create_trip(
@@ -19,6 +20,7 @@ def create_trip(
     trip: TripCreate
 ):
 
+    # Find shipment
     shipment = (
         db.query(Shipment)
         .filter(Shipment.id == trip.shipment_id)
@@ -28,28 +30,71 @@ def create_trip(
     if not shipment:
         raise ValueError("Shipment not found")
 
-    driver = (
-        db.query(Driver)
-        .filter(Driver.id == trip.driver_id)
-        .first()
-    )
+    # Shipment must have a vehicle
+    if shipment.vehicle_id is None:
+        raise ValueError(
+            "Shipment does not have an assigned vehicle"
+        )
 
-    if not driver:
-        raise ValueError("Driver not found")
-
+    # Get the vehicle assigned to the shipment
     vehicle = (
         db.query(Vehicle)
-        .filter(Vehicle.id == trip.vehicle_id)
+        .filter(Vehicle.id == shipment.vehicle_id)
         .first()
     )
 
     if not vehicle:
-        raise ValueError("Vehicle not found")
+        raise ValueError(
+            "Shipment vehicle not found"
+        )
 
+    # Vehicle must be active
+    if not vehicle.is_active:
+        raise ValueError(
+            "Vehicle is inactive"
+        )
+
+    # Vehicle must be available
+    if vehicle.current_status != "Available":
+        raise ValueError(
+            "Vehicle is not available"
+        )
+
+    # Vehicle must have a driver
+    if vehicle.driver_id is None:
+        raise ValueError(
+            "Vehicle does not have an assigned driver"
+        )
+
+    # Get the driver assigned to the vehicle
+    driver = (
+        db.query(Driver)
+        .filter(Driver.id == vehicle.driver_id)
+        .first()
+    )
+
+    if not driver:
+        raise ValueError(
+            "Vehicle driver not found"
+        )
+
+    # Driver must be active
+    if not driver.is_active:
+        raise ValueError(
+            "Driver is inactive"
+        )
+
+    # Driver must be available
+    if driver.status != "Available":
+        raise ValueError(
+            "Driver is not available"
+        )
+
+    # Check whether driver already has an active trip
     active_driver_trip = (
         db.query(Trip)
         .filter(
-            Trip.driver_id == trip.driver_id,
+            Trip.driver_id == driver.id,
             Trip.trip_status.in_([
                 TripStatus.SCHEDULED.value,
                 TripStatus.STARTED.value,
@@ -64,10 +109,11 @@ def create_trip(
             "Driver is already assigned to an active trip"
         )
 
+    # Check whether vehicle already has an active trip
     active_vehicle_trip = (
         db.query(Trip)
         .filter(
-            Trip.vehicle_id == trip.vehicle_id,
+            Trip.vehicle_id == vehicle.id,
             Trip.trip_status.in_([
                 TripStatus.SCHEDULED.value,
                 TripStatus.STARTED.value,
@@ -82,10 +128,12 @@ def create_trip(
             "Vehicle is already assigned to an active trip"
         )
 
+    # Create trip using the vehicle and driver
+    # associated with the shipment
     db_trip = Trip(
-        shipment_id=trip.shipment_id,
-        driver_id=trip.driver_id,
-        vehicle_id=trip.vehicle_id,
+        shipment_id=shipment.id,
+        driver_id=driver.id,
+        vehicle_id=vehicle.id,
         pickup_location=trip.pickup_location,
         delivery_location=trip.delivery_location,
         scheduled_start_time=trip.scheduled_start_time,
@@ -132,15 +180,20 @@ def update_trip(
 
         if key == "trip_status":
 
+            # -----------------------------------------
+            # SCHEDULED
+            # -----------------------------------------
             if value == TripStatus.SCHEDULED:
+
                 db_trip.shipment.current_status = (
                     ShipmentStatus.ASSIGNED.value
                 )
 
-            elif value in (
-                TripStatus.STARTED,
-                TripStatus.IN_PROGRESS
-            ):
+            # -----------------------------------------
+            # STARTED
+            # -----------------------------------------
+            elif value == TripStatus.STARTED:
+
                 shipment = get_shipment_by_id(
                     db,
                     db_trip.shipment_id
@@ -150,13 +203,74 @@ def update_trip(
                     ShipmentStatus.IN_TRANSIT.value
                 )
 
-                if value == TripStatus.STARTED:
-                    db_trip.started_at = func.now()
+                # Initialize vehicle position at pickup
+                # when the trip actually starts.
+                try:
+                    pickup_coordinates = geocode_address(
+                        db_trip.pickup_location
+                    )
 
+                    # ORS returns [longitude, latitude]
+                    db_trip.vehicle.current_longitude = (
+                        pickup_coordinates[0]
+                    )
+
+                    db_trip.vehicle.current_latitude = (
+                        pickup_coordinates[1]
+                    )
+
+                except Exception as error:
+                    raise ValueError(
+                        f"Unable to determine vehicle "
+                        f"starting location: {error}"
+                    )
+
+                db_trip.started_at = func.now()
+
+            # -----------------------------------------
+            # IN PROGRESS
+            # -----------------------------------------
+            elif value == TripStatus.IN_PROGRESS:
+
+                shipment = get_shipment_by_id(
+                    db,
+                    db_trip.shipment_id
+                )
+
+                shipment.current_status = (
+                    ShipmentStatus.IN_TRANSIT.value
+                )
+
+            # -----------------------------------------
+            # COMPLETED
+            # -----------------------------------------
             elif value == TripStatus.COMPLETED:
+
                 db_trip.shipment.current_status = (
                     ShipmentStatus.DELIVERED.value
                 )
+
+                # Move the vehicle to the destination
+                # when the trip is completed.
+                try:
+                    destination_coordinates = geocode_address(
+                        db_trip.delivery_location
+                    )
+
+                    # ORS returns [longitude, latitude]
+                    db_trip.vehicle.current_longitude = (
+                        destination_coordinates[0]
+                    )
+
+                    db_trip.vehicle.current_latitude = (
+                        destination_coordinates[1]
+                    )
+
+                except Exception as error:
+                    raise ValueError(
+                        f"Unable to determine vehicle "
+                        f"destination location: {error}"
+                    )
 
                 db_trip.completed_at = func.now()
 
@@ -175,10 +289,17 @@ def update_trip(
                 if assignment:
                     assignment.assignment_status = "Completed"
 
+            # -----------------------------------------
+            # CANCELLED
+            # -----------------------------------------
             elif value == TripStatus.CANCELLED:
+
                 db_trip.shipment.current_status = (
                     ShipmentStatus.CANCELLED.value
                 )
+
+                # Do NOT change the vehicle's location.
+                # It remains at its last known position.
 
                 db_trip.driver.status = "Available"
                 db_trip.vehicle.current_status = "Available"
@@ -197,7 +318,11 @@ def update_trip(
 
             value = value.value
 
-        setattr(db_trip, key, value)
+        setattr(
+            db_trip,
+            key,
+            value
+        )
 
     db.commit()
     db.refresh(db_trip)
@@ -210,7 +335,10 @@ def delete_trip(
     trip_id: int
 ):
 
-    db_trip = get_trip_by_id(db, trip_id)
+    db_trip = get_trip_by_id(
+        db,
+        trip_id
+    )
 
     if not db_trip:
         return None

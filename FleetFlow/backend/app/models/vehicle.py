@@ -4,17 +4,24 @@ from sqlalchemy import (
     String,
     Boolean,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    Float
 )
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.database import Base
+
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     driver_id = Column(
         Integer,
@@ -22,19 +29,52 @@ class Vehicle(Base):
         unique=True,
         nullable=True
     )
-    registration_number = Column(String, unique=True, nullable=False)
 
-    vehicle_type = Column(String, nullable=False)
+    registration_number = Column(
+        String,
+        unique=True,
+        nullable=False
+    )
 
-    capacity = Column(Integer, nullable=False)
+    vehicle_type = Column(
+        String,
+        nullable=False
+    )
 
-    fuel_type = Column(String, nullable=False)
+    capacity = Column(
+        Integer,
+        nullable=False
+    )
 
-    current_status = Column(String, default="Available")
+    fuel_type = Column(
+        String,
+        nullable=False
+    )
 
-    is_active = Column(Boolean, default=True)
+    current_status = Column(
+        String,
+        default="Available"
+    )
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    current_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    current_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    is_active = Column(
+        Boolean,
+        default=True
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
 
     driver = relationship(
         "Driver",
@@ -47,12 +87,11 @@ class Vehicle(Base):
     )
 
     trips = relationship(
-      "Trip",
+        "Trip",
         back_populates="vehicle"
     )
 
     maintenance_records = relationship(
-    "Maintenance",
-    back_populates="vehicle"
+        "Maintenance",
+        back_populates="vehicle"
     )
-    

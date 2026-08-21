@@ -2,3 +2,9 @@ from .user import User
 from .driver import Driver
 from .vehicle import Vehicle
 from .shipment import Shipment
+from .trip import Trip
+from .driver_assignment import DriverAssignment
+from .driver_attendance import DriverAttendance
+from .maintenance import Maintenance
+from .maintenance_alert import MaintenanceAlert
+from .fuel_record import FuelRecord

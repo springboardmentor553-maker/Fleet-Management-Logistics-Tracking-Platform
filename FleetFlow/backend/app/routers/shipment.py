@@ -27,7 +27,17 @@ def create_new_shipment(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_admin),
 ):
-    return shipment_service.create_shipment(db, shipment)
+    try:
+        return shipment_service.create_shipment(
+            db,
+            shipment
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 @router.get("/", response_model=list[ShipmentResponse])
 def get_shipments(
@@ -106,19 +116,26 @@ def update_shipment(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_admin),
 ):
-    updated = shipment_service.update_shipment(
-        db,
-        shipment_id,
-        shipment
-    )
-
-    if updated is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Shipment not found"
+    try:
+        updated = shipment_service.update_shipment(
+            db,
+            shipment_id,
+            shipment
         )
 
-    return updated
+        if updated is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Shipment not found"
+            )
+
+        return updated
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 @router.delete("/{shipment_id}")
 def delete_shipment(

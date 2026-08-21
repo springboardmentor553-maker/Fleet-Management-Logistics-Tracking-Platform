@@ -12,7 +12,7 @@ class Driver(Base):
         Integer,
         ForeignKey("users.id"),
         unique=True,
-        nullable=False
+        nullable=True
     )
 
     name = Column(String, nullable=False)

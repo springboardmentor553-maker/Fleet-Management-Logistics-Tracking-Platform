@@ -34,9 +34,14 @@ def create_new_vehicle(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_admin)
 ):
+    try:
+        return create_vehicle(db, vehicle)
 
-    return create_vehicle(db, vehicle)
-
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 @router.get("/", response_model=list[VehicleResponse])
 def read_vehicles(
@@ -76,21 +81,26 @@ def update_existing_vehicle(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_admin)
 ):
-
-    updated_vehicle = update_vehicle(
-        db,
-        vehicle_id,
-        vehicle
-    )
-
-    if updated_vehicle is None:
-
-        raise HTTPException(
-            status_code=404,
-            detail="Vehicle not found"
+    try:
+        updated_vehicle = update_vehicle(
+            db,
+            vehicle_id,
+            vehicle
         )
 
-    return updated_vehicle
+        if updated_vehicle is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Vehicle not found"
+            )
+
+        return updated_vehicle
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 
 @router.delete("/{vehicle_id}")

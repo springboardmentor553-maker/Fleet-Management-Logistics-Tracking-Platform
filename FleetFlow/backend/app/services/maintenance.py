@@ -134,22 +134,3 @@ def update_maintenance(
     db.refresh(db_maintenance)
 
     return db_maintenance
-
-
-def delete_maintenance(
-    db: Session,
-    maintenance_id: int
-):
-
-    db_maintenance = get_maintenance_by_id(
-        db,
-        maintenance_id
-    )
-
-    if not db_maintenance:
-        return None
-
-    db.delete(db_maintenance)
-    db.commit()
-
-    return db_maintenance

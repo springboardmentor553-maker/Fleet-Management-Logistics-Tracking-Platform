@@ -9,11 +9,11 @@ class DriverBase(BaseModel):
     status: str = "Available"
 
 class DriverCreate(DriverBase):
-    user_id: int
+    user_id: int | None = None
 
 class DriverResponse(DriverBase):  
     id: int
-    user_id: int
+    user_id: int | None = None
     is_active: bool
     created_at: datetime
 

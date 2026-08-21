@@ -5,8 +5,6 @@ from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.models.trip import Trip
 
-from app.enums.trip_status import TripStatus
-
 from app.schemas.driver_assignment import (
     DriverAssignmentCreate,
     DriverAssignmentUpdate
@@ -39,6 +37,9 @@ def create_assignment(
     if not vehicle:
         raise ValueError("Vehicle not found")
 
+    if not vehicle.is_active:
+        raise ValueError("Vehicle is inactive")
+
     if vehicle.current_status != "Available":
         raise ValueError("Vehicle is not available")
 
@@ -51,7 +52,9 @@ def create_assignment(
     if not trip:
         raise ValueError("Trip not found")
 
-    active_assignment = (
+    # Check whether this driver already has
+    # another active assignment.
+    active_driver_assignment = (
         db.query(DriverAssignment)
         .filter(
             DriverAssignment.driver_id == assignment.driver_id,
@@ -60,9 +63,40 @@ def create_assignment(
         .first()
     )
 
-    if active_assignment:
+    if active_driver_assignment:
         raise ValueError(
             "Driver already has an active assignment"
+        )
+
+    # Check whether this vehicle already has
+    # another active assignment.
+    active_vehicle_assignment = (
+        db.query(DriverAssignment)
+        .filter(
+            DriverAssignment.vehicle_id == assignment.vehicle_id,
+            DriverAssignment.assignment_status == "Active"
+        )
+        .first()
+    )
+
+    if active_vehicle_assignment:
+        raise ValueError(
+            "Vehicle already has an active assignment"
+        )
+
+    # Check whether this trip is already assigned.
+    active_trip_assignment = (
+        db.query(DriverAssignment)
+        .filter(
+            DriverAssignment.trip_id == assignment.trip_id,
+            DriverAssignment.assignment_status == "Active"
+        )
+        .first()
+    )
+
+    if active_trip_assignment:
+        raise ValueError(
+            "Trip already has an active assignment"
         )
 
     db_assignment = DriverAssignment(
@@ -75,7 +109,7 @@ def create_assignment(
 
     db.add(db_assignment)
 
-    # Driver and vehicle become assigned
+    # Driver and vehicle become assigned.
     driver.status = "Assigned"
     vehicle.current_status = "Assigned"
 
@@ -121,7 +155,30 @@ def update_assignment(
         exclude_unset=True
     )
 
+    # Prevent changing an assignment to a trip
+    # that already has another active assignment.
+    if (
+        "trip_id" in update_data
+        and update_data["trip_id"] != db_assignment.trip_id
+    ):
+
+        active_trip_assignment = (
+            db.query(DriverAssignment)
+            .filter(
+                DriverAssignment.trip_id == update_data["trip_id"],
+                DriverAssignment.assignment_status == "Active",
+                DriverAssignment.id != assignment_id
+            )
+            .first()
+        )
+
+        if active_trip_assignment:
+            raise ValueError(
+                "Trip already has an active assignment"
+            )
+
     for key, value in update_data.items():
+
         setattr(
             db_assignment,
             key,
