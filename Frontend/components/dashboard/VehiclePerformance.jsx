@@ -20,7 +20,7 @@ function VehiclePerformance() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/dashboard/vehicle-performance")
+      .get("https://fleetflow-backend-90o5.onrender.com/dashboard/vehicle-performance")
       .then((response) => {
         setVehicleData(response.data);
         setLoading(false);

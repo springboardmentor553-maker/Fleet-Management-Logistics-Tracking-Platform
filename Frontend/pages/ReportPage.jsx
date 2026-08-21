@@ -8,7 +8,7 @@ export default function ReportPage() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/reports/summary")
+      .get("https://fleetflow-backend-90o5.onrender.com/reports/summary")
       .then((res) => setReport(res.data))
       .catch((err) => console.error(err));
   }, []);
@@ -16,7 +16,7 @@ export default function ReportPage() {
   const downloadReport = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:8000/reports/overall",
+        "https://fleetflow-backend-90o5.onrender.com/reports/overall",
         {
           responseType: "blob",
         }

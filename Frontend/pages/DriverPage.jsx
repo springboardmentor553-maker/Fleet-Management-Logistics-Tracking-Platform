@@ -20,7 +20,7 @@ export default function DriverPage() {
 
   useEffect(() => {
   axios
-    .get("http://127.0.0.1:8000/drivers/")
+    .get("https://fleetflow-backend-90o5.onrender.com/drivers/")
     .then((response) => {
       console.log(response.data);   // Add this
       setDrivers(response.data.drivers);

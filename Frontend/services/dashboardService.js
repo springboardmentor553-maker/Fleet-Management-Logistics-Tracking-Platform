@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://127.0.0.1:8000";
+const API = "https://fleetflow-backend-90o5.onrender.com";
 
 export const getDashboard = async () => {
   const token = localStorage.getItem("token");

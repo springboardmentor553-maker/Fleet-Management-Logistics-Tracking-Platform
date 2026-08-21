@@ -20,7 +20,7 @@ function ShipmentPerformance() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/dashboard/shipment-performance")
+      .get("https://fleetflow-backend-90o5.onrender.com/dashboard/shipment-performance")
       .then((response) => {
         setShipments(response.data);
         setLoading(false);

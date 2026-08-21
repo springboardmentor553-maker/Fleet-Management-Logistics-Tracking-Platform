@@ -20,7 +20,7 @@ function DriverPerformance() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/dashboard/driver-performance")
+      .get("https://fleetflow-backend-90o5.onrender.com/dashboard/driver-performance")
       .then((response) => {
         setDrivers(response.data);
         setLoading(false);

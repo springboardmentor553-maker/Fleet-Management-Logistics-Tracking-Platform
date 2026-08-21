@@ -15,7 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const API_URL = "http://127.0.0.1:8000/driver-assignments";
+const API_URL = "https://fleetflow-backend-90o5.onrender.com/driver-assignments";
 
 function DriverAssignmentPage() {
 

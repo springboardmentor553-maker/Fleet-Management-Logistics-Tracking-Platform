@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 
 
 const API_URL =
-"http://127.0.0.1:8000/analytics";
+"https://fleetflow-backend-90o5.onrender.com/analytics";
 
 
 

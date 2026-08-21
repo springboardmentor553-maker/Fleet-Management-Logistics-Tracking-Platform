@@ -17,7 +17,7 @@ import {
     ResponsiveContainer
 } from "recharts";
 const BASE_URL =
-"http://127.0.0.1:8000/dashboard";
+"https://fleetflow-backend-90o5.onrender.com/dashboard";
 
 
 

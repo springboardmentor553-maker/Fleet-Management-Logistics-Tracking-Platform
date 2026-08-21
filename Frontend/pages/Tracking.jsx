@@ -10,7 +10,7 @@ function Tracking() {
 
   useEffect(() => {
     const socket = new WebSocket(
-      "ws://127.0.0.1:8000/ws/tracking/1"
+      "wss://fleetflow-backend-90o5.onrender.com/ws/tracking/1"
     );
 
     socket.onmessage = (event) => {
