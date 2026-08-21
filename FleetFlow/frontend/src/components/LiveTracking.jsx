@@ -17,11 +17,22 @@ const vehicleIcon = L.divIcon({
   iconAnchor: [18, 18],
 });
 
+function isValidCoordinate(latitude, longitude) {
+  return (
+    Number.isFinite(Number(latitude)) &&
+    Number.isFinite(Number(longitude))
+  );
+}
+
 function MapUpdater({ position }) {
   const map = useMap();
 
   useEffect(() => {
-    if (position) {
+    if (
+      Array.isArray(position) &&
+      position.length === 2 &&
+      isValidCoordinate(position[0], position[1])
+    ) {
       map.setView(position, map.getZoom());
     }
   }, [position, map]);
@@ -39,7 +50,10 @@ function LiveTracking({ tripId, onClose }) {
   useEffect(() => {
     if (!tripId) return;
 
-    const wsUrl = import.meta.env.VITE_API_URL.replace(/^http/, "ws");
+    const wsUrl = import.meta.env.VITE_API_URL.replace(
+      /^http/,
+      "ws"
+    );
 
     const socket = new WebSocket(
       `${wsUrl}/ws/tracking/${tripId}`
@@ -60,7 +74,16 @@ function LiveTracking({ tripId, onClose }) {
         }
 
         if (data.type === "route") {
-          setRoute(data.route || []);
+          const validRoute = Array.isArray(data.route)
+            ? data.route.filter(
+                (point) =>
+                  Array.isArray(point) &&
+                  point.length === 2 &&
+                  isValidCoordinate(point[0], point[1])
+              )
+            : [];
+
+          setRoute(validRoute);
 
           setRouteInfo({
             distance_km: data.distance_km,
@@ -68,20 +91,32 @@ function LiveTracking({ tripId, onClose }) {
             eta: data.eta,
           });
 
-          // Start the marker at the beginning of the route.
-          if (data.route?.length > 0) {
+          if (validRoute.length > 0) {
             setLocation({
-              latitude: data.route[0][0],
-              longitude: data.route[0][1],
+              latitude: Number(validRoute[0][0]),
+              longitude: Number(validRoute[0][1]),
               shipment_status: null,
             });
           }
         }
 
         if (data.type === "location") {
+          if (
+            !isValidCoordinate(
+              data.latitude,
+              data.longitude
+            )
+          ) {
+            console.warn(
+              "Ignoring invalid tracking coordinates:",
+              data
+            );
+            return;
+          }
+
           setLocation({
-            latitude: data.latitude,
-            longitude: data.longitude,
+            latitude: Number(data.latitude),
+            longitude: Number(data.longitude),
             shipment_status: data.shipment_status,
           });
         }
@@ -104,11 +139,23 @@ function LiveTracking({ tripId, onClose }) {
     };
   }, [tripId]);
 
-  const position = location
-    ? [location.latitude, location.longitude]
-    : route.length > 0
-      ? route[0]
-      : [12.9352, 77.6245];
+  const position =
+    location &&
+    isValidCoordinate(
+      location.latitude,
+      location.longitude
+    )
+      ? [
+          Number(location.latitude),
+          Number(location.longitude),
+        ]
+      : route.length > 0 &&
+          isValidCoordinate(route[0][0], route[0][1])
+        ? [
+            Number(route[0][0]),
+            Number(route[0][1]),
+          ]
+        : [12.9352, 77.6245];
 
   return (
     <div className="live-tracking-panel">
@@ -146,7 +193,6 @@ function LiveTracking({ tripId, onClose }) {
             width: "100%",
           }}
         >
-
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -174,10 +220,10 @@ function LiveTracking({ tripId, onClose }) {
               Trip #{tripId}
               <br />
               Status:{" "}
-              {location?.shipment_status || "Tracking"}
+              {location?.shipment_status ||
+                "Tracking"}
             </Popup>
           </Marker>
-
         </MapContainer>
       </div>
 
@@ -215,7 +261,9 @@ function LiveTracking({ tripId, onClose }) {
           <div className="tracking-item">
             <span>ETA</span>
             <strong>
-              {new Date(routeInfo.eta).toLocaleTimeString()}
+              {new Date(
+                routeInfo.eta
+              ).toLocaleTimeString()}
             </strong>
           </div>
 
@@ -248,7 +296,7 @@ function LiveTracking({ tripId, onClose }) {
               ? location.longitude
               : "Waiting..."}
           </strong>
-        </div>
+          </div>
 
       </div>
 

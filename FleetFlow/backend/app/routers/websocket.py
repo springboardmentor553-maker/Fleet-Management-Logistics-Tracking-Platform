@@ -59,7 +59,7 @@ async def tracking_websocket(
         current_longitude = vehicle.current_longitude
 
         # -------------------------------------------------
-        # Send route + current vehicle position
+        # Get shipment status
         # -------------------------------------------------
         shipment_status = None
 
@@ -68,6 +68,23 @@ async def tracking_websocket(
                 trip.shipment.current_status
             )
 
+        # -------------------------------------------------
+        # If there is no stored vehicle position,
+        # use the beginning of the planned route.
+        # -------------------------------------------------
+        if (
+            (
+                current_latitude is None
+                or current_longitude is None
+            )
+            and route_coordinates
+        ):
+            current_latitude = route_coordinates[0][0]
+            current_longitude = route_coordinates[0][1]
+
+        # -------------------------------------------------
+        # Send route + current vehicle position
+        # -------------------------------------------------
         await websocket.send_json({
             "trip_id": trip_id,
             "type": "route",
@@ -90,15 +107,19 @@ async def tracking_websocket(
             "Cancelled"
         ):
 
-            # Send the current position once.
-            await websocket.send_json({
-                "trip_id": trip_id,
-                "type": "location",
-                "latitude": current_latitude,
-                "longitude": current_longitude,
-                "shipment_status": shipment_status,
-                "trip_status": trip.trip_status
-            })
+            # Send the current position only if valid.
+            if (
+                current_latitude is not None
+                and current_longitude is not None
+            ):
+                await websocket.send_json({
+                    "trip_id": trip_id,
+                    "type": "location",
+                    "latitude": current_latitude,
+                    "longitude": current_longitude,
+                    "shipment_status": shipment_status,
+                    "trip_status": trip.trip_status
+                })
 
             # Keep the connection alive while the user
             # views the map, but DO NOT move the vehicle.
