@@ -66,14 +66,76 @@
   box-shadow: 0 12px 25px rgba(99,102,241,.35);
 }
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.login-page .field input {
-  background: rgba(255,255,255,.08);
+.login-page .field input,
+.login-page .field select {
+  background: rgba(255, 255, 255, .08);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(255, 255, 255, .18);
   color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.login-page .field select option {
+  background: #1e293b;
+  color: #f1f5f9;
 }
 .login-page .field input::placeholder { color: #cbd5e1; }
+
+.auth-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.auth-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.auth-tab.active {
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+.form-success {
+  color: #4ade80;
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 8px;
+}
+.auth-footer-toggle {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: #818cf8;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 13px;
+}
+.link-btn:hover {
+  color: #a5b4fc;
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(40px); }
