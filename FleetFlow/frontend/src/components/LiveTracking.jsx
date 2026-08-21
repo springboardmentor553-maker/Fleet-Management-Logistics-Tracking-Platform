@@ -39,8 +39,10 @@ function LiveTracking({ tripId, onClose }) {
   useEffect(() => {
     if (!tripId) return;
 
+    const wsUrl = import.meta.env.VITE_API_URL.replace(/^http/, "ws");
+
     const socket = new WebSocket(
-      `ws://127.0.0.1:8000/ws/tracking/${tripId}`
+      `${wsUrl}/ws/tracking/${tripId}`
     );
 
     socket.onopen = () => {

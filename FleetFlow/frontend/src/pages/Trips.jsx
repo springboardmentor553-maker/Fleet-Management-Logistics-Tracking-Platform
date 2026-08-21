@@ -1103,12 +1103,8 @@ function Trips() {
                   </span>
 
                   <strong>
-                    {Math.floor(
-                      etaData.estimated_duration_minutes /
-                      60
-                    )}h{" "}
-                    {etaData.estimated_duration_minutes %
-                      60}m
+                    {Math.floor(etaData.estimated_duration_minutes / 60)}h{" "}
+                    {Math.round(etaData.estimated_duration_minutes % 60)}m
                   </strong>
 
                 </div>
