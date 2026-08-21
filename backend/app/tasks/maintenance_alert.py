@@ -7,42 +7,47 @@ from app.models.maintenance import Maintenance
 from app.models.maintenance_alert import MaintenanceAlert
 
 
-# Reminder period: 7 days
+# Reminder period required by the existing
+# maintenance-alert workflow.
 REMINDER_DAYS = 7
 
 
 @celery_app.task
 def check_maintenance_schedules():
-
     db = SessionLocal()
 
     try:
         today = datetime.utcnow().date()
-        reminder_date = today + timedelta(days=REMINDER_DAYS)
+        reminder_date = (
+            today + timedelta(days=REMINDER_DAYS)
+        )
 
-        maintenance_records = db.query(Maintenance).all()
+        maintenance_records = (
+            db.query(Maintenance).all()
+        )
+
+        created_count = 0
 
         for maintenance in maintenance_records:
+            service_date = (
+                maintenance.next_service_date.date()
+            )
 
-            service_date = maintenance.next_service_date.date()
-
-            # Check whether service is due within
-            # the configured reminder period
+            # Create an alert when maintenance is due
+            # today or within the next seven days.
             if today <= service_date <= reminder_date:
-
-                # Check for an existing pending alert
                 existing_alert = (
                     db.query(MaintenanceAlert)
                     .filter(
                         MaintenanceAlert.maintenance_id
                         == maintenance.id,
                         MaintenanceAlert.alert_status
-                        == "Pending"
+                        == "Pending",
                     )
                     .first()
                 )
 
-                # Do not create duplicate pending alerts
+                # Prevent duplicate pending alerts.
                 if existing_alert:
                     continue
 
@@ -59,8 +64,14 @@ def check_maintenance_schedules():
                 )
 
                 db.add(alert)
+                created_count += 1
 
         db.commit()
+
+        return {
+            "status": "completed",
+            "alerts_created": created_count,
+        }
 
     finally:
         db.close()

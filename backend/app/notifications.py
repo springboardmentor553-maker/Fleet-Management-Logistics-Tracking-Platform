@@ -4,6 +4,8 @@ from fastapi import (
     HTTPException,
 )
 
+from pydantic import BaseModel
+
 from sqlalchemy.orm import Session
 
 from app.dependencies import (
@@ -12,10 +14,34 @@ from app.dependencies import (
 )
 
 from app.models.user import User
-from app.models.notification import Notification
+
+from app.models.notification import (
+    Notification,
+)
+
+from app.models.notification_subscription import (
+    NotificationSubscription,
+)
+
+import os
 
 
 router = APIRouter()
+
+
+# ============================================================
+# PUSH SUBSCRIPTION SCHEMA
+# ============================================================
+
+class PushSubscriptionRequest(
+    BaseModel
+):
+
+    endpoint: str
+
+    p256dh: str
+
+    auth: str
 
 
 # ============================================================
@@ -264,4 +290,171 @@ def mark_all_notifications_read(
     return {
         "message":
             "All notifications marked as read."
+    }
+
+
+# ============================================================
+# PUSH VAPID PUBLIC KEY
+# ============================================================
+
+@router.get(
+    "/push/vapid-public-key"
+)
+def get_vapid_public_key():
+
+    public_key = os.getenv(
+        "VAPID_PUBLIC_KEY",
+        "",
+    )
+
+    return {
+        "public_key":
+            public_key
+    }
+
+
+# ============================================================
+# REGISTER PUSH SUBSCRIPTION
+# ============================================================
+
+@router.post(
+    "/push/subscribe"
+)
+def subscribe_to_push(
+
+    subscription:
+        PushSubscriptionRequest,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
+):
+
+    existing = (
+
+        db.query(
+            NotificationSubscription
+        )
+
+        .filter(
+            NotificationSubscription.endpoint
+            ==
+            subscription.endpoint
+        )
+
+        .first()
+
+    )
+
+
+    if existing:
+
+        existing.user_id = (
+            current_user.id
+        )
+
+        existing.p256dh = (
+            subscription.p256dh
+        )
+
+        existing.auth = (
+            subscription.auth
+        )
+
+    else:
+
+        new_subscription = (
+            NotificationSubscription(
+
+                user_id=
+                    current_user.id,
+
+                endpoint=
+                    subscription.endpoint,
+
+                p256dh=
+                    subscription.p256dh,
+
+                auth=
+                    subscription.auth,
+
+            )
+        )
+
+        db.add(
+            new_subscription
+        )
+
+
+    db.commit()
+
+
+    return {
+        "message":
+            "Push notifications enabled."
+    }
+
+
+# ============================================================
+# REMOVE PUSH SUBSCRIPTION
+# ============================================================
+
+@router.delete(
+    "/push/subscribe"
+)
+def unsubscribe_from_push(
+
+    subscription:
+        PushSubscriptionRequest,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
+):
+
+    existing = (
+
+        db.query(
+            NotificationSubscription
+        )
+
+        .filter(
+
+            NotificationSubscription.endpoint
+            ==
+            subscription.endpoint,
+
+            NotificationSubscription.user_id
+            ==
+            current_user.id,
+
+        )
+
+        .first()
+
+    )
+
+
+    if existing:
+
+        db.delete(
+            existing
+        )
+
+        db.commit()
+
+
+    return {
+        "message":
+            "Push notifications disabled."
     }

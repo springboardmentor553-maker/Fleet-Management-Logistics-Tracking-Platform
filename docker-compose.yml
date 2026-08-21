@@ -1,0 +1,269 @@
+services:
+
+  # ==========================================================
+  # POSTGRESQL
+  # ==========================================================
+
+  postgres:
+    image: postgres:16-alpine
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fleetflow_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fleetflow_db}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    restart: unless-stopped
+
+
+  # ==========================================================
+  # REDIS
+  # ==========================================================
+
+  redis:
+    image: redis:7-alpine
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+    restart: unless-stopped
+
+
+  # ==========================================================
+  # FASTAPI BACKEND
+  # ==========================================================
+
+  backend:
+    build:
+      context: ./backend
+
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      ]
+
+    environment:
+
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+
+      SECRET_KEY: ${SECRET_KEY}
+
+      ALGORITHM: ${ALGORITHM:-HS256}
+
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+
+      REDIS_URL: redis://redis:6379/0
+
+      EMAIL_NOTIFICATIONS_ENABLED: ${EMAIL_NOTIFICATIONS_ENABLED:-false}
+
+      SMTP_HOST: ${SMTP_HOST:-}
+
+      SMTP_PORT: ${SMTP_PORT:-587}
+
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+
+      SMS_NOTIFICATIONS_ENABLED: ${SMS_NOTIFICATIONS_ENABLED:-false}
+
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-}
+
+      PUSH_NOTIFICATIONS_ENABLED: ${PUSH_NOTIFICATIONS_ENABLED:-false}
+
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+
+      VAPID_CLAIMS_EMAIL: ${VAPID_CLAIMS_EMAIL:-mailto:admin@fleetflow.local}
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "8000:8000"
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+    restart: unless-stopped
+
+
+  # ==========================================================
+  # CELERY WORKER
+  # ==========================================================
+
+  celery_worker:
+    build:
+      context: ./backend
+
+    command:
+      [
+        "celery",
+        "-A",
+        "celery_app.celery_app",
+        "worker",
+        "--loglevel=info"
+      ]
+
+    environment:
+
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+
+      SECRET_KEY: ${SECRET_KEY}
+
+      ALGORITHM: ${ALGORITHM:-HS256}
+
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # ==========================================================
+  # CELERY BEAT
+  # ==========================================================
+
+  celery_beat:
+    build:
+      context: ./backend
+
+    command:
+      [
+        "celery",
+        "-A",
+        "celery_app.celery_app",
+        "beat",
+        "--loglevel=info"
+      ]
+
+    environment:
+
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fleetflow_db}
+
+      SECRET_KEY: ${SECRET_KEY}
+
+      ALGORITHM: ${ALGORITHM:-HS256}
+
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+
+      REDIS_URL: redis://redis:6379/0
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # ==========================================================
+  # REACT FRONTEND
+  # ==========================================================
+
+  frontend:
+    build:
+      context: ./frontend
+
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+
+        VITE_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+
+    depends_on:
+
+      backend:
+        condition: service_healthy
+
+    ports:
+      - "5173:80"
+
+    restart: unless-stopped
+
+
+# ============================================================
+# PERSISTENT VOLUMES
+# ============================================================
+
+volumes:
+
+  postgres_data:
+
+  redis_data:

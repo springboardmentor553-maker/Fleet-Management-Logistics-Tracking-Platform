@@ -1,13 +1,32 @@
-from sqlalchemy import event, inspect
+from sqlalchemy import (
+    event,
+    inspect,
+)
+
 from sqlalchemy.orm import Session
+
+from app.database import SessionLocal
 
 from app.models.user import User
 from app.models.driver import Driver
 from app.models.vehicle import Vehicle
 from app.models.shipment import Shipment
 from app.models.trip import Trip
-from app.models.driver_assignment import DriverAssignment
-from app.models.notification import Notification
+from app.models.driver_assignment import (
+    DriverAssignment
+)
+from app.models.notification import (
+    Notification
+)
+from app.models.notification_subscription import (
+    NotificationSubscription
+)
+
+from app.notification_channels import (
+    send_email_notification,
+    send_sms_notification,
+    send_push_notification,
+)
 
 
 def normalize(value):
@@ -35,6 +54,7 @@ def get_driver_user(
     )
 
     if not driver:
+
         return None
 
 
@@ -44,22 +64,41 @@ def get_driver_user(
 
 
     driver_users = (
-        session.query(User)
-        .filter(
-            User.role == "driver"
+
+        session.query(
+            User
         )
+
+        .filter(
+            User.role
+            ==
+            "driver"
+        )
+
         .all()
+
     )
 
 
     return next(
+
         (
+
             user
-            for user in driver_users
-            if normalize(user.name)
-            == driver_name
+
+            for user
+            in driver_users
+
+            if normalize(
+                user.name
+            )
+            ==
+            driver_name
+
         ),
+
         None,
+
     )
 
 
@@ -72,8 +111,13 @@ def get_operational_users(
 ):
 
     return (
-        session.query(User)
+
+        session.query(
+            User
+        )
+
         .filter(
+
             User.role.in_(
                 [
                     "admin",
@@ -81,8 +125,45 @@ def get_operational_users(
                     "dispatcher",
                 ]
             )
+
         )
+
         .all()
+
+    )
+
+
+# ============================================================
+# QUEUE EXTERNAL DELIVERY
+# ============================================================
+
+def queue_external_delivery(
+    session,
+    user_id,
+    title,
+    message,
+):
+
+    deliveries = session.info.setdefault(
+        "notification_deliveries",
+        [],
+    )
+
+
+    deliveries.append(
+
+        {
+            "user_id":
+                user_id,
+
+            "title":
+                title,
+
+            "message":
+                message,
+
+        }
+
     )
 
 
@@ -101,17 +182,22 @@ def add_notification(
 ):
 
     if not user_id:
+
         return
 
 
     session.add(
+
         Notification(
 
-            user_id=user_id,
+            user_id=
+                user_id,
 
-            title=title,
+            title=
+                title,
 
-            message=message,
+            message=
+                message,
 
             notification_type=
                 notification_type,
@@ -125,6 +211,20 @@ def add_notification(
             is_read=False,
 
         )
+
+    )
+
+
+    queue_external_delivery(
+
+        session,
+
+        user_id,
+
+        title,
+
+        message,
+
     )
 
 
@@ -148,7 +248,9 @@ def notify_driver_and_operations(
     )
 
 
-    # Driver notification
+    # --------------------------------------------------------
+    # DRIVER
+    # --------------------------------------------------------
 
     if driver_user:
 
@@ -171,7 +273,9 @@ def notify_driver_and_operations(
         )
 
 
-    # Admin / Fleet Manager / Dispatcher
+    # --------------------------------------------------------
+    # ADMIN / FLEET MANAGER / DISPATCHER
+    # --------------------------------------------------------
 
     for user in get_operational_users(
         session
@@ -507,3 +611,203 @@ def create_business_notifications(
         session.info[
             "creating_notifications"
         ] = False
+
+
+# ============================================================
+# EXTERNAL NOTIFICATIONS AFTER COMMIT
+# ============================================================
+
+@event.listens_for(
+    Session,
+    "after_commit",
+)
+def send_external_notifications(
+    session,
+):
+
+    deliveries = session.info.pop(
+        "notification_deliveries",
+        [],
+    )
+
+
+    if not deliveries:
+
+        return
+
+
+    db = SessionLocal()
+
+
+    try:
+
+        for delivery in deliveries:
+
+            user = db.get(
+                User,
+                delivery["user_id"],
+            )
+
+
+            if not user:
+
+                continue
+
+
+            title = delivery[
+                "title"
+            ]
+
+            message = delivery[
+                "message"
+            ]
+
+
+            # =================================================
+            # EMAIL
+            # =================================================
+
+            send_email_notification(
+
+                user.email,
+
+                title,
+
+                message,
+
+            )
+
+
+            # =================================================
+            # SMS
+            # =================================================
+
+            driver = None
+
+            if user.role == "driver":
+
+                driver_users = (
+
+                    db.query(
+                        Driver
+                    )
+
+                    .all()
+
+                )
+
+
+                driver = next(
+
+                    (
+
+                        item
+
+                        for item
+                        in driver_users
+
+                        if normalize(
+                            item.name
+                        )
+                        ==
+                        normalize(
+                            user.name
+                        )
+
+                    ),
+
+                    None,
+
+                )
+
+
+            if driver and driver.phone:
+
+                send_sms_notification(
+
+                    driver.phone,
+
+                    title,
+
+                    message,
+
+                )
+
+
+            # =================================================
+            # PUSH
+            # =================================================
+
+            subscriptions = (
+
+                db.query(
+                    NotificationSubscription
+                )
+
+                .filter(
+
+                    NotificationSubscription.user_id
+                    ==
+                    user.id
+
+                )
+
+                .all()
+
+            )
+
+
+            expired_ids = []
+
+
+            for subscription in subscriptions:
+
+                result = send_push_notification(
+
+                    subscription,
+
+                    title,
+
+                    message,
+
+                )
+
+
+                if result == "expired":
+
+                    expired_ids.append(
+                        subscription.id
+                    )
+
+
+            if expired_ids:
+
+                (
+
+                    db.query(
+                        NotificationSubscription
+                    )
+
+                    .filter(
+                        NotificationSubscription.id.in_(
+                            expired_ids
+                        )
+                    )
+
+                    .delete(
+                        synchronize_session=False
+                    )
+
+                )
+
+
+        db.commit()
+
+
+    except Exception:
+
+        db.rollback()
+
+    finally:
+
+        db.close()

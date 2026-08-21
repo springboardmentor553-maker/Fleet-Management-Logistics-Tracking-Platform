@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -20,7 +20,7 @@ import {
 
 
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
 });
 
 
@@ -1297,7 +1297,7 @@ function Reports() {
             title="Most Frequent Category"
             value={
               report.mostFrequentMaintenanceCategory ||
-              "—"
+              "â€”"
             }
             icon={FiBarChart2}
             iconClass="text-purple-400"
@@ -1570,7 +1570,7 @@ function Reports() {
               title="Best Performing Driver"
               value={
                 report.bestPerformingDriver ||
-                "—"
+                "â€”"
               }
               icon={FiUsers}
               iconClass="text-purple-400"
@@ -1793,7 +1793,7 @@ function Reports() {
               </h1>
 
               <p className="text-gray-400 mt-1">
-                Fleet · Fuel · Drivers · Deliveries · Maintenance
+                Fleet Â· Fuel Â· Drivers Â· Deliveries Â· Maintenance
               </p>
 
             </div>

@@ -1,30 +1,4 @@
-import axios from "axios";
-
-
-const API = axios.create({
-
-  baseURL:
-    "http://127.0.0.1:8000",
-
-});
-
-
-const getAuthHeaders = () => {
-
-  const token =
-    localStorage.getItem(
-      "token"
-    );
-
-
-  return {
-
-    Authorization:
-      `Bearer ${token}`,
-
-  };
-
-};
+import API from "./api";
 
 
 // ============================================================
@@ -36,16 +10,8 @@ export const getNotifications =
 
     const response =
       await API.get(
-
-        "/notifications/",
-
-        {
-          headers:
-            getAuthHeaders(),
-        }
-
+        "/notifications/"
       );
-
 
     return response.data;
 
@@ -61,16 +27,8 @@ export const getUnreadNotificationCount =
 
     const response =
       await API.get(
-
-        "/notifications/unread-count",
-
-        {
-          headers:
-            getAuthHeaders(),
-        }
-
+        "/notifications/unread-count"
       );
-
 
     return response.data.count || 0;
 
@@ -86,18 +44,8 @@ export const markNotificationRead =
 
     const response =
       await API.put(
-
-        `/notifications/${id}/read`,
-
-        {},
-
-        {
-          headers:
-            getAuthHeaders(),
-        }
-
+        `/notifications/${id}/read`
       );
-
 
     return response.data;
 
@@ -113,18 +61,8 @@ export const markAllNotificationsRead =
 
     const response =
       await API.put(
-
-        "/notifications/read-all",
-
-        {},
-
-        {
-          headers:
-            getAuthHeaders(),
-        }
-
+        "/notifications/read-all"
       );
-
 
     return response.data;
 

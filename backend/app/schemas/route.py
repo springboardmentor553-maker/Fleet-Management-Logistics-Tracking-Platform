@@ -8,3 +8,4 @@ class RouteResponse(BaseModel):
     estimated_travel_time: str
     route_summary: str
     polyline: str | None = None
+    route_type: str = "fastest"

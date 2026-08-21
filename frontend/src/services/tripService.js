@@ -15,7 +15,10 @@ export const getTrips = async () => {
 // ==========================================
 
 export const getTrip = async (tripId) => {
-  const response = await API.get(`/trips/${tripId}`);
+  const response = await API.get(
+    `/trips/${tripId}`
+  );
+
   return response.data;
 };
 
@@ -68,9 +71,17 @@ export const deleteTrip = async (tripId) => {
 // GET ROUTE INFORMATION
 // ==========================================
 
-export const getTripRoute = async (tripId) => {
+export const getTripRoute = async (
+  tripId,
+  routeType = "fastest"
+) => {
   const response = await API.get(
-    `/trips/${tripId}/route`
+    `/trips/${tripId}/route`,
+    {
+      params: {
+        route_type: routeType,
+      },
+    }
   );
 
   return response.data;

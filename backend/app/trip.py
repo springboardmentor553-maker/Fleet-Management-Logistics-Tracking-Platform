@@ -338,6 +338,7 @@ def delete_trip(
 @router.get("/{trip_id}/route", response_model=RouteResponse)
 def get_trip_route(
     trip_id: int,
+    route_type: str = "fastest",
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
@@ -379,6 +380,7 @@ def get_trip_route(
         trip.pickup_longitude,
         trip.destination_latitude,
         trip.destination_longitude,
+        route_type=route_type,
     )
 
     eta = calculate_eta(
@@ -400,6 +402,10 @@ def get_trip_route(
             "No route summary available",
         ),
         "polyline": route.get("polyline"),
+        "route_type": route.get(
+            "route_type",
+            route_type,
+        ),
     }
 
 
@@ -409,6 +415,7 @@ def get_trip_route(
 @router.get("/{trip_id}/eta")
 def get_trip_eta(
     trip_id: int,
+    route_type: str = "fastest",
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_role(
@@ -435,6 +442,7 @@ def get_trip_eta(
         trip.pickup_longitude,
         trip.destination_latitude,
         trip.destination_longitude,
+        route_type=route_type,
     )
 
     eta = calculate_eta(

@@ -22,6 +22,7 @@ import LiveTrackingMap from "../components/LiveTrackingMap";
 function RoutesPage() {
   const [trips, setTrips] = useState([]);
   const [selectedTripId, setSelectedTripId] = useState("");
+  const [routeType, setRouteType] = useState("fastest");
 
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [route, setRoute] = useState(null);
@@ -67,7 +68,10 @@ function RoutesPage() {
   // LOAD ROUTE
   // ==========================================
 
-  const loadRoute = async (tripId) => {
+  const loadRoute = async (
+    tripId,
+    selectedRouteType = routeType
+  ) => {
     if (!tripId) {
       return;
     }
@@ -84,7 +88,10 @@ function RoutesPage() {
       setSelectedTrip(trip || null);
 
       const routeData =
-        await getTripRoute(tripId);
+        await getTripRoute(
+          tripId,
+          selectedRouteType
+        );
 
       setRoute(routeData);
     } catch (err) {
@@ -138,7 +145,10 @@ function RoutesPage() {
       return;
     }
 
-    await loadRoute(selectedTripId);
+    await loadRoute(
+      selectedTripId,
+      routeType
+    );
   };
 
   // ==========================================
@@ -355,6 +365,68 @@ function RoutesPage() {
                   </option>
                 ))
               )}
+            </select>
+          </div>
+
+          <div className="flex-1">
+            <label
+              className="
+                block
+                text-sm
+                font-medium
+                text-slate-300
+                mb-2
+              "
+            >
+              Route Type
+            </label>
+
+            <select
+              value={routeType}
+              onChange={async (event) => {
+                const value = event.target.value;
+
+                setRouteType(value);
+
+                if (selectedTripId) {
+                  await loadRoute(
+                    selectedTripId,
+                    value
+                  );
+                }
+              }}
+              disabled={
+                loadingTrips ||
+                !selectedTripId
+              }
+              className="
+                w-full
+                bg-slate-800
+                border
+                border-slate-700
+                text-white
+                rounded-xl
+                px-4
+                py-3
+                outline-none
+                focus:border-blue-500
+              "
+            >
+              <option value="fastest">
+                Fastest Route
+              </option>
+
+              <option value="shortest">
+                Shortest Route
+              </option>
+
+              <option value="traffic_avoidance">
+                Traffic Avoidance
+              </option>
+
+              <option value="fuel_efficient">
+                Fuel Efficient Route
+              </option>
             </select>
           </div>
 
