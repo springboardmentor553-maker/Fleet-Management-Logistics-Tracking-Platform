@@ -162,7 +162,7 @@ function FollowVehicle({ position }) {
 
 function LiveTracking() {
 
-  const [tripId, setTripId] = useState("15");
+  const [tripId, setTripId] = useState("1");
 
   const [vehicle, setVehicle] = useState(null);
 
