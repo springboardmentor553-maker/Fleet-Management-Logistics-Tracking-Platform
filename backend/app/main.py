@@ -59,3 +59,4 @@ def home():
     return {
         "message": "FleetFlow Backend Running Successfully"
     }
+# WebSocket tracking enabled
