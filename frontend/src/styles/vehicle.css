@@ -1,71 +1,338 @@
 .vehicle-page{
-    margin-left:240px;
-    margin-top:80px;
-    padding:30px;
-    background:#f5f7fb;
-    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:25px;
+
 }
 
-.vehicle-page h2{
-    margin-bottom:20px;
+/* ---------------- Header ---------------- */
+
+.page-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
 }
+
+.page-header h1{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    font-size:32px;
+
+    color:#1F2937;
+
+}
+
+.page-header p{
+
+    margin-top:6px;
+
+    color:#6B7280;
+
+}
+
+/* ---------------- Search ---------------- */
+
+.search-box{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    background:white;
+
+    padding:14px 18px;
+
+    border-radius:14px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+
+}
+
+.search-box svg{
+
+    color:#2563EB;
+
+    font-size:18px;
+
+}
+
+.search-box input{
+
+    width:100%;
+
+    border:none;
+
+    outline:none;
+
+    font-size:15px;
+
+    background:transparent;
+
+}
+
+/* ---------------- Form ---------------- */
 
 .vehicle-form{
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-    margin-bottom:30px;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:18px;
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+
 }
 
 .vehicle-form input,
 .vehicle-form select{
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:6px;
+
+    padding:13px;
+
+    border:1px solid #D1D5DB;
+
+    border-radius:10px;
+
     font-size:15px;
+
+    transition:.3s;
+
+}
+
+.vehicle-form input:focus,
+.vehicle-form select:focus{
+
+    border-color:#2563EB;
+
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+
+    outline:none;
+
 }
 
 .vehicle-form button{
-    background:#2563eb;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#2563EB;
+
     color:white;
+
     border:none;
-    border-radius:6px;
+
+    border-radius:10px;
+
+    font-size:15px;
+
+    font-weight:600;
+
     cursor:pointer;
-    padding:10px;
+
+    transition:.3s;
+
 }
 
 .vehicle-form button:hover{
-    background:#1d4ed8;
+
+    background:#1D4ED8;
+
+    transform:translateY(-2px);
+
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
+/* ---------------- Table ---------------- */
+
+.table-container{
+
     background:white;
-    box-shadow:0 3px 8px rgba(0,0,0,.1);
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+
+}
+table{
+
+    width:100%;
+
+    min-width:1400px;
+
+    border-collapse:collapse;
+
 }
 
-th,
-td{
-    padding:12px;
-    text-align:center;
-    border-bottom:1px solid #ddd;
+thead{
+
+    background:#2563EB;
+
 }
 
 th{
-    background:#2563eb;
+
     color:white;
+
+    padding:16px;
+
+    text-align:center;
+
+    font-weight:600;
+
 }
 
-.delete-btn{
-    background:#dc2626;
+td{
+
+    padding:16px;
+
+    text-align:center;
+
+    border-bottom:1px solid #E5E7EB;
+
+}
+
+tbody tr{
+
+    transition:.25s;
+
+}
+
+tbody tr:hover{
+
+    background:#F9FAFB;
+
+}
+
+/* ---------------- Status ---------------- */
+
+.status{
+
+    padding:8px 14px;
+
+    border-radius:30px;
+
     color:white;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.status.Available{
+
+    background:#10B981;
+
+}
+
+.status.OnTrip{
+
+    background:#3B82F6;
+
+}
+
+.status.Maintenance{
+
+    background:#EF4444;
+
+}
+
+/* ---------------- Delete Button ---------------- */
+
+.delete-btn{
+
+    width:42px;
+
+    height:42px;
+
     border:none;
-    padding:8px 12px;
-    border-radius:5px;
+
+    border-radius:10px;
+
+    background:#EF4444;
+
+    color:white;
+
     cursor:pointer;
+
+    transition:.3s;
+
 }
 
 .delete-btn:hover{
-    background:#b91c1c;
+
+    background:#DC2626;
+
+    transform:scale(1.08);
+
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media(max-width:768px){
+
+    .vehicle-form{
+
+        grid-template-columns:1fr;
+
+    }
+
+    table{
+
+        font-size:13px;
+
+    }
+
+    th,
+    td{
+
+        padding:10px;
+
+    }
+
+}
+.status.available {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.assigned {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status.in-transit {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status.maintenance {
+    background: #fee2e2;
+    color: #b91c1c;
 }

@@ -1,36 +1,60 @@
-import axios from "axios";
+import API from "../api/axios";
 
-const API = "http://127.0.0.1:8000/drivers";
-
-const getHeaders = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-});
+// ==========================================
+// GET ALL DRIVERS
+// ==========================================
 
 export const getDrivers = async () => {
-    const response = await axios.get(API, getHeaders());
+    const response = await API.get("/drivers/");
     return response.data;
 };
 
-export const addDriver = async (driver) => {
-    const response = await axios.post(API + "/", driver, getHeaders());
+// ==========================================
+// GET DRIVER BY ID
+// ==========================================
+
+export const getDriver = async (driverId) => {
+    const response = await API.get(`/drivers/${driverId}`);
     return response.data;
 };
 
-export const updateDriver = async (id, driver) => {
-    const response = await axios.put(
-        `${API}/${id}`,
-        driver,
-        getHeaders()
+// ==========================================
+// ADD DRIVER
+// ==========================================
+
+export const addDriver = async (driverData) => {
+    const response = await API.post(
+        "/drivers/",
+        driverData
     );
+
     return response.data;
 };
 
-export const deleteDriver = async (id) => {
-    const response = await axios.delete(
-        `${API}/${id}`,
-        getHeaders()
+// ==========================================
+// UPDATE DRIVER
+// ==========================================
+
+export const updateDriver = async (
+    driverId,
+    driverData
+) => {
+    const response = await API.put(
+        `/drivers/${driverId}`,
+        driverData
     );
+
+    return response.data;
+};
+
+// ==========================================
+// DELETE DRIVER
+// ==========================================
+
+export const deleteDriver = async (driverId) => {
+    const response = await API.delete(
+        `/drivers/${driverId}`
+    );
+
     return response.data;
 };

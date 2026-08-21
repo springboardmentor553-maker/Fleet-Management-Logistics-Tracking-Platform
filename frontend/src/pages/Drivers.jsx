@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import {
+    FaUsers,
+    FaSearch,
+    FaPlus,
+    FaTrash
+} from "react-icons/fa";
+
 import Layout from "../components/Layout";
 
 import {
@@ -12,6 +19,8 @@ import "../styles/driver.css";
 function Drivers() {
 
     const [drivers, setDrivers] = useState([]);
+
+    const [search, setSearch] = useState("");
 
     const [form, setForm] = useState({
         name: "",
@@ -64,13 +73,50 @@ function Drivers() {
         loadDrivers();
     };
 
+    const filteredDrivers = drivers.filter(driver =>
+        driver.name.toLowerCase().includes(search.toLowerCase()) ||
+        driver.license_number.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
 
         <Layout>
 
             <div className="driver-page">
 
-                <h2>Driver Management</h2>
+                <div className="page-header">
+
+                    <div>
+
+                        <h1>
+
+                            <FaUsers />
+
+                            Driver Management
+
+                        </h1>
+
+                        <p>
+                            Manage all fleet drivers
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div className="search-box">
+
+                    <FaSearch />
+
+                    <input
+                        placeholder="Search driver..."
+                        value={search}
+                        onChange={(e) =>
+                            setSearch(e.target.value)
+                        }
+                    />
+
+                </div>
 
                 <form
                     className="driver-form"
@@ -115,70 +161,100 @@ function Drivers() {
                         value={form.status}
                         onChange={handleChange}
                     >
+
                         <option>Available</option>
                         <option>On Trip</option>
                         <option>Leave</option>
+
                     </select>
 
                     <button type="submit">
+
+                        <FaPlus />
+
                         Add Driver
+
                     </button>
 
                 </form>
 
-                <table>
+                <div className="table-container">
 
-                    <thead>
+                    <table>
 
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>License</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
+                        <thead>
 
-                    </thead>
+                            <tr>
 
-                    <tbody>
-
-                        {drivers.map(driver => (
-
-                            <tr key={driver.id}>
-
-                                <td>{driver.id}</td>
-                                <td>{driver.name}</td>
-                                <td>{driver.license_number}</td>
-                                <td>{driver.phone}</td>
-                                <td>{driver.email}</td>
-                                <td>{driver.status}</td>
-
-                                <td>
-
-                                    <button
-                                        className="delete-btn"
-                                        onClick={() => handleDelete(driver.id)}
-                                    >
-                                        Delete
-                                    </button>
-
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>License</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Action</th>
 
                             </tr>
 
-                        ))}
+                        </thead>
 
-                    </tbody>
+                        <tbody>
 
-                </table>
+                            {filteredDrivers.map(driver => (
+
+                                <tr key={driver.id}>
+
+                                    <td>{driver.id}</td>
+
+                                    <td>{driver.name}</td>
+
+                                    <td>{driver.license_number}</td>
+
+                                    <td>{driver.phone}</td>
+
+                                    <td>{driver.email}</td>
+
+                                    <td>
+
+                                        <span
+                                            className={`status ${driver.status.replace(/\s/g, "")}`}
+                                        >
+                                            {driver.status}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() =>
+                                                handleDelete(driver.id)
+                                            }
+                                        >
+
+                                            <FaTrash />
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
         </Layout>
 
     );
+
 }
 
 export default Drivers;

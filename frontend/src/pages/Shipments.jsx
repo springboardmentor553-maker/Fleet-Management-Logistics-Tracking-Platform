@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+    FaBoxOpen,
+    FaSearch,
+    FaPlus,
+    FaTrash,
+    FaTruck
+} from "react-icons/fa";
+
 import Layout from "../components/Layout";
 
 import {
@@ -13,6 +21,9 @@ import "../styles/shipment.css";
 function Shipments() {
 
     const [shipments, setShipments] = useState([]);
+    const [search, setSearch] = useState("");
+    const [trackingId, setTrackingId] = useState("");
+    const [trackingResult, setTrackingResult] = useState(null);
 
     const [form, setForm] = useState({
         tracking_id: "",
@@ -21,11 +32,8 @@ function Shipments() {
         origin: "",
         destination: "",
         current_location: "Warehouse",
-        status: "Pending"
+        status: "Created"
     });
-
-    const [trackingId, setTrackingId] = useState("");
-    const [trackingResult, setTrackingResult] = useState(null);
 
     useEffect(() => {
         loadShipments();
@@ -44,7 +52,6 @@ function Shipments() {
     };
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
 
         await addShipment(form);
@@ -56,14 +63,13 @@ function Shipments() {
             origin: "",
             destination: "",
             current_location: "Warehouse",
-            status: "Pending"
+            status: "Created"
         });
 
         loadShipments();
     };
 
     const handleDelete = async (id) => {
-
         if (!window.confirm("Delete this shipment?"))
             return;
 
@@ -73,28 +79,46 @@ function Shipments() {
     };
 
     const handleTrack = async () => {
-
         try {
-
             const data = await trackShipment(trackingId);
-
             setTrackingResult(data);
-
         } catch {
-
             alert("Tracking ID not found");
-
             setTrackingResult(null);
         }
     };
 
-    return (
+    const filteredShipments = shipments.filter((shipment) =>
+        shipment.tracking_id.toLowerCase().includes(search.toLowerCase()) ||
+        shipment.sender_name.toLowerCase().includes(search.toLowerCase()) ||
+        shipment.receiver_name.toLowerCase().includes(search.toLowerCase())
+    );
 
+    return (
         <Layout>
 
             <div className="shipment-page">
 
-                <h2>Shipment Management</h2>
+                <div className="page-header">
+                    <div>
+                        <h1>
+                            <FaBoxOpen />
+                            Shipment Management
+                        </h1>
+                        <p>
+                            Create, monitor and manage shipments
+                        </p>
+                    </div>
+                </div>
+
+                <div className="search-box">
+                    <FaSearch />
+                    <input
+                        placeholder="Search shipment..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
 
                 <form
                     className="shipment-form"
@@ -153,12 +177,15 @@ function Shipments() {
                         value={form.status}
                         onChange={handleChange}
                     >
-                        <option>Pending</option>
-                        <option>In Transit</option>
-                        <option>Delivered</option>
+                        <option value="Created">Created</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Picked Up">Picked Up</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered">Delivered</option>
                     </select>
 
                     <button type="submit">
+                        <FaPlus />
                         Add Shipment
                     </button>
 
@@ -166,19 +193,26 @@ function Shipments() {
 
                 <div className="tracking-box">
 
-                    <h3>Track Shipment</h3>
+                    <h3>
+                        <FaTruck />
+                        Track Shipment
+                    </h3>
 
-                    <input
-                        placeholder="Enter Tracking ID"
-                        value={trackingId}
-                        onChange={(e) =>
-                            setTrackingId(e.target.value)
-                        }
-                    />
+                    <div className="tracking-input">
 
-                    <button onClick={handleTrack}>
-                        Track
-                    </button>
+                        <input
+                            placeholder="Enter Tracking ID"
+                            value={trackingId}
+                            onChange={(e) =>
+                                setTrackingId(e.target.value)
+                            }
+                        />
+
+                        <button onClick={handleTrack}>
+                            Track
+                        </button>
+
+                    </div>
 
                     {trackingResult && (
 
@@ -200,8 +234,17 @@ function Shipments() {
                             </p>
 
                             <p>
+                                <strong>Current Location:</strong>{" "}
+                                {trackingResult.current_location}
+                            </p>
+
+                            <p>
                                 <strong>Status:</strong>{" "}
-                                {trackingResult.status}
+                                <span
+                                    className={`status ${trackingResult.status.replace(/\s/g, "")}`}
+                                >
+                                    {trackingResult.status}
+                                </span>
                             </p>
 
                         </div>
@@ -210,64 +253,82 @@ function Shipments() {
 
                 </div>
 
-                <table>
+                <div className="table-container">
 
-                    <thead>
+                    <table>
 
-                        <tr>
+                        <thead>
 
-                            <th>ID</th>
-                            <th>Tracking ID</th>
-                            <th>Sender</th>
-                            <th>Receiver</th>
-                            <th>Origin</th>
-                            <th>Destination</th>
-                            <th>Status</th>
-                            <th>Action</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {shipments.map((shipment) => (
-
-                            <tr key={shipment.id}>
-
-                                <td>{shipment.id}</td>
-                                <td>{shipment.tracking_id}</td>
-                                <td>{shipment.sender_name}</td>
-                                <td>{shipment.receiver_name}</td>
-                                <td>{shipment.origin}</td>
-                                <td>{shipment.destination}</td>
-                                <td>{shipment.status}</td>
-
-                                <td>
-
-                                    <button
-                                        className="delete-btn"
-                                        onClick={() =>
-                                            handleDelete(shipment.id)
-                                        }
-                                    >
-                                        Delete
-                                    </button>
-
-                                </td>
-
+                            <tr>
+                                <th>ID</th>
+                                <th>Tracking</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Current Location</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
 
-                        ))}
+                        </thead>
 
-                    </tbody>
+                        <tbody>
 
-                </table>
+                            {filteredShipments.map((shipment) => (
+
+                                <tr key={shipment.id}>
+
+                                    <td>{shipment.id}</td>
+
+                                    <td>{shipment.tracking_id}</td>
+
+                                    <td>{shipment.sender_name}</td>
+
+                                    <td>{shipment.receiver_name}</td>
+
+                                    <td>{shipment.origin}</td>
+
+                                    <td>{shipment.destination}</td>
+
+                                    <td>{shipment.current_location}</td>
+
+                                    <td>
+
+                                        <span
+                                            className={`status ${shipment.status.replace(/\s/g, "")}`}
+                                        >
+                                            {shipment.status}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() =>
+                                                handleDelete(shipment.id)
+                                            }
+                                        >
+                                            <FaTrash />
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
         </Layout>
-
     );
 }
 

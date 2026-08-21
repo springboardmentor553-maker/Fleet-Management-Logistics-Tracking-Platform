@@ -1,0 +1,3135 @@
+﻿
+
+============================================================
+FILE: .\frontend\src\pages\LiveTracking.jsx
+============================================================
+
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import polyline from "@mapbox/polyline";
+
+import {
+    MapContainer,
+    TileLayer,
+    Marker,
+    Polyline,
+    Popup,
+    useMap
+} from "react-leaflet";
+
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// ======================================================
+// LEAFLET ICON FIX
+// ======================================================
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+
+    iconUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+
+    shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png"
+});
+
+// ======================================================
+// FIT MAP TO ROUTE
+// ======================================================
+
+function FitRoute({ route }) {
+
+    const map = useMap();
+
+    useEffect(() => {
+
+        if (!route || route.length === 0) {
+            return;
+        }
+
+        try {
+
+            const bounds = L.latLngBounds(route);
+
+            map.fitBounds(bounds, {
+                padding: [50, 50]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Map fit error:",
+                error
+            );
+
+        }
+
+    }, [route, map]);
+
+    return null;
+}
+
+// ======================================================
+// LIVE TRACKING
+// ======================================================
+
+export default function LiveTracking() {
+
+    const { id } = useParams();
+
+    // ==================================================
+    // STATE
+    // ==================================================
+
+    const [route, setRoute] = useState([]);
+
+    const [vehiclePosition, setVehiclePosition] =
+        useState(null);
+
+    const [pickup, setPickup] =
+        useState("");
+
+    const [destination, setDestination] =
+        useState("");
+
+    const [distance, setDistance] =
+        useState("");
+
+    const [time, setTime] =
+        useState("");
+
+    const [status, setStatus] =
+        useState("Connecting...");
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [error, setError] =
+        useState("");
+
+    // ==================================================
+    // LOAD ROUTE
+    // ==================================================
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        const loadRoute = async () => {
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+                const token =
+                    localStorage.getItem("token");
+
+                console.log(
+                    "================================"
+                );
+
+                console.log(
+                    "LIVE TRACKING"
+                );
+
+                console.log(
+                    "Trip ID:",
+                    id
+                );
+
+                console.log(
+                    "Token:",
+                    token
+                        ? "Token exists"
+                        : "NO TOKEN"
+                );
+
+                console.log(
+                    "================================"
+                );
+
+                if (!token) {
+
+                    throw new Error(
+                        "Authentication token not found."
+                    );
+
+                }
+
+                const url =
+                    `http://127.0.0.1:8000/trips/${id}/route`;
+
+                console.log(
+                    "Requesting:",
+                    url
+                );
+
+                const response =
+                    await axios.get(
+                        url,
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                console.log(
+                    "ROUTE API RESPONSE:",
+                    response.data
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                // ==================================================
+                // CHECK POLYLINE
+                // ==================================================
+
+                if (!response.data) {
+
+                    throw new Error(
+                        "Backend returned an empty response."
+                    );
+
+                }
+
+                if (!response.data.polyline) {
+
+                    console.error(
+                        "No polyline in response:",
+                        response.data
+                    );
+
+                    throw new Error(
+                        "Backend did not return a route polyline."
+                    );
+
+                }
+
+                // ==================================================
+                // DECODE POLYLINE
+                // ==================================================
+
+                let decoded;
+
+                try {
+
+                    decoded =
+                        polyline.decode(
+                            response.data.polyline
+                        );
+
+                } catch (polylineError) {
+
+                    console.error(
+                        "Polyline decoding failed:",
+                        polylineError
+                    );
+
+                    throw new Error(
+                        "Invalid polyline returned by backend."
+                    );
+
+                }
+
+                console.log(
+                    "Decoded route:",
+                    decoded
+                );
+
+                if (
+                    !decoded ||
+                    decoded.length === 0
+                ) {
+
+                    throw new Error(
+                        "Decoded route contains no coordinates."
+                    );
+
+                }
+
+                const coordinates =
+                    decoded.map(
+                        ([lat, lon]) => [
+                            Number(lat),
+                            Number(lon)
+                        ]
+                    );
+
+                console.log(
+                    "Leaflet coordinates:",
+                    coordinates
+                );
+
+                // ==================================================
+                // SET ROUTE
+                // ==================================================
+
+                setRoute(
+                    coordinates
+                );
+
+                // ==================================================
+                // INITIAL VEHICLE POSITION
+                // ==================================================
+
+                if (
+                    response.data.current_coordinates
+                ) {
+
+                    setVehiclePosition([
+                        Number(
+                            response.data
+                                .current_coordinates
+                                .latitude
+                        ),
+                        Number(
+                            response.data
+                                .current_coordinates
+                                .longitude
+                        )
+                    ]);
+
+                } else {
+
+                    setVehiclePosition(
+                        coordinates[0]
+                    );
+
+                }
+
+                // ==================================================
+                // TRIP INFORMATION
+                // ==================================================
+
+                setPickup(
+                    response.data.pickup_location || ""
+                );
+
+                setDestination(
+                    response.data.destination || ""
+                );
+
+                setDistance(
+                    response.data.distance || ""
+                );
+
+                setTime(
+                    response.data.estimated_travel_time || ""
+                );
+
+                setStatus(
+                    response.data.status || "Active"
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "================================"
+                );
+
+                console.error(
+                    "LIVE TRACKING ERROR"
+                );
+
+                console.error(
+                    err
+                );
+
+                console.error(
+                    "================================"
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (err.response) {
+
+                    console.error(
+                        "Status:",
+                        err.response.status
+                    );
+
+                    console.error(
+                        "Response:",
+                        err.response.data
+                    );
+
+                    if (
+                        err.response.status === 401
+                    ) {
+
+                        setError(
+                            "Authentication failed. Please login again."
+                        );
+
+                    } else if (
+                        err.response.status === 404
+                    ) {
+
+                        setError(
+                            "Trip or route not found."
+                        );
+
+                    } else {
+
+                        setError(
+                            err.response.data?.detail ||
+                            "Unable to load route."
+                        );
+
+                    }
+
+                } else {
+
+                    setError(
+                        err.message ||
+                        "Unable to load route."
+                    );
+
+                }
+
+            } finally {
+
+                if (!cancelled) {
+
+                    setLoading(false);
+
+                }
+
+            }
+
+        };
+
+        loadRoute();
+
+        return () => {
+
+            cancelled = true;
+
+        };
+
+    }, [id]);
+
+    // ==================================================
+    // WEBSOCKET
+    // ==================================================
+
+    useEffect(() => {
+
+        if (!id) {
+            return;
+        }
+
+        console.log(
+            "Opening WebSocket..."
+        );
+
+        const socket =
+            new WebSocket(
+                `ws://127.0.0.1:8000/ws/tracking/${id}`
+            );
+
+        socket.onopen = () => {
+
+            console.log(
+                "WebSocket connected"
+            );
+
+            setStatus(
+                previous =>
+                    previous === "Connecting..."
+                        ? "Live"
+                        : previous
+            );
+
+        };
+
+        socket.onmessage = (event) => {
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        event.data
+                    );
+
+                console.log(
+                    "WebSocket vehicle update:",
+                    data
+                );
+
+                if (
+                    data.latitude !== undefined &&
+                    data.longitude !== undefined
+                ) {
+
+                    const latitude =
+                        Number(data.latitude);
+
+                    const longitude =
+                        Number(data.longitude);
+
+                    if (
+                        Number.isFinite(latitude) &&
+                        Number.isFinite(longitude)
+                    ) {
+
+                        setVehiclePosition([
+                            latitude,
+                            longitude
+                        ]);
+
+                    }
+
+                }
+
+                if (data.status) {
+
+                    setStatus(
+                        data.status
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "WebSocket message error:",
+                    error
+                );
+
+            }
+
+        };
+
+        socket.onerror = (error) => {
+
+            console.error(
+                "WebSocket error:",
+                error
+            );
+
+            setStatus(
+                "Connection error"
+            );
+
+        };
+
+        socket.onclose = () => {
+
+            console.log(
+                "WebSocket disconnected"
+            );
+
+        };
+
+        return () => {
+
+            console.log(
+                "Closing WebSocket"
+            );
+
+            socket.close();
+
+        };
+
+    }, [id]);
+
+    // ==================================================
+    // LOADING
+    // ==================================================
+
+    if (loading) {
+
+        return (
+
+            <div
+                style={{
+                    minHeight: "100vh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#f8fafc"
+                }}
+            >
+
+                <div
+                    style={{
+                        textAlign: "center"
+                    }}
+                >
+
+                    <h2>
+                        Loading Live Tracking...
+                    </h2>
+
+                    <p
+                        style={{
+                            color: "#64748b"
+                        }}
+                    >
+                        Loading route for Trip #{id}
+                    </p>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+    // ==================================================
+    // ERROR
+    // ==================================================
+
+    if (error) {
+
+        return (
+
+            <div
+                style={{
+                    minHeight: "100vh",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    background: "#f8fafc"
+                }}
+            >
+
+                <div
+                    style={{
+                        background: "white",
+                        padding: "30px",
+                        borderRadius: "12px",
+                        textAlign: "center",
+                        boxShadow:
+                            "0 4px 20px rgba(0,0,0,0.08)"
+                    }}
+                >
+
+                    <h2>
+                        Unable to Load Tracking
+                    </h2>
+
+                    <p
+                        style={{
+                            color: "#dc2626"
+                        }}
+                    >
+                        {error}
+                    </p>
+
+                    <p
+                        style={{
+                            color: "#64748b",
+                            fontSize: "14px"
+                        }}
+                    >
+                        Open the browser console and check
+                        the Live Tracking API response.
+                    </p>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+    // ==================================================
+    // NO ROUTE
+    // ==================================================
+
+    if (
+        !route ||
+        route.length === 0
+    ) {
+
+        return (
+
+            <div
+                style={{
+                    padding: "50px",
+                    textAlign: "center"
+                }}
+            >
+
+                <h2>
+                    No Route Available
+                </h2>
+
+                <p>
+                    The backend did not return any route coordinates.
+                </p>
+
+            </div>
+
+        );
+
+    }
+
+    // ==================================================
+    // MAP CENTER
+    // ==================================================
+
+    const mapCenter =
+        vehiclePosition ||
+        route[0];
+
+    // ==================================================
+    // UI
+    // ==================================================
+
+    return (
+
+        <div
+            style={{
+                width: "100%",
+                minHeight: "100vh",
+                padding: "25px",
+                boxSizing: "border-box",
+                background: "#f8fafc"
+            }}
+        >
+
+            {/* HEADER */}
+
+            <div
+                style={{
+                    marginBottom: "20px"
+                }}
+            >
+
+                <h2
+                    style={{
+                        margin: 0,
+                        color: "#0f172a"
+                    }}
+                >
+                    Live Vehicle Tracking
+                </h2>
+
+                <p
+                    style={{
+                        marginTop: "6px",
+                        color: "#64748b"
+                    }}
+                >
+                    Trip #{id}
+                </p>
+
+            </div>
+
+            {/* INFORMATION */}
+
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: "15px",
+                    marginBottom: "20px"
+                }}
+            >
+
+                <InfoCard
+                    title="Pickup"
+                    value={pickup}
+                />
+
+                <InfoCard
+                    title="Destination"
+                    value={destination}
+                />
+
+                <InfoCard
+                    title="Distance"
+                    value={distance}
+                />
+
+                <InfoCard
+                    title="ETA"
+                    value={time}
+                />
+
+                <InfoCard
+                    title="Status"
+                    value={status}
+                />
+
+            </div>
+
+            {/* MAP */}
+
+            <div
+                style={{
+                    width: "100%",
+                    height: "600px",
+                    background: "#e2e8f0",
+                    borderRadius: "14px",
+                    overflow: "hidden",
+                    boxShadow:
+                        "0 4px 20px rgba(15,23,42,0.08)"
+                }}
+            >
+
+                <MapContainer
+                    center={mapCenter}
+                    zoom={8}
+                    scrollWheelZoom={true}
+                    style={{
+                        width: "100%",
+                        height: "100%"
+                    }}
+                >
+
+                    <TileLayer
+                        attribution="&copy; OpenStreetMap contributors"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    {/* FIT ROUTE */}
+
+                    <FitRoute
+                        route={route}
+                    />
+
+                    {/* PICKUP */}
+
+                    <Marker
+                        position={route[0]}
+                    >
+
+                        <Popup>
+
+                            <strong>
+                                Pickup
+                            </strong>
+
+                            <br />
+
+                            {pickup}
+
+                        </Popup>
+
+                    </Marker>
+
+                    {/* DESTINATION */}
+
+                    <Marker
+                        position={
+                            route[route.length - 1]
+                        }
+                    >
+
+                        <Popup>
+
+                            <strong>
+                                Destination
+                            </strong>
+
+                            <br />
+
+                            {destination}
+
+                        </Popup>
+
+                    </Marker>
+
+                    {/* LIVE VEHICLE */}
+
+                    {vehiclePosition && (
+
+                        <Marker
+                            position={
+                                vehiclePosition
+                            }
+                        >
+
+                            <Popup>
+
+                                ðŸšš{" "}
+
+                                <strong>
+                                    Live Vehicle
+                                </strong>
+
+                                <br />
+
+                                Status: {status}
+
+                            </Popup>
+
+                        </Marker>
+
+                    )}
+
+                    {/* ROUTE */}
+
+                    <Polyline
+                        positions={route}
+                        pathOptions={{
+                            color: "#2563eb",
+                            weight: 6,
+                            opacity: 0.85
+                        }}
+                    />
+
+                </MapContainer>
+
+            </div>
+
+        </div>
+
+    );
+
+}
+
+// ======================================================
+// INFO CARD
+// ======================================================
+
+function InfoCard({
+    title,
+    value
+}) {
+
+    return (
+
+        <div
+            style={{
+                background: "white",
+                padding: "16px",
+                borderRadius: "12px",
+                border:
+                    "1px solid #e2e8f0"
+            }}
+        >
+
+            <div
+                style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    marginBottom: "6px"
+                }}
+            >
+                {title}
+            </div>
+
+            <div
+                style={{
+                    fontSize: "15px",
+                    fontWeight: "700",
+                    color: "#0f172a",
+                    wordBreak: "break-word"
+                }}
+            >
+                {value || "-"}
+            </div>
+
+        </div>
+
+    );
+
+}
+
+
+============================================================
+FILE: .\frontend\src\pages\LiveTrackingList.jsx
+============================================================
+
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+import {
+    FaMapMarkerAlt,
+    FaRoute,
+    FaTruck,
+    FaClock,
+    FaArrowRight,
+    FaSyncAlt
+} from "react-icons/fa";
+
+export default function LiveTrackingList() {
+
+    const navigate = useNavigate();
+
+    const [trips, setTrips] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const token = localStorage.getItem("token");
+
+    // =====================================================
+    // LOAD TRIPS
+    // =====================================================
+
+    const loadTrips = async () => {
+
+        try {
+
+            setLoading(true);
+            setError("");
+
+            if (!token) {
+
+                navigate("/", {
+                    replace: true
+                });
+
+                return;
+            }
+
+            const response = await axios.get(
+                "http://127.0.0.1:8000/trips/",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            console.log(
+                "Trips response:",
+                response.data
+            );
+
+            // Handle different possible API response formats
+
+            if (Array.isArray(response.data)) {
+
+                setTrips(response.data);
+
+            } else if (
+                Array.isArray(response.data?.trips)
+            ) {
+
+                setTrips(response.data.trips);
+
+            } else if (
+                Array.isArray(response.data?.data)
+            ) {
+
+                setTrips(response.data.data);
+
+            } else {
+
+                setTrips([]);
+            }
+
+        } catch (err) {
+
+            console.error(
+                "Failed to load trips:",
+                err
+            );
+
+            if (err.response?.status === 401) {
+
+                localStorage.clear();
+
+                navigate("/", {
+                    replace: true
+                });
+
+                return;
+            }
+
+            setError(
+                err.response?.data?.detail ||
+                "Unable to load trips."
+            );
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+
+    // =====================================================
+    // LOAD ON PAGE OPEN
+    // =====================================================
+
+    useEffect(() => {
+
+        loadTrips();
+
+    }, []);
+
+
+    // =====================================================
+    // OPEN TRACKING
+    // =====================================================
+
+    const openTracking = (tripId) => {
+
+        if (!tripId) {
+
+            console.error(
+                "Trip ID is missing."
+            );
+
+            return;
+        }
+
+        navigate(
+            `/tracking/${tripId}`
+        );
+    };
+
+
+    // =====================================================
+    // LOADING
+    // =====================================================
+
+    if (loading) {
+
+        return (
+
+            <div
+                style={{
+                    padding: "40px",
+                    textAlign: "center"
+                }}
+            >
+
+                <h2>
+                    Loading trips...
+                </h2>
+
+                <p>
+                    Please wait while we load
+                    available trips.
+                </p>
+
+            </div>
+
+        );
+    }
+
+
+    // =====================================================
+    // UI
+    // =====================================================
+
+    return (
+
+        <div
+            style={{
+                minHeight: "100%",
+                padding: "30px",
+                background: "#f8fafc"
+            }}
+        >
+
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "30px",
+                    gap: "20px"
+                }}
+            >
+
+                <div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            marginBottom: "8px"
+                        }}
+                    >
+
+                        <FaMapMarkerAlt
+                            style={{
+                                color: "#2563eb",
+                                fontSize: "22px"
+                            }}
+                        />
+
+                        <h1
+                            style={{
+                                margin: 0,
+                                color: "#0f172a",
+                                fontSize: "28px",
+                                fontWeight: 800
+                            }}
+                        >
+                            Live Tracking
+                        </h1>
+
+                    </div>
+
+                    <p
+                        style={{
+                            margin: 0,
+                            color: "#64748b",
+                            fontSize: "14px"
+                        }}
+                    >
+                        Select a trip to view its
+                        live vehicle location.
+                    </p>
+
+                </div>
+
+
+                <button
+                    onClick={loadTrips}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 16px",
+                        border: "1px solid #dbe2ea",
+                        borderRadius: "8px",
+                        background: "white",
+                        color: "#334155",
+                        cursor: "pointer",
+                        fontWeight: 600
+                    }}
+                >
+
+                    <FaSyncAlt />
+
+                    Refresh
+
+                </button>
+
+            </div>
+
+
+            {/* =================================================
+                ERROR
+            ================================================= */}
+
+            {error && (
+
+                <div
+                    style={{
+                        padding: "15px",
+                        marginBottom: "20px",
+                        borderRadius: "9px",
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        color: "#b91c1c"
+                    }}
+                >
+
+                    {error}
+
+                </div>
+
+            )}
+
+
+            {/* =================================================
+                NO TRIPS
+            ================================================= */}
+
+            {!error && trips.length === 0 && (
+
+                <div
+                    style={{
+                        background: "white",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "50px",
+                        textAlign: "center"
+                    }}
+                >
+
+                    <FaMapMarkerAlt
+                        style={{
+                            fontSize: "40px",
+                            color: "#94a3b8",
+                            marginBottom: "15px"
+                        }}
+                    />
+
+                    <h2
+                        style={{
+                            margin: "0 0 8px",
+                            color: "#0f172a"
+                        }}
+                    >
+                        No trips available
+                    </h2>
+
+                    <p
+                        style={{
+                            margin: 0,
+                            color: "#64748b"
+                        }}
+                    >
+                        Create a trip first to start
+                        live vehicle tracking.
+                    </p>
+
+                </div>
+
+            )}
+
+
+            {/* =================================================
+                TRIPS
+            ================================================= */}
+
+            {trips.length > 0 && (
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(auto-fill, minmax(300px, 1fr))",
+                        gap: "20px"
+                    }}
+                >
+
+                    {trips.map((trip) => {
+
+                        const tripId =
+                            trip.id ||
+                            trip.trip_id;
+
+                        const vehicleNumber =
+                            trip.vehicle_number ||
+                            trip.vehicle?.vehicle_number ||
+                            "Vehicle not assigned";
+
+                        const pickup =
+                            trip.pickup_location ||
+                            trip.pickup ||
+                            "Not specified";
+
+                        const destination =
+                            trip.destination ||
+                            trip.destination_location ||
+                            "Not specified";
+
+                        const status =
+                            trip.status ||
+                            "Unknown";
+
+                        return (
+
+                            <div
+                                key={tripId}
+                                style={{
+                                    background: "white",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: "14px",
+                                    padding: "22px",
+                                    boxShadow:
+                                        "0 3px 12px rgba(15,23,42,0.05)"
+                                }}
+                            >
+
+                                {/* Trip header */}
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent:
+                                            "space-between",
+                                        alignItems: "center",
+                                        marginBottom: "20px"
+                                    }}
+                                >
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "10px"
+                                        }}
+                                    >
+
+                                        <div
+                                            style={{
+                                                width: "42px",
+                                                height: "42px",
+                                                borderRadius: "10px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent:
+                                                    "center",
+                                                background:
+                                                    "#eff6ff",
+                                                color: "#2563eb"
+                                            }}
+                                        >
+
+                                            <FaTruck />
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong
+                                                style={{
+                                                    display: "block",
+                                                    color: "#0f172a"
+                                                }}
+                                            >
+                                                {vehicleNumber}
+                                            </strong>
+
+                                            <span
+                                                style={{
+                                                    color: "#64748b",
+                                                    fontSize: "12px"
+                                                }}
+                                            >
+                                                Trip #{tripId}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <span
+                                        style={{
+                                            padding:
+                                                "5px 9px",
+                                            borderRadius: "20px",
+                                            background:
+                                                "#ecfdf5",
+                                            color:
+                                                "#047857",
+                                            fontSize: "11px",
+                                            fontWeight: 700
+                                        }}
+                                    >
+                                        {status}
+                                    </span>
+
+                                </div>
+
+
+                                {/* Route */}
+
+                                <div
+                                    style={{
+                                        marginBottom: "20px"
+                                    }}
+                                >
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "10px",
+                                            marginBottom: "13px"
+                                        }}
+                                    >
+
+                                        <FaMapMarkerAlt
+                                            style={{
+                                                color: "#16a34a",
+                                                marginTop: "3px"
+                                            }}
+                                        />
+
+                                        <div>
+
+                                            <small
+                                                style={{
+                                                    color:
+                                                        "#94a3b8"
+                                                }}
+                                            >
+                                                Pickup
+                                            </small>
+
+                                            <div
+                                                style={{
+                                                    color:
+                                                        "#334155",
+                                                    fontSize:
+                                                        "13px",
+                                                    fontWeight:
+                                                        600
+                                                }}
+                                            >
+                                                {pickup}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "10px"
+                                        }}
+                                    >
+
+                                        <FaMapMarkerAlt
+                                            style={{
+                                                color:
+                                                    "#dc2626",
+                                                marginTop: "3px"
+                                            }}
+                                        />
+
+                                        <div>
+
+                                            <small
+                                                style={{
+                                                    color:
+                                                        "#94a3b8"
+                                                }}
+                                            >
+                                                Destination
+                                            </small>
+
+                                            <div
+                                                style={{
+                                                    color:
+                                                        "#334155",
+                                                    fontSize:
+                                                        "13px",
+                                                    fontWeight:
+                                                        600
+                                                }}
+                                            >
+                                                {destination}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* Tracking button */}
+
+                                <button
+                                    onClick={() =>
+                                        openTracking(
+                                            tripId
+                                        )
+                                    }
+                                    disabled={!tripId}
+                                    style={{
+                                        width: "100%",
+                                        height: "44px",
+                                        display: "flex",
+                                        alignItems:
+                                            "center",
+                                        justifyContent:
+                                            "center",
+                                        gap: "9px",
+                                        border: "none",
+                                        borderRadius:
+                                            "8px",
+                                        background:
+                                            "#2563eb",
+                                        color: "white",
+                                        fontWeight: 700,
+                                        cursor:
+                                            tripId
+                                                ? "pointer"
+                                                : "not-allowed"
+                                    }}
+                                >
+
+                                    <FaMapMarkerAlt />
+
+                                    View Live Tracking
+
+                                    <FaArrowRight />
+
+                                </button>
+
+                            </div>
+
+                        );
+
+                    })}
+
+                </div>
+
+            )}
+
+        </div>
+    );
+}
+
+
+============================================================
+FILE: .\frontend\src\pages\Trips.jsx
+============================================================
+
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import {
+    FaRoute,
+    FaSearch,
+    FaPlus,
+    FaTrash,
+    FaMapMarkerAlt,
+    FaSyncAlt
+} from "react-icons/fa";
+
+import Layout from "../components/Layout";
+
+import {
+    getTrips,
+    addTrip,
+    deleteTrip
+} from "../services/tripService";
+
+import { getDrivers } from "../services/driverService";
+import { getVehicles } from "../services/vehicleService";
+import { getShipments } from "../services/shipmentService";
+
+import "../styles/trip.css";
+
+
+function Trips() {
+
+    const navigate = useNavigate();
+
+    // ========================================================
+    // STATE
+    // ========================================================
+
+    const [trips, setTrips] = useState([]);
+
+    const [drivers, setDrivers] = useState([]);
+
+    const [vehicles, setVehicles] = useState([]);
+
+    const [shipments, setShipments] = useState([]);
+
+    const [search, setSearch] = useState("");
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState("");
+
+    const [submitting, setSubmitting] = useState(false);
+
+    const [form, setForm] = useState({
+
+        shipment_id: "",
+
+        vehicle_id: "",
+
+        driver_id: "",
+
+        start_location: "",
+
+        end_location: "",
+
+        departure_time: "",
+
+        expected_arrival: "",
+
+        status: "Created"
+
+    });
+
+
+    // ========================================================
+    // LOAD DATA
+    // ========================================================
+
+    useEffect(() => {
+
+        loadData();
+
+    }, []);
+
+
+    const loadData = async () => {
+
+        setLoading(true);
+
+        setError("");
+
+
+        // ====================================================
+        // LOAD TRIPS
+        // ====================================================
+
+        try {
+
+            const tripData = await getTrips();
+
+            console.log(
+                "Trips API response:",
+                tripData
+            );
+
+            const tripsArray =
+                Array.isArray(tripData)
+                    ? tripData
+                    : tripData?.data ||
+                      tripData?.trips ||
+                      tripData?.items ||
+                      [];
+
+            setTrips(tripsArray);
+
+        } catch (err) {
+
+            console.error(
+                "Error loading trips:",
+                err
+            );
+
+            setError(
+                err?.response?.data?.detail ||
+                "Unable to load trips."
+            );
+
+        }
+
+
+        // ====================================================
+        // LOAD DRIVERS
+        // ====================================================
+
+        try {
+
+            const driverData = await getDrivers();
+
+            console.log(
+                "Drivers API response:",
+                driverData
+            );
+
+            const driversArray =
+                Array.isArray(driverData)
+                    ? driverData
+                    : driverData?.data ||
+                      driverData?.drivers ||
+                      driverData?.items ||
+                      [];
+
+            setDrivers(driversArray);
+
+        } catch (err) {
+
+            console.error(
+                "Error loading drivers:",
+                err
+            );
+
+        }
+
+
+        // ====================================================
+        // LOAD VEHICLES
+        // ====================================================
+
+        try {
+
+            const vehicleData = await getVehicles();
+
+            console.log(
+                "Vehicles API response:",
+                vehicleData
+            );
+
+            const vehiclesArray =
+                Array.isArray(vehicleData)
+                    ? vehicleData
+                    : vehicleData?.data ||
+                      vehicleData?.vehicles ||
+                      vehicleData?.items ||
+                      [];
+
+            setVehicles(vehiclesArray);
+
+        } catch (err) {
+
+            console.error(
+                "Error loading vehicles:",
+                err
+            );
+
+        }
+
+
+        // ====================================================
+        // LOAD SHIPMENTS
+        // ====================================================
+
+        try {
+
+            const shipmentData = await getShipments();
+
+            console.log(
+                "Shipments API response:",
+                shipmentData
+            );
+
+            const shipmentsArray =
+                Array.isArray(shipmentData)
+                    ? shipmentData
+                    : shipmentData?.data ||
+                      shipmentData?.shipments ||
+                      shipmentData?.items ||
+                      [];
+
+            setShipments(shipmentsArray);
+
+        } catch (err) {
+
+            console.error(
+                "Error loading shipments:",
+                err
+            );
+
+        }
+
+
+        setLoading(false);
+    };
+
+
+    // ========================================================
+    // FORM CHANGE
+    // ========================================================
+
+    const handleChange = (e) => {
+
+        const {
+            name,
+            value
+        } = e.target;
+
+        setForm(
+            previousForm => ({
+
+                ...previousForm,
+
+                [name]: value
+
+            })
+        );
+
+    };
+
+
+    // ========================================================
+    // RESET FORM
+    // ========================================================
+
+    const resetForm = () => {
+
+        setForm({
+
+            shipment_id: "",
+
+            vehicle_id: "",
+
+            driver_id: "",
+
+            start_location: "",
+
+            end_location: "",
+
+            departure_time: "",
+
+            expected_arrival: "",
+
+            status: "Created"
+
+        });
+
+    };
+
+
+    // ========================================================
+    // CREATE TRIP
+    // ========================================================
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        setError("");
+
+
+        // ====================================================
+        // VALIDATION
+        // ====================================================
+
+        if (!form.shipment_id) {
+
+            setError(
+                "Please select a shipment."
+            );
+
+            return;
+        }
+
+
+        if (!form.vehicle_id) {
+
+            setError(
+                "Please select a vehicle."
+            );
+
+            return;
+        }
+
+
+        if (!form.driver_id) {
+
+            setError(
+                "Please select a driver."
+            );
+
+            return;
+        }
+
+
+        if (!form.start_location.trim()) {
+
+            setError(
+                "Please enter the start location."
+            );
+
+            return;
+        }
+
+
+        if (!form.end_location.trim()) {
+
+            setError(
+                "Please enter the destination."
+            );
+
+            return;
+        }
+
+
+        if (!form.departure_time) {
+
+            setError(
+                "Please select the departure time."
+            );
+
+            return;
+        }
+
+
+        // ====================================================
+        // PAYLOAD
+        // ====================================================
+
+        const tripPayload = {
+
+            shipment_id:
+                Number(form.shipment_id),
+
+            vehicle_id:
+                Number(form.vehicle_id),
+
+            driver_id:
+                Number(form.driver_id),
+
+            start_location:
+                form.start_location.trim(),
+
+            end_location:
+                form.end_location.trim(),
+
+            departure_time:
+                form.departure_time,
+
+            expected_arrival:
+                form.expected_arrival
+                    ? form.expected_arrival
+                    : null,
+
+            status:
+                form.status || "Scheduled"
+
+        };
+
+
+        console.log(
+            "Creating trip:",
+            tripPayload
+        );
+
+
+        setSubmitting(true);
+
+
+        try {
+
+            await addTrip(
+                tripPayload
+            );
+
+
+            resetForm();
+
+
+            await loadData();
+
+
+            alert(
+                "Trip created successfully."
+            );
+
+        } catch (err) {
+
+            console.error(
+                "Error creating trip:",
+                err
+            );
+
+            setError(
+                err?.response?.data?.detail ||
+                "Unable to create trip."
+            );
+
+        } finally {
+
+            setSubmitting(false);
+
+        }
+
+    };
+
+
+    // ========================================================
+    // DELETE TRIP
+    // ========================================================
+
+    const handleDelete = async (id) => {
+
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to delete this trip?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        try {
+
+            setError("");
+
+            await deleteTrip(id);
+
+            await loadData();
+
+        } catch (err) {
+
+            console.error(
+                "Error deleting trip:",
+                err
+            );
+
+            setError(
+                err?.response?.data?.detail ||
+                "Unable to delete trip."
+            );
+
+        }
+
+    };
+
+
+    // ========================================================
+    // FIND SHIPMENT
+    // ========================================================
+
+    const getShipment = (shipmentId) => {
+
+        return shipments.find(
+            shipment =>
+                Number(shipment.id) ===
+                Number(shipmentId)
+        );
+
+    };
+
+
+    // ========================================================
+    // FIND VEHICLE
+    // ========================================================
+
+    const getVehicle = (vehicleId) => {
+
+        return vehicles.find(
+            vehicle =>
+                Number(vehicle.id) ===
+                Number(vehicleId)
+        );
+
+    };
+
+
+    // ========================================================
+    // FIND DRIVER
+    // ========================================================
+
+    const getDriver = (driverId) => {
+
+        return drivers.find(
+            driver =>
+                Number(driver.id) ===
+                Number(driverId)
+        );
+
+    };
+
+
+    // ========================================================
+    // FORMAT DATE
+    // ========================================================
+
+    const formatDate = (dateValue) => {
+
+        if (!dateValue) {
+
+            return "-";
+
+        }
+
+
+        const date =
+            new Date(dateValue);
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return dateValue;
+
+        }
+
+
+        return date.toLocaleString();
+
+    };
+
+
+    // ========================================================
+    // STATUS CLASS
+    // ========================================================
+
+    const getStatusClass = (status) => {
+
+        if (!status) {
+
+            return "Created";
+
+        }
+
+
+        return status
+            .replace(/\s+/g, "")
+            .replace(/-/g, "");
+
+    };
+
+
+    // ========================================================
+    // SEARCH
+    // ========================================================
+
+    const searchText =
+        search
+            .trim()
+            .toLowerCase();
+
+
+    const filteredTrips =
+        trips.filter(trip => {
+
+            if (!searchText) {
+
+                return true;
+
+            }
+
+
+            const shipment =
+                getShipment(
+                    trip.shipment_id
+                );
+
+
+            const vehicle =
+                getVehicle(
+                    trip.vehicle_id
+                );
+
+
+            const driver =
+                getDriver(
+                    trip.driver_id
+                );
+
+
+            const searchableText = [
+
+                trip.id,
+
+                trip.shipment_id,
+
+                shipment?.tracking_id,
+
+                trip.vehicle_id,
+
+                vehicle?.vehicle_number,
+
+                trip.driver_id,
+
+                driver?.name,
+
+                trip.start_location,
+
+                trip.end_location,
+
+                trip.status
+
+            ]
+                .filter(
+                    value =>
+                        value !== null &&
+                        value !== undefined
+                )
+                .join(" ")
+                .toLowerCase();
+
+
+            return searchableText.includes(
+                searchText
+            );
+
+        });
+
+
+    // ========================================================
+    // RENDER
+    // ========================================================
+
+    return (
+
+        <Layout>
+
+            <div className="trip-page">
+
+                {/* ==================================================
+                    HEADER
+                ================================================== */}
+
+                <div className="page-header">
+
+                    <div>
+
+                        <h1>
+
+                            <FaRoute />
+
+                            Trip Management
+
+                        </h1>
+
+                        <p>
+                            Manage logistics trips and live tracking
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        className="track-btn"
+                        onClick={loadData}
+                        disabled={loading}
+                    >
+
+                        <FaSyncAlt />
+
+                        {loading
+                            ? "Loading..."
+                            : "Refresh"}
+
+                    </button>
+
+                </div>
+
+
+                {/* ==================================================
+                    ERROR
+                ================================================== */}
+
+                {error && (
+
+                    <div
+                        style={{
+                            background: "#FEE2E2",
+                            color: "#B91C1C",
+                            padding: "14px 18px",
+                            borderRadius: "10px",
+                            fontWeight: "600",
+                            marginBottom: "20px"
+                        }}
+                    >
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {/* ==================================================
+                    SEARCH
+                ================================================== */}
+
+                <div className="search-box">
+
+                    <FaSearch />
+
+                    <input
+                        type="text"
+                        placeholder="Search trips, shipment, vehicle, driver, route..."
+                        value={search}
+                        onChange={
+                            e =>
+                                setSearch(
+                                    e.target.value
+                                )
+                        }
+                    />
+
+                </div>
+
+
+                {/* ==================================================
+                    CREATE TRIP FORM
+                ================================================== */}
+
+                <form
+                    className="trip-form"
+                    onSubmit={handleSubmit}
+                >
+
+                    {/* SHIPMENT */}
+
+                    <select
+                        name="shipment_id"
+                        value={form.shipment_id}
+                        onChange={handleChange}
+                        required
+                    >
+
+                        <option value="">
+                            Select Shipment
+                        </option>
+
+
+                        {shipments.map(
+                            shipment => (
+
+                                <option
+                                    key={shipment.id}
+                                    value={shipment.id}
+                                >
+
+                                    {shipment.tracking_id ||
+                                        `Shipment #${shipment.id}`}
+
+                                </option>
+
+                            )
+                        )}
+
+                    </select>
+
+
+                    {/* VEHICLE */}
+
+                    <select
+                        name="vehicle_id"
+                        value={form.vehicle_id}
+                        onChange={handleChange}
+                        required
+                    >
+
+                        <option value="">
+                            Select Vehicle
+                        </option>
+
+
+                        {vehicles.map(
+                            vehicle => (
+
+                                <option
+                                    key={vehicle.id}
+                                    value={vehicle.id}
+                                >
+
+                                    {vehicle.vehicle_number ||
+                                        `Vehicle #${vehicle.id}`}
+
+                                </option>
+
+                            )
+                        )}
+
+                    </select>
+
+
+                    {/* DRIVER */}
+
+                    <select
+                        name="driver_id"
+                        value={form.driver_id}
+                        onChange={handleChange}
+                        required
+                    >
+
+                        <option value="">
+                            Select Driver
+                        </option>
+
+
+                        {drivers.map(
+                            driver => (
+
+                                <option
+                                    key={driver.id}
+                                    value={driver.id}
+                                >
+
+                                    {driver.name ||
+                                        `Driver #${driver.id}`}
+
+                                </option>
+
+                            )
+                        )}
+
+                    </select>
+
+
+                    {/* START */}
+
+                    <input
+                        type="text"
+                        name="start_location"
+                        placeholder="Start Location"
+                        value={form.start_location}
+                        onChange={handleChange}
+                        required
+                    />
+
+
+                    {/* DESTINATION */}
+
+                    <input
+                        type="text"
+                        name="end_location"
+                        placeholder="Destination"
+                        value={form.end_location}
+                        onChange={handleChange}
+                        required
+                    />
+
+
+                    {/* DEPARTURE */}
+
+                    <input
+                        type="datetime-local"
+                        name="departure_time"
+                        value={form.departure_time}
+                        onChange={handleChange}
+                        required
+                    />
+
+
+                    {/* EXPECTED ARRIVAL */}
+
+                    <input
+                        type="datetime-local"
+                        name="expected_arrival"
+                        value={form.expected_arrival}
+                        onChange={handleChange}
+                    />
+
+
+                    {/* STATUS */}
+
+                    <select
+                        name="status"
+                        value={form.status}
+                        onChange={handleChange}
+                    >
+
+                        <option value="Created">
+                            Created
+                        </option>
+
+                        <option value="Assigned">
+                            Assigned
+                        </option>
+
+                        <option value="Picked Up">
+                            Picked Up
+                        </option>
+
+                        <option value="In Transit">
+                            In Transit
+                        </option>
+
+                        <option value="Delivered">
+                            Delivered
+                        </option>
+
+                        <option value="Cancelled">
+                            Cancelled
+                        </option>
+
+                    </select>
+
+
+                    {/* CREATE */}
+
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                    >
+
+                        <FaPlus />
+
+                        {submitting
+                            ? "Creating..."
+                            : "Create Trip"}
+
+                    </button>
+
+                </form>
+
+
+                {/* ==================================================
+                    COUNT
+                ================================================== */}
+
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "15px"
+                    }}
+                >
+
+                    <strong>
+
+                        {filteredTrips.length}
+
+                        {" "}
+
+                        trip
+                        {filteredTrips.length !== 1
+                            ? "s"
+                            : ""}
+
+                    </strong>
+
+
+                    {search && (
+
+                        <span>
+
+                            Showing results for:
+
+                            {" "}
+
+                            <strong>
+                                "{search}"
+                            </strong>
+
+                        </span>
+
+                    )}
+
+                </div>
+
+
+                {/* ==================================================
+                    TABLE
+                ================================================== */}
+
+                <div className="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Shipment</th>
+
+                                <th>Vehicle</th>
+
+                                <th>Driver</th>
+
+                                <th>Route</th>
+
+                                <th>Departure</th>
+
+                                <th>Arrival</th>
+
+                                <th>Status</th>
+
+                                <th>Tracking</th>
+
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {loading ? (
+
+                                <tr>
+
+                                    <td
+                                        colSpan="10"
+                                        style={{
+                                            padding: "40px",
+                                            textAlign: "center"
+                                        }}
+                                    >
+
+                                        Loading trips...
+
+                                    </td>
+
+                                </tr>
+
+                            ) : filteredTrips.length === 0 ? (
+
+                                <tr>
+
+                                    <td
+                                        colSpan="10"
+                                        style={{
+                                            padding: "40px",
+                                            textAlign: "center"
+                                        }}
+                                    >
+
+                                        {trips.length === 0
+                                            ? "No trips found in the database."
+                                            : "No trips match your search."}
+
+                                    </td>
+
+                                </tr>
+
+                            ) : (
+
+                                filteredTrips.map(
+                                    trip => {
+
+                                        const shipment =
+                                            getShipment(
+                                                trip.shipment_id
+                                            );
+
+
+                                        const vehicle =
+                                            getVehicle(
+                                                trip.vehicle_id
+                                            );
+
+
+                                        const driver =
+                                            getDriver(
+                                                trip.driver_id
+                                            );
+
+
+                                        return (
+
+                                            <tr
+                                                key={trip.id}
+                                            >
+
+                                                {/* ID */}
+
+                                                <td>
+                                                    {trip.id}
+                                                </td>
+
+
+                                                {/* SHIPMENT */}
+
+                                                <td>
+
+                                                    {shipment?.tracking_id ||
+                                                        `Shipment #${trip.shipment_id}`}
+
+                                                </td>
+
+
+                                                {/* VEHICLE */}
+
+                                                <td>
+
+                                                    {vehicle?.vehicle_number ||
+                                                        `Vehicle #${trip.vehicle_id}`}
+
+                                                </td>
+
+
+                                                {/* DRIVER */}
+
+                                                <td>
+
+                                                    {driver?.name ||
+                                                        `Driver #${trip.driver_id}`}
+
+                                                </td>
+
+
+                                                {/* ROUTE */}
+
+                                                <td>
+
+                                                    <div className="route-box">
+
+                                                        <span>
+                                                            {trip.start_location ||
+                                                                "-"}
+                                                        </span>
+
+                                                        <span className="arrow">
+                                                            â†’
+                                                        </span>
+
+                                                        <span>
+                                                            {trip.end_location ||
+                                                                "-"}
+                                                        </span>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* DEPARTURE */}
+
+                                                <td>
+
+                                                    {formatDate(
+                                                        trip.departure_time
+                                                    )}
+
+                                                </td>
+
+
+                                                {/* ARRIVAL */}
+
+                                                <td>
+
+                                                    {formatDate(
+                                                        trip.expected_arrival
+                                                    )}
+
+                                                </td>
+
+
+                                                {/* STATUS */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`status ${getStatusClass(
+                                                            trip.status
+                                                        )}`}
+                                                    >
+
+                                                        {trip.status ||
+                                                            "Created"}
+
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* TRACKING */}
+
+                                                <td>
+
+                                                    <button
+                                                        type="button"
+                                                        className="track-btn"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/tracking/${trip.id}`
+                                                            )
+                                                        }
+                                                    >
+
+                                                        <FaMapMarkerAlt />
+
+                                                        Live
+
+                                                    </button>
+
+                                                </td>
+
+
+                                                {/* DELETE */}
+
+                                                <td>
+
+                                                    <button
+                                                        type="button"
+                                                        className="delete-btn"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                trip.id
+                                                            )
+                                                        }
+                                                    >
+
+                                                        <FaTrash />
+
+                                                    </button>
+
+                                                </td>
+
+                                            </tr>
+
+                                        );
+
+                                    }
+                                )
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </Layout>
+
+    );
+
+}
+
+
+export default Trips;
+
+
+============================================================
+FILE: .\frontend\src\components\LiveVehicleMap.jsx
+============================================================
+
+import { useEffect, useState } from "react";
+import {
+    MapContainer,
+    TileLayer,
+    Marker,
+    Popup,
+    Polyline
+} from "react-leaflet";
+import L from "leaflet";
+
+import {
+    getTracking,
+    getRoute,
+    updateLocation
+} from "../services/tripService";
+
+import "leaflet/dist/leaflet.css";
+
+// Vehicle icon
+const vehicleIcon = new L.Icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+    iconSize: [40, 40]
+});
+
+// Destination icon
+const destinationIcon = new L.Icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+    iconSize: [35, 35]
+});
+
+function LiveVehicleMap({ tripId }) {
+
+    const [current, setCurrent] = useState([0, 0]);
+    const [destination, setDestination] = useState([0, 0]);
+    const [route, setRoute] = useState([]);
+
+    useEffect(() => {
+
+        loadTracking();
+
+        const interval = setInterval(() => {
+
+            simulateMovement();
+
+        }, 3000);
+
+        return () => clearInterval(interval);
+
+    }, []);
+
+    const loadTracking = async () => {
+
+        try {
+
+            const tracking = await getTracking(tripId);
+
+            const cur = [
+                Number(tracking.current_location.latitude),
+                Number(tracking.current_location.longitude)
+            ];
+
+            const dest = [
+                Number(tracking.destination.latitude),
+                Number(tracking.destination.longitude)
+            ];
+
+            setCurrent(cur);
+            setDestination(dest);
+
+            const routeData = await getRoute(tripId);
+
+            if (routeData.polyline) {
+
+                setRoute(routeData.polyline);
+
+            }
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
+
+    const simulateMovement = async () => {
+
+        let lat = current[0];
+        let lng = current[1];
+
+        if (
+            lat === destination[0] &&
+            lng === destination[1]
+        ) {
+            return;
+        }
+
+        if (lat < destination[0]) lat += 0.001;
+        if (lat > destination[0]) lat -= 0.001;
+
+        if (lng < destination[1]) lng += 0.001;
+        if (lng > destination[1]) lng -= 0.001;
+
+        setCurrent([lat, lng]);
+
+        try {
+
+            await updateLocation(
+                tripId,
+                lat,
+                lng
+            );
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
+
+    return (
+
+        <MapContainer
+            center={current}
+            zoom={12}
+            style={{
+                height: "600px",
+                width: "100%"
+            }}
+        >
+
+            <TileLayer
+                attribution="Â© OpenStreetMap"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            <Marker
+                position={current}
+                icon={vehicleIcon}
+            >
+                <Popup>
+                    Vehicle
+                </Popup>
+            </Marker>
+
+            <Marker
+                position={destination}
+                icon={destinationIcon}
+            >
+                <Popup>
+                    Destination
+                </Popup>
+            </Marker>
+
+            {
+
+                route.length > 0 &&
+
+                <Polyline
+                    positions={route}
+                />
+
+            }
+
+        </MapContainer>
+
+    );
+}
+
+export default LiveVehicleMap;
+
+
+============================================================
+FILE: .\frontend\src\services\mapService.js
+============================================================
+
+import axios from "axios";
+
+const API = "http://127.0.0.1:8000/trips";
+
+const getHeaders = () => ({
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+});
+
+export const getTripLocations = async () => {
+    const response = await axios.get(API + "/", getHeaders());
+    return response.data;
+};
+
+
+============================================================
+FILE: .\frontend\src\services\tripService.js
+============================================================
+
+import api from "./api";
+
+// =====================================================
+// GET ALL TRIPS
+// =====================================================
+
+export const getTrips = async () => {
+    const response = await api.get("/trips/");
+    return response.data;
+};
+
+
+// =====================================================
+// GET TRIP BY ID
+// =====================================================
+
+export const getTrip = async (tripId) => {
+    const response = await api.get(`/trips/${tripId}`);
+    return response.data;
+};
+
+
+// =====================================================
+// CREATE TRIP
+// =====================================================
+
+export const addTrip = async (tripData) => {
+    const response = await api.post("/trips/", tripData);
+    return response.data;
+};
+
+
+// =====================================================
+// UPDATE TRIP
+// =====================================================
+
+export const updateTrip = async (tripId, tripData) => {
+    const response = await api.put(
+        `/trips/${tripId}`,
+        tripData
+    );
+
+    return response.data;
+};
+
+
+// =====================================================
+// DELETE TRIP
+// =====================================================
+
+export const deleteTrip = async (tripId) => {
+    const response = await api.delete(
+        `/trips/${tripId}`
+    );
+
+    return response.data;
+};

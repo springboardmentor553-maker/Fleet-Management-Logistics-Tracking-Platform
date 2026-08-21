@@ -5,9 +5,22 @@ from app.database import Base
 
 
 class Fuel(Base):
+
     __tablename__ = "fuel_records"
 
-    id = Column(Integer, primary_key=True, index=True)
+    # =====================================================
+    # PRIMARY KEY
+    # =====================================================
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    # =====================================================
+    # FOREIGN KEY
+    # =====================================================
 
     vehicle_id = Column(
         Integer,
@@ -15,15 +28,38 @@ class Fuel(Base):
         nullable=False
     )
 
-    fuel_date = Column(Date, nullable=False)
+    # =====================================================
+    # FUEL DETAILS
+    # =====================================================
 
-    liters = Column(Float, nullable=False)
+    fuel_date = Column(
+        Date,
+        nullable=False
+    )
 
-    cost = Column(Float, nullable=False)
+    liters = Column(
+        Float,
+        nullable=False
+    )
 
-    odometer = Column(Integer, nullable=False)
+    cost = Column(
+        Float,
+        nullable=False
+    )
 
-    fuel_station = Column(String, nullable=False)
+    odometer = Column(
+        Integer,
+        nullable=False
+    )
+
+    fuel_station = Column(
+        String,
+        nullable=False
+    )
+
+    # =====================================================
+    # RELATIONSHIP
+    # =====================================================
 
     vehicle = relationship(
         "Vehicle",

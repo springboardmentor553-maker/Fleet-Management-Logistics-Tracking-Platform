@@ -1,17 +1,17 @@
 from pydantic import BaseModel
+from datetime import datetime
 from enum import Enum
+
 
 class ShipmentStatus(str, Enum):
     CREATED = "Created"
     ASSIGNED = "Assigned"
     PICKED_UP = "Picked Up"
     IN_TRANSIT = "In Transit"
-    OUT_FOR_DELIVERY = "Out for Delivery"
     DELIVERED = "Delivered"
-    DELAYED = "Delayed"
-    CANCELLED = "Cancelled"
 
-class ShipmentCreate(BaseModel):
+
+class ShipmentBase(BaseModel):
     tracking_id: str
     sender_name: str
     receiver_name: str
@@ -19,6 +19,10 @@ class ShipmentCreate(BaseModel):
     destination: str
     current_location: str = "Warehouse"
     status: ShipmentStatus = ShipmentStatus.CREATED
+
+
+class ShipmentCreate(ShipmentBase):
+    pass
 
 
 class ShipmentUpdate(BaseModel):
@@ -31,15 +35,9 @@ class ShipmentUpdate(BaseModel):
     status: ShipmentStatus | None = None
 
 
-class ShipmentResponse(BaseModel):
+class ShipmentResponse(ShipmentBase):
     id: int
-    tracking_id: str
-    sender_name: str
-    receiver_name: str
-    origin: str
-    destination: str
-    current_location: str
-    status: ShipmentStatus
+    created_at: datetime
 
     class Config:
         from_attributes = True

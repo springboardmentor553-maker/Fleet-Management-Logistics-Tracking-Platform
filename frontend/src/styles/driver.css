@@ -1,64 +1,177 @@
-.driver-page {
-    padding: 20px;
+.driver-page{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
 }
 
-.driver-page h2 {
-    margin-bottom: 20px;
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-.driver-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-bottom: 25px;
+.page-header h1{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:32px;
+    color:#1F2937;
+}
+
+.page-header p{
+    margin-top:6px;
+    color:#6B7280;
+}
+
+.search-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:white;
+    padding:14px 18px;
+    border-radius:14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.search-box input{
+    border:none;
+    outline:none;
+    width:100%;
+    background:transparent;
+    font-size:15px;
+}
+
+.driver-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
 }
 
 .driver-form input,
-.driver-form select,
-.driver-form button {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+.driver-form select{
+    padding:13px;
+    border:1px solid #D1D5DB;
+    border-radius:10px;
+    font-size:15px;
 }
 
-.driver-form button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    cursor: pointer;
+.driver-form input:focus,
+.driver-form select:focus{
+    outline:none;
+    border-color:#2563EB;
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
 }
 
-.driver-form button:hover {
-    background: #1d4ed8;
+.driver-form button{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    background:#2563EB;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.3s;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
+.driver-form button:hover{
+    background:#1D4ED8;
 }
 
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+.table-container{
+
+    width:100%;
+
+    overflow-x:auto;
+
+    background:white;
+
+    border-radius:18px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
 }
 
-th {
-    background: #2563eb;
-    color: white;
+table{
+
+    width:100%;
+
+    min-width:1400px;
+
+    border-collapse:collapse;
+
 }
 
-.delete-btn {
-    background: crimson;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
+thead{
+    background:#2563EB;
 }
 
-.delete-btn:hover {
-    background: darkred;
+th{
+    color:white;
+    padding:16px;
+}
+
+td{
+    padding:16px;
+    text-align:center;
+    border-bottom:1px solid #E5E7EB;
+}
+
+tbody tr:hover{
+    background:#F9FAFB;
+}
+
+.status{
+    padding:8px 14px;
+    border-radius:30px;
+    color:white;
+    font-size:13px;
+    font-weight:600;
+}
+
+.status.Available{
+    background:#10B981;
+}
+
+.status.OnTrip{
+    background:#3B82F6;
+}
+
+.status.Leave{
+    background:#F59E0B;
+}
+
+.delete-btn{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:10px;
+    background:#EF4444;
+    color:white;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.delete-btn:hover{
+    background:#DC2626;
+    transform:scale(1.08);
+}
+.status.available{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.status.assigned{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.status.on-leave{
+    background:#fee2e2;
+    color:#b91c1c;
 }

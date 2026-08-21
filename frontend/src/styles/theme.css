@@ -1,0 +1,95 @@
+:root {
+  /* =========================
+     BRAND COLORS
+  ========================= */
+
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --primary-light: #eff6ff;
+
+  --success: #10b981;
+  --success-dark: #059669;
+
+  --danger: #ef4444;
+  --danger-dark: #dc2626;
+
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+
+  /* =========================
+     BACKGROUND
+  ========================= */
+
+  --background: #f4f7fc;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+
+  /* =========================
+     SIDEBAR
+  ========================= */
+
+  --sidebar: #111827;
+  --sidebar-hover: #1f2937;
+  --sidebar-active: #2563eb;
+
+  /* =========================
+     TEXT
+  ========================= */
+
+  --text: #111827;
+  --text-secondary: #4b5563;
+  --text-light: #6b7280;
+  --text-muted: #9ca3af;
+  --text-white: #ffffff;
+
+  /* =========================
+     BORDER
+  ========================= */
+
+  --border: #e5e7eb;
+  --border-light: #f1f5f9;
+
+  /* =========================
+     SHADOWS
+  ========================= */
+
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+
+  /* =========================
+     RADIUS
+  ========================= */
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  /* =========================
+     TYPOGRAPHY
+  ========================= */
+
+  --font-family:
+    "Inter",
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  --font-mono:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  /* =========================
+     TRANSITIONS
+  ========================= */
+
+  --transition-fast: 0.15s ease;
+  --transition: 0.25s ease;
+  --transition-slow: 0.35s ease;
+}

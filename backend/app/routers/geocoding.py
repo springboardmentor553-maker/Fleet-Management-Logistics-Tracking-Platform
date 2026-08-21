@@ -1,19 +1,27 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
 from app.services.geocoding_service import get_coordinates
 
+
 router = APIRouter(
-    prefix="/geocode",
+    prefix="/geocoding",
     tags=["Geocoding"]
 )
 
 
 @router.get("/")
-def geocode(location: str):
-    result = get_coordinates(location)
+def geocode_location(location: str):
 
-    if result is None:
-        return {
-            "message": "Location not found"
-        }
+    coordinates = get_coordinates(location)
 
-    return result
+    if not coordinates:
+        raise HTTPException(
+            status_code=404,
+            detail="Location not found"
+        )
+
+    return {
+        "location": location,
+        "latitude": coordinates["latitude"],
+        "longitude": coordinates["longitude"]
+    }

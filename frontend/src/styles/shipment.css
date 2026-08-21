@@ -1,96 +1,275 @@
-.shipment-page {
-    margin-left: 250px;
-    margin-top: 80px;
-    padding: 30px;
+.shipment-page{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
 }
 
-.shipment-page h2 {
-    margin-bottom: 20px;
-    color: #1e293b;
+/* ---------------- Header ---------------- */
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-.shipment-form {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 30px;
+.page-header h1{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:32px;
+    color:#1F2937;
+}
+
+.page-header p{
+    margin-top:6px;
+    color:#6B7280;
+}
+
+/* ---------------- Search ---------------- */
+
+.search-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:white;
+    padding:14px 18px;
+    border-radius:14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.search-box svg{
+    color:#2563EB;
+    font-size:18px;
+}
+
+.search-box input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:15px;
+}
+
+/* ---------------- Form ---------------- */
+
+.shipment-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
 }
 
 .shipment-form input,
-.shipment-form select {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+.shipment-form select{
+    padding:13px;
+    border:1px solid #D1D5DB;
+    border-radius:10px;
+    font-size:15px;
+    transition:.3s;
 }
 
-.shipment-form button {
-    grid-column: span 3;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: bold;
+.shipment-form input:focus,
+.shipment-form select:focus{
+    outline:none;
+    border-color:#2563EB;
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
 }
 
-.shipment-form button:hover {
-    background: #1d4ed8;
+.shipment-form button{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    background:#2563EB;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
 }
 
-.tracking-box {
-    background: white;
-    padding: 20px;
-    margin-bottom: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+.shipment-form button:hover{
+    background:#1D4ED8;
+    transform:translateY(-2px);
 }
 
-.tracking-box input {
-    padding: 10px;
-    width: 250px;
-    margin-right: 10px;
+/* ---------------- Tracking Card ---------------- */
+
+.tracking-box{
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
 }
 
-.tracking-box button {
-    padding: 10px 20px;
-    background: green;
-    color: white;
-    border: none;
-    cursor: pointer;
+.tracking-box h3{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#1F2937;
+    margin-bottom:20px;
 }
 
-.tracking-result {
-    margin-top: 15px;
-    line-height: 1.8;
+.tracking-input{
+    display:flex;
+    gap:12px;
+    margin-bottom:20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
+.tracking-input input{
+    flex:1;
+    padding:12px;
+    border:1px solid #D1D5DB;
+    border-radius:10px;
 }
 
-table th,
-table td {
-    padding: 12px;
-    border: 1px solid #ddd;
-    text-align: center;
+.tracking-input input:focus{
+    outline:none;
+    border-color:#2563EB;
 }
 
-table th {
-    background: #2563eb;
-    color: white;
+.tracking-input button{
+    background:#2563EB;
+    color:white;
+    border:none;
+    padding:12px 24px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.3s;
 }
 
-.delete-btn {
-    background: red;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    cursor: pointer;
+.tracking-input button:hover{
+    background:#1D4ED8;
 }
 
-.delete-btn:hover {
-    background: darkred;
+.tracking-result{
+    margin-top:15px;
+    background:#F8FAFC;
+    border-left:5px solid #2563EB;
+    border-radius:10px;
+    padding:18px;
+}
+
+.tracking-result p{
+    margin:8px 0;
+}
+
+/* ---------------- Table ---------------- */
+
+.table-container{
+
+    width:100%;
+
+    overflow-x:auto;
+
+    background:white;
+
+    border-radius:18px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}
+
+table{
+
+    width:100%;
+
+    min-width:1400px;
+
+    border-collapse:collapse;
+
+}
+
+thead{
+    background:#2563EB;
+}
+
+th{
+    color:white;
+    padding:16px;
+    font-weight:600;
+}
+
+td{
+    padding:16px;
+    text-align:center;
+    border-bottom:1px solid #E5E7EB;
+}
+
+tbody tr{
+    transition:.25s;
+}
+
+tbody tr:hover{
+    background:#F9FAFB;
+}
+
+/* ---------------- Status ---------------- */
+
+.status{
+    padding:8px 14px;
+    border-radius:30px;
+    color:white;
+    font-size:13px;
+    font-weight:600;
+}
+
+.status.Pending{
+    background:#F59E0B;
+}
+
+.status.InTransit{
+    background:#3B82F6;
+}
+
+.status.Delivered{
+    background:#10B981;
+}
+
+.status.Cancelled{
+    background:#EF4444;
+}
+
+/* ---------------- Delete ---------------- */
+
+.delete-btn{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:10px;
+    background:#EF4444;
+    color:white;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.delete-btn:hover{
+    background:#DC2626;
+    transform:scale(1.08);
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media(max-width:768px){
+
+    .shipment-form{
+        grid-template-columns:1fr;
+    }
+
+    .tracking-input{
+        flex-direction:column;
+    }
+
+    table{
+        font-size:13px;
+    }
+
+    th,
+    td{
+        padding:10px;
+    }
 }

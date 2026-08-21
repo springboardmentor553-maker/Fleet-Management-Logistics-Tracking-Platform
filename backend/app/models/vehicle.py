@@ -1,27 +1,66 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 
 class Vehicle(Base):
+
     __tablename__ = "vehicles"
 
-    id = Column(Integer, primary_key=True, index=True)
+    # =====================================================
+    # PRIMARY KEY
+    # =====================================================
 
-    vehicle_number = Column(String, unique=True, nullable=False)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    vehicle_type = Column(String, nullable=False)
+    # =====================================================
+    # VEHICLE DETAILS
+    # =====================================================
 
-    capacity = Column(String)
+    vehicle_number = Column(
+        String,
+        unique=True,
+        nullable=False
+    )
 
-    status = Column(String, default="Available")
+    vehicle_type = Column(
+        String,
+        nullable=False
+    )
 
-    # One Vehicle → Many Trips
+    capacity = Column(
+        Integer,
+        nullable=False
+    )
+
+    status = Column(
+        String,
+        default="Available"
+    )
+
+    # =====================================================
+    # RELATIONSHIPS
+    # =====================================================
+
+    # One Vehicle -> Many Trips
     trips = relationship(
         "Trip",
         back_populates="vehicle"
     )
+
+    # One Vehicle -> Many Driver Assignments
+    assignments = relationship(
+        "DriverAssignment",
+        back_populates="vehicle"
+    )
+
+    # One Vehicle -> Many Fuel Records
     fuel_records = relationship(
-    "Fuel",
-    back_populates="vehicle"
-)
+        "Fuel",
+        back_populates="vehicle"
+    )

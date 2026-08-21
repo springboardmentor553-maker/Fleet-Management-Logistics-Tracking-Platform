@@ -3,13 +3,15 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.shipment import Shipment
-from app.models.trip import Trip
-from app.models.driver import Driver
-from app.models.vehicle import Vehicle
+from app.schemas.shipment import (
+    ShipmentCreate,
+    ShipmentUpdate,
+    ShipmentResponse
+)
 
-from app.schemas.shipment import ShipmentCreate, ShipmentUpdate
+from app.utils.audit import create_audit_log
+from app.utils.auth import get_current_user
 
-from app.services.eta_service import calculate_eta
 
 router = APIRouter(
     prefix="/shipments",
@@ -17,52 +19,71 @@ router = APIRouter(
 )
 
 
-# ----------------------------
-# Create Shipment
-# ----------------------------
-@router.post("/")
-def create_shipment(
-    shipment: ShipmentCreate,
+# =====================================================
+# GET ALL SHIPMENTS
+# =====================================================
+
+@router.get(
+    "/",
+    response_model=list[ShipmentResponse]
+)
+def get_shipments(
     db: Session = Depends(get_db)
 ):
-    existing = db.query(Shipment).filter(
-        Shipment.tracking_id == shipment.tracking_id
-    ).first()
 
-    if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="Shipment with this tracking ID already exists"
-        )
-
-    new_shipment = Shipment(**shipment.model_dump())
-
-    db.add(new_shipment)
-    db.commit()
-    db.refresh(new_shipment)
-
-    return new_shipment
-
-
-# ----------------------------
-# Get All Shipments
-# ----------------------------
-@router.get("/")
-def get_shipments(db: Session = Depends(get_db)):
     return db.query(Shipment).all()
 
 
-# ----------------------------
-# Track Shipment
-# ----------------------------
-@router.get("/track/{tracking_id}")
+# =====================================================
+# GET SHIPMENT BY ID
+# =====================================================
+
+@router.get(
+    "/{shipment_id}",
+    response_model=ShipmentResponse
+)
+def get_shipment(
+    shipment_id: int,
+    db: Session = Depends(get_db)
+):
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
+
+    if not shipment:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipment not found"
+        )
+
+    return shipment
+
+
+# =====================================================
+# TRACK SHIPMENT
+# =====================================================
+
+@router.get(
+    "/track/{tracking_id}",
+    response_model=ShipmentResponse
+)
 def track_shipment(
     tracking_id: str,
     db: Session = Depends(get_db)
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.tracking_id == tracking_id
-    ).first()
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.tracking_id == tracking_id
+        )
+        .first()
+    )
 
     if not shipment:
         raise HTTPException(
@@ -70,158 +91,195 @@ def track_shipment(
             detail="Tracking ID not found"
         )
 
-    return {
-        "tracking_id": shipment.tracking_id,
-        "origin": shipment.origin,
-        "destination": shipment.destination,
-        "status": shipment.status
-    }
+    return shipment
 
 
-# ----------------------------
-# Shipment Status API
-# ----------------------------
-@router.get("/track/{tracking_number}/status")
-def shipment_status(
-    tracking_number: str,
-    db: Session = Depends(get_db)
+# =====================================================
+# CREATE SHIPMENT
+# =====================================================
+
+@router.post(
+    "/",
+    response_model=ShipmentResponse
+)
+def create_shipment(
+    shipment: ShipmentCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.tracking_id == tracking_number
-    ).first()
 
-    if not shipment:
-        raise HTTPException(
-            status_code=404,
-            detail="Shipment not found"
+    # -------------------------------------------------
+    # CHECK DUPLICATE TRACKING ID
+    # -------------------------------------------------
+
+    existing = (
+        db.query(Shipment)
+        .filter(
+            Shipment.tracking_id == shipment.tracking_id
         )
-
-    trip = db.query(Trip).filter(
-        Trip.shipment_id == shipment.id
-    ).first()
-
-    if not trip:
-        raise HTTPException(
-            status_code=404,
-            detail="Trip not found"
-        )
-
-    driver = db.query(Driver).filter(
-        Driver.id == trip.driver_id
-    ).first()
-
-    vehicle = db.query(Vehicle).filter(
-        Vehicle.id == trip.vehicle_id
-    ).first()
-
-    eta = calculate_eta(
-        float(trip.current_latitude),
-        float(trip.current_longitude),
-        float(trip.destination_latitude),
-        float(trip.destination_longitude)
+        .first()
     )
 
-    return {
-        "tracking_number": shipment.tracking_id,
-        "shipment_status": shipment.status,
-        "driver_name": driver.name if driver else None,
-        "vehicle_registration_number": vehicle.vehicle_number if vehicle else None,
-        "pickup_location": shipment.origin,
-        "destination": shipment.destination,
-        "eta": eta
-    }
-
-
-# ----------------------------
-# Get Shipment by ID
-# ----------------------------
-@router.get("/{shipment_id}")
-def get_shipment(
-    shipment_id: int,
-    db: Session = Depends(get_db)
-):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
-
-    if not shipment:
+    if existing:
         raise HTTPException(
-            status_code=404,
-            detail="Shipment not found"
+            status_code=400,
+            detail="Tracking ID already exists"
         )
 
-    return shipment
+    # -------------------------------------------------
+    # CREATE SHIPMENT
+    # -------------------------------------------------
+
+    shipment_data = shipment.model_dump()
+
+    # Do not allow frontend to send created_at as None.
+    # The database model will automatically generate it.
+    shipment_data.pop("created_at", None)
+
+    new_shipment = Shipment(
+        **shipment_data
+    )
+
+    db.add(new_shipment)
+
+    # Generate ID and apply defaults
+    db.flush()
+
+    # -------------------------------------------------
+    # AUDIT LOG
+    # -------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user=current_user,
+        module="Shipment",
+        action="CREATE",
+        details=(
+            f"Shipment {new_shipment.tracking_id} "
+            f"(ID: {new_shipment.id}) was created."
+        )
+    )
+
+    # -------------------------------------------------
+    # COMMIT
+    # -------------------------------------------------
+
+    db.commit()
+
+    db.refresh(new_shipment)
+
+    return new_shipment
 
 
-# ----------------------------
-# Update Shipment
-# ----------------------------
-@router.put("/{shipment_id}")
+# =====================================================
+# UPDATE SHIPMENT
+# =====================================================
+
+@router.put(
+    "/{shipment_id}",
+    response_model=ShipmentResponse
+)
 def update_shipment(
     shipment_id: int,
-    updated: ShipmentUpdate,
-    db: Session = Depends(get_db)
+    shipment: ShipmentUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
 
-    if not shipment:
+    # -------------------------------------------------
+    # FIND SHIPMENT
+    # -------------------------------------------------
+
+    db_shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
+
+    if not db_shipment:
         raise HTTPException(
             status_code=404,
             detail="Shipment not found"
         )
 
-    for key, value in updated.model_dump(exclude_unset=True).items():
-        setattr(shipment, key, value)
+    # -------------------------------------------------
+    # STORE OLD VALUES
+    # -------------------------------------------------
 
-    db.commit()
-    db.refresh(shipment)
+    old_tracking_id = db_shipment.tracking_id
+    old_status = db_shipment.status
 
-    return shipment
+    # -------------------------------------------------
+    # UPDATE ONLY PROVIDED FIELDS
+    # -------------------------------------------------
 
+    update_data = shipment.model_dump(
+        exclude_unset=True
+    )
 
-# ----------------------------
-# Update Shipment Status
-# ----------------------------
-@router.patch("/{shipment_id}/status")
-def update_shipment_status(
-    shipment_id: int,
-    status: str,
-    db: Session = Depends(get_db)
-):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+    for key, value in update_data.items():
 
-    if not shipment:
-        raise HTTPException(
-            status_code=404,
-            detail="Shipment not found"
+        setattr(
+            db_shipment,
+            key,
+            value
         )
 
-    shipment.status = status
+    # -------------------------------------------------
+    # AUDIT LOG
+    # -------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user=current_user,
+        module="Shipment",
+        action="UPDATE",
+        details=(
+            f"Shipment ID {db_shipment.id} updated. "
+            f"Tracking ID: {old_tracking_id} -> "
+            f"{db_shipment.tracking_id}. "
+            f"Status: {old_status} -> "
+            f"{db_shipment.status}."
+        )
+    )
+
+    # -------------------------------------------------
+    # COMMIT
+    # -------------------------------------------------
 
     db.commit()
-    db.refresh(shipment)
 
-    return {
-        "message": "Shipment status updated successfully",
-        "shipment": shipment
-    }
+    db.refresh(db_shipment)
+
+    return db_shipment
 
 
-# ----------------------------
-# Delete Shipment
-# ----------------------------
-@router.delete("/{shipment_id}")
+# =====================================================
+# DELETE SHIPMENT
+# =====================================================
+
+@router.delete(
+    "/{shipment_id}"
+)
 def delete_shipment(
     shipment_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    shipment = db.query(Shipment).filter(
-        Shipment.id == shipment_id
-    ).first()
+
+    # -------------------------------------------------
+    # FIND SHIPMENT
+    # -------------------------------------------------
+
+    shipment = (
+        db.query(Shipment)
+        .filter(
+            Shipment.id == shipment_id
+        )
+        .first()
+    )
 
     if not shipment:
         raise HTTPException(
@@ -229,7 +287,48 @@ def delete_shipment(
             detail="Shipment not found"
         )
 
+    # -------------------------------------------------
+    # CHECK WHETHER SHIPMENT HAS TRIPS
+    # -------------------------------------------------
+
+    if shipment.trips:
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Shipment is assigned to a trip. "
+                "Delete the trip first."
+            )
+        )
+
+    # -------------------------------------------------
+    # STORE VALUES BEFORE DELETE
+    # -------------------------------------------------
+
+    tracking_id = shipment.tracking_id
+    shipment_id_value = shipment.id
+
+    # -------------------------------------------------
+    # AUDIT BEFORE DELETE
+    # -------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user=current_user,
+        module="Shipment",
+        action="DELETE",
+        details=(
+            f"Shipment {tracking_id} "
+            f"(ID: {shipment_id_value}) was deleted."
+        )
+    )
+
+    # -------------------------------------------------
+    # DELETE
+    # -------------------------------------------------
+
     db.delete(shipment)
+
     db.commit()
 
     return {

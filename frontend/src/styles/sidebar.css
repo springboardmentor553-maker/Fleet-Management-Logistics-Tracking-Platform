@@ -1,104 +1,192 @@
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
 .sidebar {
 
     position: fixed;
 
     left: 0;
-
     top: 0;
 
-    width: 240px;
-
+    width: 270px;
     height: 100vh;
 
-    background: #1e293b;
-
+    background: #111827;
     color: white;
 
     display: flex;
-
     flex-direction: column;
 
     justify-content: space-between;
 
-    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+
+    z-index: 1000;
+
+    overflow: hidden;
 
 }
+
+
+/* =========================================================
+   LOGO
+========================================================= */
 
 .logo {
 
+    padding: 28px;
+
     text-align: center;
 
-    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-    font-size: 22px;
+    flex-shrink: 0;
+}
 
-    font-weight: bold;
+.logo h2 {
 
-    border-bottom: 1px solid rgba(255,255,255,.1);
+    margin: 0;
+
+    color: #3b82f6;
 
 }
 
-.sidebar nav {
+.logo span {
 
-    display: flex;
+    display: block;
 
-    flex-direction: column;
+    margin-top: 10px;
 
-    padding: 20px 0;
+    color: #9ca3af;
+
+    font-size: 13px;
 
 }
 
-.sidebar nav a {
+
+/* =========================================================
+   MENU
+========================================================= */
+
+.menu {
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 20px;
+
+    flex: 1;
+
+}
+
+
+/* Scrollbar */
+
+.menu::-webkit-scrollbar {
+
+    width: 5px;
+
+}
+
+.menu::-webkit-scrollbar-track {
+
+    background: transparent;
+
+}
+
+.menu::-webkit-scrollbar-thumb {
+
+    background: #374151;
+
+    border-radius: 10px;
+
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.section-title {
+
+    color: #9ca3af;
+
+    font-size: 12px;
+
+    margin: 18px 0 10px;
+
+    letter-spacing: 1px;
+
+}
+
+
+/* =========================================================
+   MENU LINKS
+========================================================= */
+
+.menu a {
 
     display: flex;
 
     align-items: center;
 
-    gap: 15px;
-
-    color: white;
+    gap: 14px;
 
     text-decoration: none;
 
-    padding: 14px 25px;
+    color: white;
 
-    transition: .3s;
+    padding: 12px 16px;
 
-    font-size: 16px;
+    border-radius: 10px;
+
+    margin-bottom: 8px;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
+    white-space: nowrap;
 
 }
 
-.sidebar nav a:hover {
 
-    background: #334155;
+.menu a:hover {
+
+    background: #1f2937;
+
+    transform: translateX(5px);
 
 }
 
-.sidebar nav a.active {
+
+.menu a.active {
 
     background: #2563eb;
 
 }
 
-.icon {
 
-    font-size: 18px;
-
-}
+/* =========================================================
+   LOGOUT
+========================================================= */
 
 .logout-btn {
 
     margin: 20px;
 
-    border: none;
-
     padding: 14px;
 
-    border-radius: 8px;
+    border: none;
+
+    border-radius: 10px;
 
     background: #ef4444;
 
     color: white;
+
+    font-size: 15px;
 
     display: flex;
 
@@ -108,50 +196,151 @@
 
     gap: 10px;
 
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
     cursor: pointer;
 
-    font-size: 16px;
+    flex-shrink: 0;
 
 }
+
 
 .logout-btn:hover {
 
     background: #dc2626;
 
-}
-
-@media(max-width:768px){
-
-.sidebar{
-
-    width:80px;
+    transform: translateY(-1px);
 
 }
 
-.logo h2{
 
-    font-size:0;
+/* =========================================================
+   LAPTOP SIDEBAR
+========================================================= */
 
-}
+@media (max-width: 1200px) {
 
-.logo::after{
+    .sidebar {
 
-    content:"🚚";
+        width: 240px;
 
-    font-size:28px;
-
-}
-
-.sidebar nav a span:last-child{
-
-    display:none;
+    }
 
 }
 
-.logout-btn span{
 
-    display:none;
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 992px) {
+
+    .sidebar {
+
+        width: 220px;
+
+    }
 
 }
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    /*
+       Keep sidebar accessible without breaking
+       the page width.
+
+       If you already have a hamburger menu,
+       we can later change this to slide-in behavior.
+    */
+
+    .sidebar {
+
+        width: 210px;
+
+    }
+
+    .logo {
+
+        padding: 20px 15px;
+
+    }
+
+    .logo h2 {
+
+        font-size: 20px;
+
+    }
+
+    .logo span {
+
+        font-size: 11px;
+
+    }
+
+    .menu {
+
+        padding: 12px;
+
+    }
+
+    .menu a {
+
+        padding: 11px 12px;
+
+        gap: 10px;
+
+        font-size: 13px;
+
+    }
+
+    .logout-btn {
+
+        margin: 12px;
+
+        padding: 12px;
+
+        font-size: 13px;
+
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .sidebar {
+
+        width: 200px;
+
+    }
+
+    .menu a {
+
+        font-size: 12px;
+
+        padding: 10px;
+
+    }
+
+    .logout-btn {
+
+        margin: 10px;
+
+        padding: 10px;
+
+        font-size: 12px;
+
+    }
 
 }

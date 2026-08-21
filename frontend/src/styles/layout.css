@@ -1,0 +1,290 @@
+/* =========================================================
+   APP LAYOUT
+========================================================= */
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background: #F4F7FC;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+    margin-left: 270px;
+    width: calc(100% - 270px);
+    min-height: 100vh;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+.page-content {
+    width: 100%;
+    max-width: 1800px;
+
+    margin: 90px auto 30px auto;
+
+    padding: 30px 40px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   LARGE SCREENS
+========================================================= */
+
+@media (min-width: 1600px) {
+
+    .page-content {
+        max-width: 1900px;
+        padding: 40px;
+    }
+
+}
+
+
+/* =========================================================
+   LAPTOP
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .page-content {
+        padding: 25px;
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   Sidebar becomes a compact icon sidebar
+========================================================= */
+
+@media (max-width: 992px) {
+
+    /* -----------------------------------------
+       SIDEBAR
+    ----------------------------------------- */
+
+    .sidebar {
+        width: 72px;
+    }
+
+
+    /* Logo */
+
+    .logo {
+        padding: 20px 8px;
+    }
+
+    .logo h2 {
+        font-size: 0;
+        margin: 0;
+    }
+
+    .logo h2::before {
+        content: "🚚";
+        font-size: 25px;
+    }
+
+    .logo span {
+        display: none;
+    }
+
+
+    /* Menu */
+
+    .menu {
+        padding: 15px 8px;
+    }
+
+
+    /* Section titles */
+
+    .section-title {
+        display: none;
+    }
+
+
+    /* Menu links */
+
+    .menu a {
+        justify-content: center;
+
+        gap: 0;
+
+        padding: 13px 8px;
+
+        margin-bottom: 8px;
+
+        font-size: 0;
+
+        border-radius: 10px;
+    }
+
+
+    /* Icons */
+
+    .menu a svg {
+        font-size: 18px;
+        min-width: 18px;
+    }
+
+
+    /* Remove hover movement */
+
+    .menu a:hover {
+        transform: none;
+    }
+
+
+    /* Logout */
+
+    .logout-btn {
+        margin: 15px 8px;
+
+        padding: 13px 8px;
+
+        font-size: 0;
+    }
+
+    .logout-btn svg {
+        font-size: 18px;
+    }
+
+
+    /* -----------------------------------------
+       MAIN CONTENT
+    ----------------------------------------- */
+
+    .main-content {
+        margin-left: 72px;
+
+        width: calc(100% - 72px);
+    }
+
+
+    .page-content {
+        margin-top: 80px;
+
+        padding: 20px;
+
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 64px;
+    }
+
+
+    .main-content {
+        margin-left: 64px;
+
+        width: calc(100% - 64px);
+    }
+
+
+    .page-content {
+        padding: 15px;
+
+        margin-top: 70px;
+    }
+
+
+    .menu {
+        padding: 12px 7px;
+    }
+
+
+    .menu a {
+        padding: 12px 6px;
+    }
+
+
+    .logout-btn {
+        margin: 12px 7px;
+
+        padding: 12px 6px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .sidebar {
+        width: 58px;
+    }
+
+
+    .main-content {
+        margin-left: 58px;
+
+        width: calc(100% - 58px);
+    }
+
+
+    .page-content {
+        padding: 12px;
+    }
+
+
+    .logo {
+        padding: 18px 5px;
+    }
+
+
+    .logo h2::before {
+        font-size: 22px;
+    }
+
+
+    .menu {
+        padding: 10px 5px;
+    }
+
+
+    .menu a {
+        padding: 11px 5px;
+    }
+
+
+    .menu a svg {
+        font-size: 17px;
+    }
+
+
+    .logout-btn {
+        margin: 10px 5px;
+
+        padding: 11px 5px;
+    }
+
+}

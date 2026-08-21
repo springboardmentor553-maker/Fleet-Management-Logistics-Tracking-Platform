@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import {
+    FaTrash,
+    FaTruck,
+    FaSearch,
+    FaPlus
+} from "react-icons/fa";
+
 import Layout from "../components/Layout";
 
 import {
@@ -13,6 +20,8 @@ function Vehicles() {
 
     const [vehicles, setVehicles] = useState([]);
 
+    const [search, setSearch] = useState("");
+
     const [form, setForm] = useState({
         vehicle_number: "",
         vehicle_type: "",
@@ -25,8 +34,12 @@ function Vehicles() {
     }, []);
 
     const loadVehicles = async () => {
-        const data = await getVehicles();
-        setVehicles(data);
+        try {
+            const data = await getVehicles();
+            setVehicles(data);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const handleChange = (e) => {
@@ -37,6 +50,7 @@ function Vehicles() {
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
 
         await addVehicle(form);
@@ -53,12 +67,18 @@ function Vehicles() {
 
     const handleDelete = async (id) => {
 
-        if (!window.confirm("Delete this vehicle?")) return;
+        if (!window.confirm("Delete this vehicle?"))
+            return;
 
         await deleteVehicle(id);
 
         loadVehicles();
     };
+
+    const filteredVehicles = vehicles.filter((vehicle) =>
+        vehicle.vehicle_number.toLowerCase().includes(search.toLowerCase()) ||
+        vehicle.vehicle_type.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
 
@@ -66,7 +86,35 @@ function Vehicles() {
 
             <div className="vehicle-page">
 
-                <h2>Vehicle Management</h2>
+                <div className="page-header">
+
+                    <div>
+
+                        <h1>
+                            <FaTruck /> Vehicle Management
+                        </h1>
+
+                        <p>
+                            Manage all fleet vehicles
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div className="search-box">
+
+                    <FaSearch />
+
+                    <input
+                        placeholder="Search vehicle..."
+                        value={search}
+                        onChange={(e) =>
+                            setSearch(e.target.value)
+                        }
+                    />
+
+                </div>
 
                 <form
                     className="vehicle-form"
@@ -90,6 +138,7 @@ function Vehicles() {
                     />
 
                     <input
+                        type="number"
                         name="capacity"
                         placeholder="Capacity"
                         value={form.capacity}
@@ -102,70 +151,93 @@ function Vehicles() {
                         value={form.status}
                         onChange={handleChange}
                     >
-                        <option>Available</option>
-                        <option>On Trip</option>
-                        <option>Maintenance</option>
+                        <option value="Available">Available</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Maintenance">Maintenance</option>
                     </select>
 
                     <button type="submit">
+                        <FaPlus />
                         Add Vehicle
                     </button>
 
                 </form>
 
-                <table>
+                <div className="table-container">
 
-                    <thead>
+                    <table>
 
-                        <tr>
-                            <th>ID</th>
-                            <th>Vehicle No</th>
-                            <th>Type</th>
-                            <th>Capacity</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
+                        <thead>
 
-                    </thead>
+                            <tr>
 
-                    <tbody>
-
-                        {vehicles.map(vehicle => (
-
-                            <tr key={vehicle.id}>
-
-                                <td>{vehicle.id}</td>
-                                <td>{vehicle.vehicle_number}</td>
-                                <td>{vehicle.vehicle_type}</td>
-                                <td>{vehicle.capacity}</td>
-                                <td>{vehicle.status}</td>
-
-                                <td>
-
-                                    <button
-                                        className="delete-btn"
-                                        onClick={() =>
-                                            handleDelete(vehicle.id)
-                                        }
-                                    >
-                                        Delete
-                                    </button>
-
-                                </td>
+                                <th>ID</th>
+                                <th>Vehicle</th>
+                                <th>Type</th>
+                                <th>Capacity</th>
+                                <th>Status</th>
+                                <th>Action</th>
 
                             </tr>
 
-                        ))}
+                        </thead>
 
-                    </tbody>
+                        <tbody>
 
-                </table>
+                            {filteredVehicles.map((vehicle) => (
+
+                                <tr key={vehicle.id}>
+
+                                    <td>{vehicle.id}</td>
+
+                                    <td>{vehicle.vehicle_number}</td>
+
+                                    <td>{vehicle.vehicle_type}</td>
+
+                                    <td>{vehicle.capacity}</td>
+
+                                    <td>
+
+                                        <span
+                                            className={`status ${vehicle.status
+                                                .toLowerCase()
+                                                .replace(/\s+/g, "-")}`}
+                                        >
+                                            {vehicle.status}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() =>
+                                                handleDelete(vehicle.id)
+                                            }
+                                        >
+                                            <FaTrash />
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
         </Layout>
 
     );
+
 }
 
 export default Vehicles;

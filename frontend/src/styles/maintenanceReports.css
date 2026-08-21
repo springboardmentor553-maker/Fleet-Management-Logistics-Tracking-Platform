@@ -1,0 +1,962 @@
+/* =========================================================
+   FLEETFLOW - MAINTENANCE REPORTS
+   ========================================================= */
+
+.maintenance-report-page {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 10px 4px 50px;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.maintenance-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 32px;
+}
+
+.page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.page-title-icon {
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+    color: #2563eb;
+
+    border-radius: 14px;
+
+    font-size: 24px;
+}
+
+.maintenance-report-header h1 {
+    margin: 0;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: #111827;
+
+    letter-spacing: -0.5px;
+}
+
+.maintenance-report-header p {
+    margin: 6px 0 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+   ========================================================= */
+
+.report-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.report-btn,
+.refresh-btn {
+    border: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    font-family: inherit;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.report-btn {
+    min-height: 42px;
+
+    padding: 0 16px;
+
+    border-radius: 9px;
+
+    color: white;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.report-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.pdf-btn {
+    background: #dc2626;
+
+    box-shadow:
+        0 4px 10px rgba(220, 38, 38, 0.18);
+}
+
+.pdf-btn:hover:not(:disabled) {
+    background: #b91c1c;
+}
+
+.excel-btn {
+    background: #16a34a;
+
+    box-shadow:
+        0 4px 10px rgba(22, 163, 74, 0.18);
+}
+
+.excel-btn:hover:not(:disabled) {
+    background: #15803d;
+}
+
+.refresh-btn {
+    width: 42px;
+    height: 42px;
+
+    background: white;
+
+    color: #374151;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+}
+
+.refresh-btn:hover:not(:disabled) {
+    background: #f9fafb;
+
+    border-color: #d1d5db;
+}
+
+.report-btn:disabled,
+.refresh-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
+.report-section {
+    margin-bottom: 25px;
+}
+
+.section-heading {
+    margin-bottom: 16px;
+}
+
+.section-heading h2,
+.table-header h2 {
+    margin: 0;
+
+    font-size: 19px;
+
+    color: #111827;
+
+    font-weight: 700;
+}
+
+.section-heading p,
+.table-header p {
+    margin: 5px 0 0;
+
+    color: #6b7280;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+   ========================================================= */
+
+.maintenance-summary-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+.report-stat-card {
+    min-height: 128px;
+
+    background: #ffffff;
+
+    border: 1px solid #edf0f5;
+
+    border-radius: 16px;
+
+    padding: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 17px;
+
+    box-shadow:
+        0 5px 18px rgba(15, 23, 42, 0.05);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.report-stat-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.stat-icon {
+    width: 52px;
+    height: 52px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+
+    font-size: 20px;
+}
+
+.stat-icon.blue {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.stat-icon.orange {
+    background: #fff7ed;
+    color: #f97316;
+}
+
+.stat-icon.green {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.stat-icon.red {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.stat-icon.purple {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.stat-icon.cyan {
+    background: #ecfeff;
+    color: #0891b2;
+}
+
+.stat-content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-content span {
+    color: #6b7280;
+
+    font-size: 13px;
+
+    font-weight: 500;
+}
+
+.stat-content strong {
+    margin-top: 4px;
+
+    color: #111827;
+
+    font-size: 25px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+}
+
+.stat-content small {
+    margin-top: 4px;
+
+    color: #9ca3af;
+
+    font-size: 11px;
+}
+
+.cost-card .stat-content strong {
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   ALERT CARDS
+   ========================================================= */
+
+.maintenance-alert-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 18px;
+
+    margin-bottom: 25px;
+}
+
+.maintenance-alert-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 20px 22px;
+
+    border-radius: 14px;
+
+    border: 1px solid;
+}
+
+.upcoming-card {
+    background: #fffbeb;
+
+    border-color: #fde68a;
+}
+
+.overdue-card {
+    background: #fef2f2;
+
+    border-color: #fecaca;
+}
+
+.maintenance-alert-card .alert-icon {
+    width: 46px;
+    height: 46px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    font-size: 18px;
+}
+
+.upcoming-card .alert-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.overdue-card .alert-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.maintenance-alert-card span {
+    display: block;
+
+    color: #6b7280;
+
+    font-size: 12px;
+
+    font-weight: 500;
+}
+
+.maintenance-alert-card strong {
+    display: block;
+
+    margin-top: 2px;
+
+    font-size: 24px;
+
+    color: #111827;
+}
+
+.maintenance-alert-card p {
+    margin: 2px 0 0;
+
+    font-size: 11px;
+
+    color: #9ca3af;
+}
+
+
+/* =========================================================
+   TABLE SECTION
+   ========================================================= */
+
+.report-table-section {
+    background: #ffffff;
+
+    border: 1px solid #edf0f5;
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 5px 18px rgba(15, 23, 42, 0.05);
+
+    overflow: hidden;
+
+    margin-bottom: 25px;
+}
+
+.table-header {
+    min-height: 78px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 18px 22px;
+
+    border-bottom: 1px solid #eef0f4;
+}
+
+.record-count {
+    padding: 7px 12px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+.maintenance-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+.maintenance-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 950px;
+}
+
+.maintenance-table thead {
+    background: #f8fafc;
+}
+
+.maintenance-table th {
+    padding: 14px 16px;
+
+    text-align: left;
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    white-space: nowrap;
+}
+
+.maintenance-table td {
+    padding: 15px 16px;
+
+    color: #475569;
+
+    font-size: 13px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    white-space: nowrap;
+}
+
+.maintenance-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.maintenance-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.maintenance-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.record-id {
+    color: #64748b;
+
+    font-weight: 600;
+}
+
+.vehicle-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 5px 9px;
+
+    border-radius: 6px;
+
+    background: #f1f5f9;
+
+    color: #334155;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.category-text {
+    color: #334155;
+
+    font-weight: 600;
+}
+
+.cost-text {
+    color: #111827;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.status-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 82px;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.status-completed {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.status-scheduled {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.status-cancelled {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.status-default {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+
+/* =========================================================
+   UPCOMING / OVERDUE DETAIL CARDS
+   ========================================================= */
+
+.maintenance-detail-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px;
+}
+
+.detail-card {
+    background: #ffffff;
+
+    border: 1px solid #edf0f5;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 5px 18px rgba(15, 23, 42, 0.05);
+}
+
+.detail-card-header {
+    min-height: 82px;
+
+    padding: 17px 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    border-bottom: 1px solid #eef0f4;
+}
+
+.detail-heading {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.small-icon {
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+}
+
+.upcoming-heading .small-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.overdue-heading .small-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.detail-heading h2 {
+    margin: 0;
+
+    color: #111827;
+
+    font-size: 15px;
+
+    font-weight: 700;
+}
+
+.detail-heading p {
+    margin: 3px 0 0;
+
+    color: #9ca3af;
+
+    font-size: 11px;
+}
+
+.detail-card-header > span {
+    min-width: 30px;
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f1f5f9;
+
+    color: #475569;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.maintenance-list {
+    padding: 4px 20px;
+}
+
+.maintenance-list-item {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 15px 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.maintenance-list-item:last-child {
+    border-bottom: none;
+}
+
+.maintenance-list-item > div:first-child {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.maintenance-list-item strong {
+    color: #334155;
+
+    font-size: 13px;
+}
+
+.maintenance-list-item span {
+    color: #9ca3af;
+
+    font-size: 11px;
+}
+
+.service-date {
+    text-align: right;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.service-date small {
+    color: #9ca3af;
+
+    font-size: 10px;
+}
+
+.service-date strong {
+    color: #475569;
+
+    font-size: 12px;
+}
+
+.overdue-item .service-date strong {
+    color: #dc2626;
+}
+
+.no-data {
+    min-height: 120px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    color: #9ca3af;
+
+    font-size: 13px;
+}
+
+.success-message {
+    gap: 8px;
+
+    color: #059669;
+}
+
+
+/* =========================================================
+   LOADING / EMPTY
+   ========================================================= */
+
+.report-loading {
+    min-height: 250px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.report-loading svg {
+    font-size: 22px;
+
+    color: #2563eb;
+}
+
+.empty-report {
+    min-height: 250px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+.empty-report > svg {
+    font-size: 35px;
+
+    color: #cbd5e1;
+
+    margin-bottom: 12px;
+}
+
+.empty-report h3 {
+    margin: 0;
+
+    color: #334155;
+
+    font-size: 16px;
+}
+
+.empty-report p {
+    margin-top: 5px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+.spin {
+    animation: maintenanceSpin 0.9s linear infinite;
+}
+
+@keyframes maintenanceSpin {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .maintenance-summary-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .maintenance-report-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .report-actions {
+        width: 100%;
+    }
+
+    .report-btn {
+        flex: 1;
+    }
+
+    .maintenance-alert-grid,
+    .maintenance-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .maintenance-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .maintenance-report-header h1 {
+        font-size: 25px;
+    }
+
+    .page-title-icon {
+        width: 48px;
+        height: 48px;
+
+        font-size: 20px;
+    }
+
+    .report-actions {
+        flex-wrap: wrap;
+    }
+
+    .report-btn {
+        flex: 1;
+
+        min-width: 130px;
+    }
+
+    .refresh-btn {
+        flex-shrink: 0;
+    }
+
+}

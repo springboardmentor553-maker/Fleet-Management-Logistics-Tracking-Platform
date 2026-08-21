@@ -3,7 +3,12 @@ from datetime import date
 from pydantic import BaseModel
 
 
+# =====================================================
+# CREATE
+# =====================================================
+
 class FuelCreate(BaseModel):
+
     vehicle_id: int
     fuel_date: date
     liters: float
@@ -12,7 +17,12 @@ class FuelCreate(BaseModel):
     fuel_station: str
 
 
+# =====================================================
+# UPDATE
+# =====================================================
+
 class FuelUpdate(BaseModel):
+
     vehicle_id: int | None = None
     fuel_date: date | None = None
     liters: float | None = None
@@ -21,7 +31,12 @@ class FuelUpdate(BaseModel):
     fuel_station: str | None = None
 
 
+# =====================================================
+# RESPONSE
+# =====================================================
+
 class FuelResponse(BaseModel):
+
     id: int
     vehicle_id: int
     fuel_date: date

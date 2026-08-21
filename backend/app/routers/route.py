@@ -1,5 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
 from app.services.route_service import get_route
+
 
 router = APIRouter(
     prefix="/route",
@@ -14,29 +16,53 @@ def calculate_route(
     destination_lat: float,
     destination_lon: float
 ):
+
     result = get_route(
+
         pickup_lat,
         pickup_lon,
+
         destination_lat,
         destination_lon
+
     )
 
     if result is None:
-        return {
-            "message": "Route not found"
-        }
+
+        raise HTTPException(
+            status_code=404,
+            detail="Route not found"
+        )
 
     return {
+
         "pickup_coordinates": {
-            "latitude": pickup_lat,
-            "longitude": pickup_lon
+
+            "latitude":
+                pickup_lat,
+
+            "longitude":
+                pickup_lon
         },
+
         "destination_coordinates": {
-            "latitude": destination_lat,
-            "longitude": destination_lon
+
+            "latitude":
+                destination_lat,
+
+            "longitude":
+                destination_lon
         },
-        "distance": f"{result['distance_km']} km",
-        "estimated_travel_time": f"{result['duration_minutes']} minutes",
-        "route_summary": "Route generated successfully",
-        "polyline": result["polyline"]
+
+        "distance":
+            f"{result['distance_km']} km",
+
+        "estimated_travel_time":
+            f"{result['duration_minutes']} minutes",
+
+        "route_summary":
+            "Route generated successfully",
+
+        "polyline":
+            result["polyline"]
     }

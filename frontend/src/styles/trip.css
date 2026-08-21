@@ -1,96 +1,455 @@
-.trip-page {
-    margin-left: 250px;
-    margin-top: 80px;
-    padding: 30px;
+.trip-page{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+    padding:10px;
 }
 
-.trip-page h2 {
-    margin-bottom: 20px;
-    color: #1f2937;
+/* ===========================
+   Header
+=========================== */
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-.trip-form {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.page-header h1{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:32px;
+    color:#1F2937;
+    font-weight:700;
+}
+
+.page-header p{
+    color:#6B7280;
+    margin-top:6px;
+    font-size:15px;
+}
+
+/* ===========================
+   Search
+=========================== */
+
+.search-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#fff;
+    padding:14px 18px;
+    border-radius:14px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.search-box svg{
+    color:#2563EB;
+}
+
+.search-box input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:15px;
+}
+
+/* ===========================
+   Form
+=========================== */
+
+.trip-form{
+
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+
+    gap:18px;
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
 }
 
 .trip-form input,
-.trip-form select {
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 15px;
+.trip-form select{
+
+    padding:14px;
+
+    border:1px solid #D1D5DB;
+
+    border-radius:10px;
+
+    font-size:15px;
+
+    transition:.25s;
+
 }
 
-.trip-form button {
-    grid-column: span 2;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
+.trip-form input:focus,
+.trip-form select:focus{
+
+    outline:none;
+
+    border-color:#2563EB;
+
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+
 }
 
-.trip-form button:hover {
-    background: #1d4ed8;
+.trip-form button{
+
+    background:#2563EB;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+.trip-form button:hover{
+
+    background:#1D4ED8;
+
+    transform:translateY(-2px);
+
 }
 
-table th,
-table td {
-    border: 1px solid #e5e7eb;
-    padding: 12px;
-    text-align: center;
+/* ===========================
+   Table
+=========================== */
+
+.table-container{
+
+    background:white;
+
+    border-radius:18px;
+
+    overflow-x:auto;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
 }
 
-table th {
-    background: #2563eb;
-    color: white;
+table{
+
+    width:100%;
+
+    min-width:1400px;
+
+    border-collapse:collapse;
+
 }
 
-table tr:nth-child(even) {
-    background: #f9fafb;
+thead{
+
+    background:#2563EB;
+
 }
 
-.delete-btn {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 5px;
-    cursor: pointer;
+th{
+
+    color:white;
+
+    padding:16px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    white-space:nowrap;
+
 }
 
-.delete-btn:hover {
-    background: #dc2626;
+td{
+
+    padding:14px;
+
+    text-align:center;
+
+    border-bottom:1px solid #F1F5F9;
+
+    vertical-align:middle;
+
+    font-size:14px;
+
+    color:#374151;
+
 }
 
-@media (max-width: 900px) {
+tbody tr{
 
-    .trip-page {
-        margin-left: 0;
-        padding: 15px;
+    transition:.25s;
+
+}
+
+tbody tr:hover{
+
+    background:#F8FAFC;
+
+}
+
+/* ===========================
+   Route
+=========================== */
+
+.route-box{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    font-weight:500;
+
+}
+
+.route-box span{
+
+    white-space:nowrap;
+
+}
+
+.arrow{
+
+    color:#2563EB;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+}
+
+/* ===========================
+   Status
+=========================== */
+
+.status{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:7px 14px;
+
+    border-radius:25px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    min-width:110px;
+
+}
+
+/* Created */
+
+.status.Created{
+
+    background:#DBEAFE;
+
+    color:#1D4ED8;
+
+}
+
+/* Assigned */
+
+.status.Assigned{
+
+    background:#FEF3C7;
+
+    color:#B45309;
+
+}
+
+/* Picked Up */
+
+.status.PickedUp{
+
+    background:#FCE7F3;
+
+    color:#BE185D;
+
+}
+
+/* In Transit */
+
+.status.InTransit{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+}
+
+/* Delivered */
+
+.status.Delivered{
+
+    background:#D1FAE5;
+
+    color:#047857;
+
+}
+
+/* Cancelled */
+
+.status.Cancelled{
+
+    background:#FEE2E2;
+
+    color:#DC2626;
+
+}
+
+/* ===========================
+   Buttons
+=========================== */
+
+.track-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    background:#2563EB;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:8px 14px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.track-btn:hover{
+
+    background:#1D4ED8;
+
+}
+
+.delete-btn{
+
+    width:38px;
+
+    height:38px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#EF4444;
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.delete-btn:hover{
+
+    background:#DC2626;
+
+}
+
+/* ===========================
+   Scrollbar
+=========================== */
+
+.table-container::-webkit-scrollbar{
+
+    height:8px;
+
+}
+
+.table-container::-webkit-scrollbar-thumb{
+
+    background:#CBD5E1;
+
+    border-radius:20px;
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:992px){
+
+    .trip-form{
+
+        grid-template-columns:1fr;
+
     }
 
-    .trip-form {
-        grid-template-columns: 1fr;
+}
+
+@media(max-width:768px){
+
+    .page-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:15px;
+
     }
 
-    .trip-form button {
-        grid-column: span 1;
+    .page-header h1{
+
+        font-size:26px;
+
     }
+
+    th,
+    td{
+
+        padding:10px;
+
+        font-size:13px;
+
+    }
+
 }

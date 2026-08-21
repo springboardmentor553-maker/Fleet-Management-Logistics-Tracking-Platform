@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.git/
+.env
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal

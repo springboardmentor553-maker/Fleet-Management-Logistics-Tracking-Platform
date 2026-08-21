@@ -1,0 +1,338 @@
+.analytics-page {
+    min-height: 100vh;
+    padding: 30px;
+    background: #f5f7fb;
+    color: #111827;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.analytics-header {
+    margin-bottom: 30px;
+}
+
+.analytics-back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 9px 15px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #374151;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.analytics-back-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateX(-2px);
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.analytics-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    margin-top: 22px;
+}
+
+.analytics-title-icon {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+
+    color: #2563eb;
+
+    font-size: 21px;
+}
+
+.analytics-title h2 {
+    margin: 0;
+
+    font-size: 30px;
+    font-weight: 700;
+
+    color: #111827;
+}
+
+.analytics-title p {
+    margin-top: 5px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   SECTION
+========================================= */
+
+.analytics-section {
+    margin-bottom: 30px;
+}
+
+.analytics-section-header {
+    margin-bottom: 16px;
+}
+
+.analytics-section-header h3 {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #111827;
+}
+
+.analytics-section-header p {
+    margin-top: 4px;
+
+    color: #6b7280;
+
+    font-size: 13px;
+}
+
+
+/* =========================================
+   CARDS
+========================================= */
+
+.analytics-cards {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(210px, 1fr));
+
+    gap: 18px;
+}
+
+.analytics-card {
+    position: relative;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    padding: 22px;
+
+    min-height: 105px;
+
+    box-shadow:
+        0 2px 8px rgba(15, 23, 42, 0.04);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.analytics-card::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 18px;
+    bottom: 18px;
+
+    width: 3px;
+
+    background: #2563eb;
+
+    border-radius: 0 4px 4px 0;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #dbe3f0;
+
+    box-shadow:
+        0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.analytics-card-content {
+    padding-left: 7px;
+}
+
+.analytics-card h4 {
+    margin: 0 0 10px;
+
+    color: #6b7280;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.analytics-card h1 {
+    margin: 0;
+
+    color: #111827;
+
+    font-size: 27px;
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+}
+
+
+/* =========================================
+   TOTAL EXPENSE CARD
+========================================= */
+
+.analytics-card-total::before {
+    background: #111827;
+}
+
+
+/* =========================================
+   CHART
+========================================= */
+
+.analytics-chart-card {
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    padding: 25px;
+
+    min-height: 300px;
+
+    box-shadow:
+        0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+.analytics-loading {
+    min-height: 60vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+}
+
+.analytics-loading h3 {
+    margin-top: 18px;
+
+    color: #111827;
+
+    font-size: 18px;
+}
+
+.analytics-loading p {
+    margin-top: 5px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+.analytics-spinner {
+    width: 38px;
+    height: 38px;
+
+    border: 3px solid #e5e7eb;
+
+    border-top-color: #2563eb;
+
+    border-radius: 50%;
+
+    animation: analytics-spin 0.8s linear infinite;
+}
+
+@keyframes analytics-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 768px) {
+
+    .analytics-page {
+        padding: 20px;
+    }
+
+    .analytics-title h2 {
+        font-size: 25px;
+    }
+
+    .analytics-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-chart-card {
+        padding: 15px;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .analytics-page {
+        padding: 15px;
+    }
+
+    .analytics-title {
+        align-items: flex-start;
+    }
+
+    .analytics-title-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .analytics-title h2 {
+        font-size: 22px;
+    }
+
+}

@@ -1,29 +1,73 @@
-import axios from "axios";
+import API from "../api/axios";
 
-const API = "http://127.0.0.1:8000/vehicles";
-
-const getHeaders = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-});
+// ==========================================
+// Get all vehicles
+// ==========================================
 
 export const getVehicles = async () => {
-    const response = await axios.get(API, getHeaders());
+
+    const response = await API.get("/vehicles/");
+
     return response.data;
 };
 
-export const addVehicle = async (vehicle) => {
-    const response = await axios.post(API + "/", vehicle, getHeaders());
+
+// ==========================================
+// Get single vehicle
+// ==========================================
+
+export const getVehicle = async (vehicleId) => {
+
+    const response = await API.get(
+        `/vehicles/${vehicleId}`
+    );
+
     return response.data;
 };
 
-export const updateVehicle = async (id, vehicle) => {
-    const response = await axios.put(`${API}/${id}`, vehicle, getHeaders());
+
+// ==========================================
+// Add vehicle
+// ==========================================
+
+export const addVehicle = async (vehicleData) => {
+
+    const response = await API.post(
+        "/vehicles/",
+        vehicleData
+    );
+
     return response.data;
 };
 
-export const deleteVehicle = async (id) => {
-    const response = await axios.delete(`${API}/${id}`, getHeaders());
+
+// ==========================================
+// Update vehicle
+// ==========================================
+
+export const updateVehicle = async (
+    vehicleId,
+    vehicleData
+) => {
+
+    const response = await API.put(
+        `/vehicles/${vehicleId}`,
+        vehicleData
+    );
+
+    return response.data;
+};
+
+
+// ==========================================
+// Delete vehicle
+// ==========================================
+
+export const deleteVehicle = async (vehicleId) => {
+
+    const response = await API.delete(
+        `/vehicles/${vehicleId}`
+    );
+
     return response.data;
 };

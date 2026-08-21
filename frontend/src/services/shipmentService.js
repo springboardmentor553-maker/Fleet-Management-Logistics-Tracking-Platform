@@ -1,48 +1,51 @@
-import axios from "axios";
-
-const API = "http://127.0.0.1:8000/shipments";
-
-const getHeaders = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-});
+import api from "./api";
 
 export const getShipments = async () => {
-    const response = await axios.get(API + "/", getHeaders());
+    const response = await api.get("/shipments/");
     return response.data;
 };
 
-export const addShipment = async (shipment) => {
-    const response = await axios.post(
-        API + "/",
-        shipment,
-        getHeaders()
+export const getShipment = async (shipmentId) => {
+    const response = await api.get(
+        `/shipments/${shipmentId}`
     );
-    return response.data;
-};
 
-export const updateShipment = async (id, shipment) => {
-    const response = await axios.put(
-        `${API}/${id}`,
-        shipment,
-        getHeaders()
-    );
-    return response.data;
-};
-
-export const deleteShipment = async (id) => {
-    const response = await axios.delete(
-        `${API}/${id}`,
-        getHeaders()
-    );
     return response.data;
 };
 
 export const trackShipment = async (trackingId) => {
-    const response = await axios.get(
-        `${API}/track/${trackingId}`,
-        getHeaders()
+    const response = await api.get(
+        `/shipments/track/${trackingId}`
     );
+
+    return response.data;
+};
+
+export const addShipment = async (shipmentData) => {
+    const response = await api.post(
+        "/shipments/",
+        shipmentData
+    );
+
+    return response.data;
+};
+
+export const updateShipment = async (
+    shipmentId,
+    shipmentData
+) => {
+    const response = await api.put(
+        `/shipments/${shipmentId}`,
+        shipmentData
+    );
+
+    return response.data;
+};
+
+export const deleteShipment = async (shipmentId) => {
+    const response = await api.delete(
+        `/shipments/${shipmentId}`
+    );
+
     return response.data;
 };

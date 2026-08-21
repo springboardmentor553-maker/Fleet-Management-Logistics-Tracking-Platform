@@ -1,0 +1,296 @@
+.recent-activities {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px 28px;
+    border: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.recent-activities-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.recent-activities-header h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.recent-activities-header p {
+    margin-top: 5px;
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.activity-live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.activity-live-indicator span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: activityPulse 1.8s infinite;
+}
+
+@keyframes activityPulse {
+
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 17px 4px;
+    border-top: 1px solid #eef0f4;
+}
+
+.activity-item:first-child {
+    border-top: none;
+}
+
+.activity-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+}
+
+.activity-icon.activity-create {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+}
+
+.activity-icon.activity-update {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+}
+
+.activity-icon.activity-delete {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+.activity-icon.activity-default {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.activity-title-row h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.activity-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.activity-action.activity-create {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.activity-action.activity-update {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.activity-action.activity-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.activity-action.activity-default {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.activity-content p {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.activity-user {
+    display: block;
+    margin-top: 5px;
+    color: #9ca3af;
+    font-size: 11px;
+}
+
+.activity-user strong {
+    color: #6b7280;
+}
+
+.activity-time {
+    min-width: 85px;
+    text-align: right;
+    color: #9ca3af;
+    font-size: 11px;
+    white-space: nowrap;
+    padding-top: 3px;
+}
+
+.activity-loading {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.activity-spinner {
+    width: 25px;
+    height: 25px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: activitySpin 0.8s linear infinite;
+}
+
+@keyframes activitySpin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+.activity-error {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #dc2626;
+    font-size: 13px;
+}
+
+.activity-error button {
+    border: none;
+    background: #2563eb;
+    color: white;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.activity-empty {
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.activity-empty svg {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.activity-empty h3 {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.activity-empty p {
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+@media (max-width: 700px) {
+
+    .recent-activities {
+        padding: 20px;
+    }
+
+    .activity-item {
+        gap: 10px;
+    }
+
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+
+    .activity-time {
+        min-width: auto;
+        font-size: 10px;
+    }
+
+}
