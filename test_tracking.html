@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Tracking Test</title>
+</head>
+<body>
+    <h2>Live Tracking - Trip <span id="tripIdLabel"></span></h2>
+    <div id="messages" style="font-family: monospace; white-space: pre-wrap;"></div>
+
+    <script>
+        const tripId = 1;
+        document.getElementById("tripIdLabel").innerText = tripId;
+
+        const socket = new WebSocket(`ws://localhost:8000/ws/tracking/${tripId}`);
+
+        socket.onopen = () => {
+            log("Connected to trip " + tripId);
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            log(JSON.stringify(data));
+        };
+
+        socket.onclose = () => {
+            log("Disconnected");
+        };
+
+        function log(text) {
+            const div = document.getElementById("messages");
+            div.innerText += text + "\n";
+        }
+    </script>
+</body>
+</html>

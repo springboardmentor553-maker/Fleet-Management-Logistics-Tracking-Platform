@@ -213,8 +213,8 @@ function LiveTracking() {
     // =================================================
 
     const socket = new WebSocket(
-      `ws://127.0.0.1:8000/ws/tracking/${tripId}`
-    );
+  `wss://fleetflow-backend-56xc.onrender.com/ws/tracking/${tripId}`
+);
 
 
     // =================================================

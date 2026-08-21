@@ -1,0 +1,486 @@
+/* =========================================
+   PAGE
+========================================= */
+
+.notifications-page{
+    padding:30px;
+    background:#f5f7fb;
+    min-height:100vh;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.notifications-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.notifications-header h1{
+    margin:0;
+    color:#1976d2;
+    font-size:32px;
+}
+
+.notifications-header p{
+    margin-top:6px;
+    color:#777;
+}
+
+.notification-count{
+    width:90px;
+    height:90px;
+    border-radius:18px;
+    background:#1976d2;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-weight:600;
+}
+
+.notification-count span{
+    font-size:28px;
+    font-weight:700;
+}
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.notification-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    gap:20px;
+}
+
+.notification-search{
+    flex:1;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#fff;
+    border-radius:50px;
+    padding:12px 18px;
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+}
+
+.notification-search svg{
+    color:#1976d2;
+}
+
+.notification-search input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:15px;
+}
+
+.notification-toolbar-buttons{
+    display:flex;
+    gap:12px;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.mark-all-btn,
+.clear-all-btn{
+
+    border:none;
+    border-radius:40px;
+    padding:12px 22px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
+
+}
+
+.mark-all-btn{
+
+    background:#22c55e;
+
+}
+
+.mark-all-btn:hover{
+
+    background:#16a34a;
+    transform:translateY(-2px);
+
+}
+
+.clear-all-btn{
+
+    background:#ef4444;
+
+}
+
+.clear-all-btn:hover{
+
+    background:#dc2626;
+    transform:translateY(-2px);
+
+}
+
+.mark-all-btn:disabled,
+.clear-all-btn:disabled{
+
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+
+}
+
+/* =========================================
+   CARD
+========================================= */
+
+.notification-card{
+
+    display:flex;
+    align-items:center;
+    gap:20px;
+
+    background:#fff;
+
+    padding:22px;
+
+    border-radius:18px;
+
+    margin-bottom:18px;
+
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+
+    transition:.3s;
+
+}
+
+.notification-card:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 10px 28px rgba(0,0,0,.12);
+
+}
+
+.unread{
+
+    border-left:6px solid #1976d2;
+
+}
+
+.read{
+
+    opacity:.78;
+
+}
+
+/* =========================================
+   ICON
+========================================= */
+
+.notification-icon{
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:#fff;
+
+    font-size:24px;
+
+    flex-shrink:0;
+
+}
+
+.notification-icon.success{
+
+    background:#22c55e;
+
+}
+
+.notification-icon.warning{
+
+    background:#f59e0b;
+
+}
+
+.notification-icon.info{
+
+    background:#1976d2;
+
+}
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.notification-content{
+
+    flex:1;
+
+}
+
+.notification-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.notification-top h3{
+
+    margin:0;
+
+    color:#222;
+
+}
+
+.notification-content p{
+
+    margin:8px 0;
+
+    color:#666;
+
+    line-height:1.6;
+
+}
+
+.notification-time{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
+
+    gap:3px;
+
+}
+
+.notification-time strong{
+
+    color:#1976d2;
+
+    font-size:13px;
+
+}
+
+.notification-time small{
+
+    color:#888;
+
+    font-size:12px;
+
+}
+
+/* =========================================
+   TYPE
+========================================= */
+
+.notification-type{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-top:6px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:#555;
+
+}
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.notification-actions{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+.read-btn,
+.delete-btn{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.read-btn{
+
+    background:#22c55e;
+
+    color:#fff;
+
+}
+
+.read-btn:hover{
+
+    background:#16a34a;
+
+}
+
+.delete-btn{
+
+    background:#ef4444;
+
+    color:#fff;
+
+}
+
+.delete-btn:hover{
+
+    background:#dc2626;
+
+}
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.empty-notifications{
+
+    text-align:center;
+
+    margin-top:80px;
+
+    color:#888;
+
+}
+
+.empty-notifications svg{
+
+    font-size:70px;
+
+    color:#1976d2;
+
+    margin-bottom:20px;
+
+}
+
+/* =========================================
+   LOADING
+========================================= */
+
+.notification-loading{
+
+    padding:100px;
+
+    text-align:center;
+
+    font-size:24px;
+
+    color:#1976d2;
+
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:992px){
+
+.notification-toolbar{
+
+    flex-direction:column;
+    align-items:stretch;
+
+}
+
+.notification-toolbar-buttons{
+
+    justify-content:center;
+
+}
+
+.notification-top{
+
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.notifications-header{
+
+    flex-direction:column;
+    gap:20px;
+    align-items:flex-start;
+
+}
+
+.notification-card{
+
+    flex-direction:column;
+    align-items:flex-start;
+
+}
+
+.notification-actions{
+
+    flex-direction:row;
+
+}
+
+.notification-count{
+
+    width:75px;
+    height:75px;
+
+}
+
+}
