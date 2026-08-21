@@ -637,8 +637,8 @@ const ManagerDashboard = () => {
             <div className="p-12 text-center text-slate-400">No vehicles registered yet.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(vehicles || []).map((v) => (
-                <div key={v.id} className="glass-panel p-6 rounded-2xl flex flex-col justify-between border border-slate-800 hover:border-slate-700 transition-all relative">
+              {(Array.isArray(vehicles) ? vehicles : []).map((v) => (
+                <div key={v?.id || Math.random()} className="glass-panel p-6 rounded-2xl flex flex-col justify-between border border-slate-800 hover:border-slate-700 transition-all relative">
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full border ${

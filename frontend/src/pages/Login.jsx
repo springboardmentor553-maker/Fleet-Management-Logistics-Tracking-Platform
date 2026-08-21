@@ -54,7 +54,7 @@ const Login = () => {
     setSessionExpired(false);
 
     try {
-      const loggedUser = await login(email, password);
+      const loggedUser = await login(email.trim().toLowerCase(), password.trim());
       redirectByRole(loggedUser.role);
     } catch (err) {
       console.error(err);

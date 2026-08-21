@@ -70,11 +70,9 @@ function Vehicles() {
     };
 
     const filteredVehicles = vehicles.filter((vehicle) =>
-
-        vehicle.vehicle_number
+        (vehicle.vehicle_number || vehicle.license_plate || "")
             .toLowerCase()
             .includes(search.toLowerCase())
-
     );
 
     return (

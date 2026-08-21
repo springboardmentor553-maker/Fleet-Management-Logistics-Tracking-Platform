@@ -19,26 +19,26 @@ const ChangeMapView = ({ center, bounds }) => {
     } else if (center) {
       map.setView(center, map.getZoom());
     }
-  }, [center, bounds, map]);
+  }, [map, JSON.stringify(bounds), JSON.stringify(center)]);
   return null;
 };
 
 // Beautiful Tailwind CSS-styled markers
-const createPickupIcon = () => L.divIcon({
+const pickupIcon = L.divIcon({
   html: `<div class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-pulse"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
   className: 'custom-div-icon',
   iconSize: [24, 24],
   iconAnchor: [12, 12]
 });
 
-const createDestIcon = () => L.divIcon({
+const destIcon = L.divIcon({
   html: `<div class="w-6 h-6 rounded-full bg-rose-500 border-2 border-slate-900 flex items-center justify-center shadow-lg shadow-rose-500/30 animate-pulse"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
   className: 'custom-div-icon',
   iconSize: [24, 24],
   iconAnchor: [12, 12]
 });
 
-const createVehicleIcon = () => L.divIcon({
+const vehicleIcon = L.divIcon({
   html: `<div class="w-6 h-6 rounded-full bg-sky-500 border-2 border-slate-900 flex items-center justify-center shadow-lg shadow-sky-500/50 animate-pulse"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
   className: 'custom-div-icon',
   iconSize: [24, 24],
@@ -224,7 +224,6 @@ const ShipmentTracking = () => {
   const bounds = [];
   if (pickupLatLng) bounds.push(pickupLatLng);
   if (destLatLng) bounds.push(destLatLng);
-  if (currentLocation) bounds.push(currentLocation);
 
   const routePoints = routeInfo?.route_geometry || [];
 
@@ -426,7 +425,7 @@ const ShipmentTracking = () => {
                 />
 
                 {pickupLatLng && (
-                  <Marker position={pickupLatLng} icon={createPickupIcon()}>
+                  <Marker position={pickupLatLng} icon={pickupIcon}>
                     <Popup>
                       <div className="text-slate-900 font-sans p-1">
                         <p className="font-bold text-xs uppercase text-slate-400">Pickup Location</p>
@@ -437,7 +436,7 @@ const ShipmentTracking = () => {
                 )}
 
                 {destLatLng && (
-                  <Marker position={destLatLng} icon={createDestIcon()}>
+                  <Marker position={destLatLng} icon={destIcon}>
                     <Popup>
                       <div className="text-slate-900 font-sans p-1">
                         <p className="font-bold text-xs uppercase text-slate-400">Destination Location</p>
@@ -448,7 +447,7 @@ const ShipmentTracking = () => {
                 )}
 
                 {currentLocation && (
-                  <Marker position={currentLocation} icon={createVehicleIcon()}>
+                  <Marker position={currentLocation} icon={vehicleIcon}>
                     <Popup>
                       <div className="text-slate-900 font-sans p-1">
                         <p className="font-bold text-xs uppercase text-slate-400">Live Location</p>
