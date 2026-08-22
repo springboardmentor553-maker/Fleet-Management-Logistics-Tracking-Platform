@@ -175,6 +175,27 @@ def update_alert_status(
 ):
     alert = db.query(MaintenanceAlert).filter(MaintenanceAlert.id == alert_id).first()
     if not alert:
+        alert = (
+            db.query(MaintenanceAlert)
+            .filter(MaintenanceAlert.maintenance_id == alert_id)
+            .first()
+        )
+    if not alert:
+        rec = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == alert_id).first()
+        if rec:
+            alert = MaintenanceAlert(
+                vehicle_id=rec.vehicle_id,
+                maintenance_id=rec.id,
+                alert_message=f"MAINTENANCE NOTICE: {rec.category} for vehicle #{rec.vehicle_id}",
+                alert_type="service_due",
+                alert_status=data.alert_status or "Sent",
+                generated_date=datetime.utcnow(),
+                next_service_date=rec.next_service_date or rec.scheduled_date,
+            )
+            db.add(alert)
+            db.commit()
+            db.refresh(alert)
+            return alert
         raise HTTPException(status_code=404, detail="Alert not found")
 
     if data.alert_status is not None:

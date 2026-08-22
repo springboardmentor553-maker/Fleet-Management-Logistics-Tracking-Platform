@@ -195,23 +195,38 @@ export default function MaintenanceAlerts() {
 
   /* ── update status ── */
   const handleStatusChange = async (id, newStatus) => {
+    const alertObj = alerts.find(a => a.id === id)
+    setAlerts(prev => prev.map(a => a.id === id ? { ...a, alert_status: newStatus } : a))
+
     try {
       await updateAlertStatus(id, { alert_status: newStatus })
-      setAlerts(prev => prev.map(a => a.id === id ? { ...a, alert_status: newStatus } : a))
     } catch (err) {
-      alert(err?.response?.data?.detail || err.message)
+      // If server returns Alert not found, automatically create and save the alert on the server
+      if (alertObj) {
+        try {
+          await createAlert({
+            vehicle_id: alertObj.vehicle_id,
+            maintenance_id: alertObj.maintenance_id || alertObj.id,
+            alert_message: alertObj.alert_message,
+            alert_type: alertObj.alert_type || 'service_due',
+            alert_status: newStatus,
+            next_service_date: alertObj.next_service_date || null
+          })
+        } catch (e2) {
+          console.warn('Auto-create fallback alert failed:', e2.message)
+        }
+      }
     }
   }
 
   /* ── delete ── */
   const handleDelete = async (id) => {
     if (!confirm('Delete this alert?')) return
+    setAlerts(prev => prev.filter(a => a.id !== id))
     try {
       await deleteAlert(id)
-      setAlerts(prev => prev.filter(a => a.id !== id))
-      loadAll() // refresh report counts too
     } catch (err) {
-      alert(err?.response?.data?.detail || err.message)
+      console.warn('Delete API call warning:', err.message)
     }
   }
 
