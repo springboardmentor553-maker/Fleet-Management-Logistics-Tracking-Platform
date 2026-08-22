@@ -47,6 +47,24 @@ def _create_notification(db, alert):
     db.add(notification)
 
 
+def _to_date(val):
+    if val is None:
+        return None
+    if isinstance(val, datetime):
+        return val.date()
+    if hasattr(val, "date") and callable(getattr(val, "date")):
+        return val.date()
+    if isinstance(val, str):
+        try:
+            return datetime.fromisoformat(val.replace("Z", "+00:00")).date()
+        except Exception:
+            try:
+                return datetime.strptime(val[:10], "%Y-%m-%d").date()
+            except Exception:
+                return None
+    return val
+
+
 def run_maintenance_alerts_check(db):
     """Synchronous runner to generate alerts & notifications for maintenance schedules."""
     alerts_created = 0
@@ -54,8 +72,6 @@ def run_maintenance_alerts_check(db):
 
     now = datetime.utcnow()
     today = now.date()
-    tomorrow = today + timedelta(days=1)
-    reminder_cutoff = today + timedelta(days=REMINDER_DAYS)
 
     active_records = (
         db.query(MaintenanceRecord)
@@ -67,82 +83,50 @@ def run_maintenance_alerts_check(db):
         if _already_has_pending_alert(db, record.id):
             continue
 
-        scheduled_date = record.scheduled_date.date() if record.scheduled_date else None
-        next_service_date = record.next_service_date.date() if record.next_service_date else None
+        scheduled_date = _to_date(record.scheduled_date)
+        next_service_date = _to_date(record.next_service_date)
 
-        # 1. TOMORROW
-        if scheduled_date and scheduled_date == tomorrow:
-            alert = MaintenanceAlert(
-                vehicle_id=record.vehicle_id,
-                maintenance_id=record.id,
-                alert_message=f"UPCOMING: {record.category} for vehicle #{record.vehicle_id} is scheduled for tomorrow ({scheduled_date}).",
-                alert_type="upcoming",
-                alert_status="Pending",
-                generated_date=now,
-                next_service_date=record.next_service_date,
-            )
-            db.add(alert)
-            db.flush()
-            _create_notification(db, alert)
-            alerts_created += 1
-            notifications_created += 1
-            continue
-
-        # 2. TODAY
-        if scheduled_date and scheduled_date == today:
-            alert = MaintenanceAlert(
-                vehicle_id=record.vehicle_id,
-                maintenance_id=record.id,
-                alert_message=f"MAINTENANCE DUE TODAY: {record.category} for vehicle #{record.vehicle_id} is scheduled for today.",
-                alert_type="service_due",
-                alert_status="Pending",
-                generated_date=now,
-                next_service_date=record.next_service_date,
-            )
-            db.add(alert)
-            db.flush()
-            _create_notification(db, alert)
-            alerts_created += 1
-            notifications_created += 1
-            continue
-
-        # 3. OVERDUE
+        # 1. OVERDUE (scheduled date in the past)
         if scheduled_date and scheduled_date < today:
             days_overdue = (today - scheduled_date).days
-            alert = MaintenanceAlert(
-                vehicle_id=record.vehicle_id,
-                maintenance_id=record.id,
-                alert_message=f"OVERDUE: {record.category} for vehicle #{record.vehicle_id} is {days_overdue} day(s) overdue. Originally scheduled on {scheduled_date}.",
-                alert_type="overdue",
-                alert_status="Pending",
-                generated_date=now,
-                next_service_date=record.next_service_date,
-            )
-            db.add(alert)
-            db.flush()
-            _create_notification(db, alert)
-            alerts_created += 1
-            notifications_created += 1
-            continue
+            alert_msg = f"OVERDUE: {record.category} for vehicle #{record.vehicle_id} is {days_overdue} day(s) overdue. Originally scheduled on {scheduled_date}."
+            alert_type = "overdue"
+
+        # 2. DUE TODAY
+        elif scheduled_date and scheduled_date == today:
+            alert_msg = f"MAINTENANCE DUE TODAY: {record.category} for vehicle #{record.vehicle_id} is scheduled for today."
+            alert_type = "service_due"
+
+        # 3. UPCOMING / SCHEDULED IN FUTURE
+        elif scheduled_date and scheduled_date > today:
+            days_until = (scheduled_date - today).days
+            alert_msg = f"UPCOMING: {record.category} for vehicle #{record.vehicle_id} is scheduled for {scheduled_date} (in {days_until} day(s))."
+            alert_type = "upcoming"
 
         # 4. NEXT SERVICE REMINDER
-        if next_service_date and today <= next_service_date <= reminder_cutoff:
+        elif next_service_date:
             days_left = (next_service_date - today).days
-            alert = MaintenanceAlert(
-                vehicle_id=record.vehicle_id,
-                maintenance_id=record.id,
-                alert_message=f"SERVICE DUE: {record.category} for vehicle #{record.vehicle_id} is due in {days_left} day(s) (on {next_service_date}).",
-                alert_type="service_due",
-                alert_status="Pending",
-                generated_date=now,
-                next_service_date=record.next_service_date,
-            )
-            db.add(alert)
-            db.flush()
-            _create_notification(db, alert)
-            alerts_created += 1
-            notifications_created += 1
-            continue
+            alert_msg = f"SERVICE DUE: {record.category} for vehicle #{record.vehicle_id} is due on {next_service_date} (in {days_left} day(s))."
+            alert_type = "service_due"
+
+        else:
+            alert_msg = f"MAINTENANCE NOTICE: {record.category} for vehicle #{record.vehicle_id} is currently under maintenance."
+            alert_type = "service_due"
+
+        alert = MaintenanceAlert(
+            vehicle_id=record.vehicle_id,
+            maintenance_id=record.id,
+            alert_message=alert_msg,
+            alert_type=alert_type,
+            alert_status="Pending",
+            generated_date=now,
+            next_service_date=record.next_service_date or record.scheduled_date,
+        )
+        db.add(alert)
+        db.flush()
+        _create_notification(db, alert)
+        alerts_created += 1
+        notifications_created += 1
 
     db.commit()
     return {
@@ -155,10 +139,9 @@ def run_maintenance_alerts_check(db):
 
 
 @celery_app.task(
-    name="app.tasks.maintenance_tasks.check_maintenance_schedules",
-    bind=True,
+    name="app.tasks.maintenance_tasks.check_maintenance_schedules"
 )
-def check_maintenance_schedules(self):
+def check_maintenance_schedules(*args, **kwargs):
     return run_maintenance_alerts_check(SessionLocal())
 
     db = SessionLocal()

@@ -60,11 +60,30 @@ const [overdue, setOverdue] = useState([]);
       getOverdueMaintenance().catch(() => []),
     ])
       .then(([recList, repList, vehList, upcomingList, overdueList]) => {
+        const todayStr = new Date().toISOString().split('T')[0]
+        const activeRecs = (recList || []).filter(r => r.status === 'scheduled' || r.status === 'in_progress')
+
+        let finalUpcoming = upcomingList || []
+        if (finalUpcoming.length === 0 && activeRecs.length > 0) {
+          finalUpcoming = activeRecs.filter(r => {
+            const d = r.scheduled_date ? r.scheduled_date.split('T')[0] : todayStr
+            return d >= todayStr
+          })
+        }
+
+        let finalOverdue = overdueList || []
+        if (finalOverdue.length === 0 && activeRecs.length > 0) {
+          finalOverdue = activeRecs.filter(r => {
+            const d = r.scheduled_date ? r.scheduled_date.split('T')[0] : todayStr
+            return d < todayStr
+          })
+        }
+
         setRecords(recList || [])
         setReports(repList || [])
         setVehicles(vehList || [])
-        setUpcoming(upcomingList || [])
-        setOverdue(overdueList || [])
+        setUpcoming(finalUpcoming)
+        setOverdue(finalOverdue)
         setError('')
       })
       .catch((e) => setError(e.message))

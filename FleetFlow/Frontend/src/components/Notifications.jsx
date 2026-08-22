@@ -3,6 +3,9 @@ import {
   getNotifications, getNotificationSummary, createNotification,
   markRead, markAllRead, deleteNotification, clearAllNotifications,
 } from '../api/notifications'
+import { getShipments } from '../api/shipments'
+import { getAssignments } from '../api/driver_assignment'
+import { getMaintenanceRecords } from '../api/maintenance'
 
 /* ─── Constants ─────────────────────────────────────── */
 const CATEGORIES = [
@@ -48,36 +51,49 @@ function NotifCard({ n, onRead, onDelete }) {
   return (
     <div
       className={`notif-card ${n.is_read ? 'notif-read' : 'notif-unread'}`}
-      style={{ borderLeftColor: cat.color }}
       onClick={() => !n.is_read && onRead(n.id)}
     >
-      <div className="notif-icon" style={{ background: `${cat.color}18`, color: cat.color }}>
+      <div className="notif-cat-icon" style={{ background: `${cat.color}18`, color: cat.color }}>
         {cat.icon}
       </div>
+
       <div className="notif-body">
         <div className="notif-top">
-          <span className="notif-title">{n.title}</span>
-          <div className="notif-meta-row">
-            <span className="notif-prio" style={{ color: prio.color }}>● {prio.label}</span>
-            <span className="notif-time">{timeSince(n.created_at)}</span>
-          </div>
+          <div className="notif-title">{n.title}</div>
+          <div className="notif-time">{timeSince(n.created_at)}</div>
         </div>
-        <p className="notif-msg">{n.message}</p>
-        <div className="notif-tags">
-          <span className="notif-cat-tag" style={{ background:`${cat.color}18`, color: cat.color }}>
-            {cat.icon} {cat.label}
+        <div className="notif-msg">{n.message}</div>
+        <div className="notif-meta-row">
+          <span className="notif-chip" style={{ background: `${cat.color}14`, color: cat.color }}>
+            {cat.label}
           </span>
-          {n.channel_email && <span className="notif-ch-tag">📧 Email</span>}
-          {n.channel_sms   && <span className="notif-ch-tag">💬 SMS</span>}
-          {n.channel_push  && <span className="notif-ch-tag">🔔 Push</span>}
-          {!n.is_read && <span className="notif-unread-dot">● Unread</span>}
+          <span className="notif-chip" style={{ background: `${prio.color}14`, color: prio.color }}>
+            {prio.label} priority
+          </span>
+          {n.channel_push  && <span className="channel-badge">📲 Push</span>}
+          {n.channel_email && <span className="channel-badge">📧 Email</span>}
+          {n.channel_sms   && <span className="channel-badge">💬 SMS</span>}
         </div>
       </div>
-      <button
-        className="notif-del-btn"
-        onClick={e => { e.stopPropagation(); onDelete(n.id) }}
-        title="Delete"
-      >✕</button>
+
+      <div className="notif-actions">
+        {!n.is_read && (
+          <button
+            className="notif-read-btn"
+            title="Mark as read"
+            onClick={(e) => { e.stopPropagation(); onRead(n.id) }}
+          >
+            ✓
+          </button>
+        )}
+        <button
+          className="notif-del-btn"
+          title="Delete"
+          onClick={(e) => { e.stopPropagation(); onDelete(n.id) }}
+        >
+          🗑
+        </button>
+      </div>
     </div>
   )
 }
@@ -114,12 +130,91 @@ export default function Notifications() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [n, s] = await Promise.all([
-        getNotifications({ limit: 100 }),
-        getNotificationSummary(),
+      const [n, s, shipments, assignments, maint] = await Promise.all([
+        getNotifications({ limit: 100 }).catch(() => []),
+        getNotificationSummary().catch(() => null),
+        getShipments().catch(() => []),
+        getAssignments().catch(() => []),
+        getMaintenanceRecords().catch(() => []),
       ])
-      setNotifs(n)
-      setSummary(s)
+
+      let finalNotifs = n || []
+      if (finalNotifs.length === 0) {
+        const autoNotifs = []
+        let idCounter = 1000;
+
+        const maintList = Array.isArray(maint) ? maint : [];
+        const assignList = Array.isArray(assignments) ? assignments : [];
+        const shipList = Array.isArray(shipments) ? shipments : [];
+
+        // 1. Maintenance Notifications
+        maintList.filter(m => m.status === 'scheduled' || m.status === 'in_progress').forEach(m => {
+          autoNotifs.push({
+            id: idCounter++,
+            user_id: null,
+            title: `🔧 Maintenance Alert — Vehicle #${m.vehicle_id}`,
+            message: `${m.category}: ${m.description || 'Scheduled service'} (Status: ${m.status})`,
+            category: 'maintenance_alert',
+            channel_email: true,
+            channel_sms: false,
+            channel_push: true,
+            priority: m.status === 'in_progress' ? 'high' : 'normal',
+            is_read: false,
+            created_at: m.scheduled_date || new Date().toISOString(),
+          })
+        });
+
+        // 2. Driver Assignment Notifications
+        assignList.forEach(a => {
+          autoNotifs.push({
+            id: idCounter++,
+            user_id: null,
+            title: `👤 Driver Assignment — Driver #${a.driver_id}`,
+            message: `Driver #${a.driver_id} assigned to Vehicle #${a.vehicle_id} (Status: ${a.assignment_status})`,
+            category: 'driver_assignment',
+            channel_email: false,
+            channel_sms: true,
+            channel_push: true,
+            priority: 'normal',
+            is_read: false,
+            created_at: a.assignment_date || new Date().toISOString(),
+          })
+        });
+
+        // 3. Shipment Notifications
+        shipList.forEach(sp => {
+          autoNotifs.push({
+            id: idCounter++,
+            user_id: null,
+            title: `📦 Shipment Update #${sp.id}`,
+            message: `Shipment from ${sp.origin} to ${sp.destination} is currently ${sp.status ? sp.status.toUpperCase() : 'PENDING'}`,
+            category: 'shipment_status',
+            channel_email: true,
+            channel_sms: false,
+            channel_push: true,
+            priority: sp.status === 'in_transit' ? 'high' : 'normal',
+            is_read: false,
+            created_at: sp.created_at || new Date().toISOString(),
+          })
+        });
+
+        if (autoNotifs.length > 0) {
+          finalNotifs = autoNotifs
+        }
+      }
+
+      setNotifs(finalNotifs)
+
+      const catCounts = {}
+      finalNotifs.forEach(x => {
+        catCounts[x.category] = (catCounts[x.category] || 0) + 1
+      })
+
+      setSummary(s || {
+        total: finalNotifs.length,
+        unread: finalNotifs.filter(x => !x.is_read).length,
+        by_category: catCounts
+      })
       setError('')
     } catch (e) {
       setError(e?.response?.data?.detail || e.message)

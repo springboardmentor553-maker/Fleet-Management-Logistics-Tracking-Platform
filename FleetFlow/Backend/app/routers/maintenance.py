@@ -9,6 +9,7 @@ from app.utils.roles import Role, require_roles
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.maintenance import MaintenanceRecord
+from app.tasks.maintenance_tasks import run_maintenance_alerts_check
 
 from app.schemas.maintenance import (
     MaintenanceCreate,
@@ -154,6 +155,11 @@ def schedule_maintenance(
     db.commit()
     db.refresh(record)
 
+    try:
+        run_maintenance_alerts_check(db)
+    except Exception:
+        pass
+
     return record
 
 
@@ -171,6 +177,11 @@ def list_maintenance_records(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    try:
+        run_maintenance_alerts_check(db)
+    except Exception:
+        pass
+
     query = db.query(MaintenanceRecord)
 
     if category:

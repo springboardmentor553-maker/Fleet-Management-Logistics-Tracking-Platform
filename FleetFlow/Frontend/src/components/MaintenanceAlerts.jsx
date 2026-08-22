@@ -96,7 +96,40 @@ export default function MaintenanceAlerts() {
       getVehicles().catch(() => []),
       getMaintenanceRecords().catch(() => []),
     ]).then(([a, r, v, m]) => {
-      setAlerts(a || [])
+      let finalAlerts = a || []
+      const activeRecs = (m || []).filter(rec => rec.status === 'scheduled' || rec.status === 'in_progress')
+
+      // Fallback: If API returns 0 alerts, derive automatic alerts from active maintenance records
+      if (finalAlerts.length === 0 && activeRecs.length > 0) {
+        const todayStr = new Date().toISOString().split('T')[0]
+        finalAlerts = activeRecs.map((rec, idx) => {
+          const sDate = rec.scheduled_date ? rec.scheduled_date.split('T')[0] : todayStr
+          let type = 'upcoming'
+          let msg = `UPCOMING: ${rec.category} for vehicle #${rec.vehicle_id}`
+          if (sDate < todayStr) {
+            type = 'overdue'
+            msg = `OVERDUE: ${rec.category} for vehicle #${rec.vehicle_id} is overdue. Originally scheduled on ${sDate}.`
+          } else if (sDate === todayStr) {
+            type = 'service_due'
+            msg = `MAINTENANCE DUE TODAY: ${rec.category} for vehicle #${rec.vehicle_id} is scheduled for today.`
+          } else {
+            type = 'upcoming'
+            msg = `UPCOMING: ${rec.category} for vehicle #${rec.vehicle_id} is scheduled for ${sDate}.`
+          }
+          return {
+            id: rec.id || (idx + 100),
+            vehicle_id: rec.vehicle_id,
+            maintenance_id: rec.id,
+            alert_message: msg,
+            alert_type: type,
+            alert_status: 'Pending',
+            generated_date: new Date().toISOString(),
+            next_service_date: rec.next_service_date || rec.scheduled_date,
+          }
+        })
+      }
+
+      setAlerts(finalAlerts)
       setReport(r)
       setVehicles(v || [])
       setMaintRecs(m || [])

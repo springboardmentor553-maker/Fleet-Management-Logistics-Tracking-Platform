@@ -1445,13 +1445,17 @@ textarea:focus-visible {
   padding: 2px 8px;
   border-radius: 20px;
 }
-.notif-ch-tag {
+.notif-ch-tag, .channel-badge {
   font-size: 11px;
-  color: #64748b;
-  background: #0f172a;
-  border: 1px solid #334155;
+  font-weight: 600;
+  color: #ffffff !important;
+  background: #334155;
+  border: 1px solid #475569;
   border-radius: 20px;
-  padding: 2px 7px;
+  padding: 3px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .notif-unread-dot {
   font-size: 11px;
@@ -1464,18 +1468,41 @@ textarea:focus-visible {
   50%       { opacity: 0.4; }
 }
 
-.notif-del-btn {
-  background: transparent;
-  border: none;
-  color: #475569;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+.notif-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.notif-del-btn:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+.notif-read-btn {
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: #4ade80 !important;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.notif-read-btn:hover { background: rgba(74, 222, 128, 0.3); color: #86efac !important; }
+
+.notif-del-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171 !important;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-del-btn:hover { background: rgba(239, 68, 68, 0.3); color: #ef4444 !important; transform: scale(1.05); }
 
 /* ─── Empty state ────────────────────────────────────── */
 .notif-empty {
