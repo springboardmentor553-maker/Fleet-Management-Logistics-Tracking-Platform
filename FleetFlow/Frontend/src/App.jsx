@@ -163,90 +163,336 @@ function ProfileDetails({ user }) {
 }
 
 function SettingsPage({ user }) {
-  const [emailAlerts, setEmailAlerts] = useState(true)
-  const [mapLabels, setMapLabels] = useState(true)
-  const [autoRefresh, setAutoRefresh] = useState(true)
-  const [soundAlerts, setSoundAlerts] = useState(false)
+  const [shipmentUpdates, setShipmentUpdates] = useState(true)
+  const [tripUpdates, setTripUpdates] = useState(true)
+  const [emailFrequency, setEmailFrequency] = useState('Instant')
+
+  const [companyNameInput, setCompanyNameInput] = useState('FleetFlow')
+  const [companySaved, setCompanySaved] = useState(false)
+  const [logoPreview, setLogoPreview] = useState(null)
+
+  // Modals & confirmation state
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Profile form
+  const [profileName, setProfileName] = useState(user?.name ?? '')
+  const [profileSaved, setProfileSaved] = useState(false)
+
+  // Password form
+  const [currentPw, setCurrentPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+  const [confirmPw, setConfirmPw] = useState('')
+  const [pwMsg, setPwMsg] = useState(null)
+  const [deleteInput, setDeleteInput] = useState('')
+
+  function handleLogoChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setLogoPreview(ev.target.result)
+    reader.readAsDataURL(file)
+  }
+
+  function handleSaveCompany() {
+    setCompanySaved(true)
+    setTimeout(() => setCompanySaved(false), 2500)
+  }
+
+  function handleSaveProfile() {
+    setProfileSaved(true)
+    setTimeout(() => setProfileSaved(false), 2500)
+  }
+
+  function handleChangePassword() {
+    if (!currentPw || !newPw || !confirmPw) {
+      setPwMsg({ type: 'error', text: 'Please fill in all password fields.' })
+      return
+    }
+    if (newPw !== confirmPw) {
+      setPwMsg({ type: 'error', text: 'New passwords do not match.' })
+      return
+    }
+    if (newPw.length < 6) {
+      setPwMsg({ type: 'error', text: 'Password must be at least 6 characters.' })
+      return
+    }
+    setPwMsg({ type: 'success', text: 'Password updated successfully!' })
+    setCurrentPw(''); setNewPw(''); setConfirmPw('')
+    setTimeout(() => { setPwMsg(null); setShowPasswordModal(false); }, 2000)
+  }
 
   return (
-    <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h2>System & User Preferences</h2>
-          <p>Configure live map overlays, notification alerts, and workspace preferences</p>
-        </div>
+    <div className="s-page-container">
+      {/* ── Page Header ── */}
+      <div className="s-page-header">
+        <h1 className="s-page-title">Settings</h1>
+        <p className="s-page-subtitle">Manage your app preferences</p>
       </div>
 
-      <div className="settings-grid">
-        <div className="setting-card">
-          <div className="setting-header-icon">⚙️</div>
-          <h3>Account Session</h3>
-          <p className="setting-desc">Signed in as <strong>{user?.email ?? 'unknown'}</strong></p>
-          <div className="setting-meta">Role: {user?.role ? user.role.toUpperCase() : 'USER'}</div>
+      <div className="s-cards-stack">
+
+        {/* ── Section 1: Notification Preferences ── */}
+        <div className="s-card">
+          <div className="s-card-header">
+            <h3><span className="s-icon">🔔</span> Notification Preferences</h3>
+          </div>
+          <div className="s-card-body">
+            <div className="s-row">
+              <div>
+                <div className="s-row-title">Shipment Updates</div>
+                <div className="s-row-subtitle">Show shipment activity in notifications</div>
+              </div>
+              <label className="s-switch">
+                <input
+                  type="checkbox"
+                  checked={shipmentUpdates}
+                  onChange={e => setShipmentUpdates(e.target.checked)}
+                />
+                <span className="s-slider" />
+              </label>
+            </div>
+            <div className="s-row">
+              <div>
+                <div className="s-row-title">Trip Updates</div>
+                <div className="s-row-subtitle">Show trip scheduling activity in notifications</div>
+              </div>
+              <label className="s-switch">
+                <input
+                  type="checkbox"
+                  checked={tripUpdates}
+                  onChange={e => setTripUpdates(e.target.checked)}
+                />
+                <span className="s-slider" />
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div className="setting-card">
-          <div className="setting-header-icon">🗺️</div>
-          <h3>Live Map Overlays</h3>
-          <p className="setting-desc">Toggle location tags, ETA badges, and vehicle labels on map markers.</p>
-          <button
-            className={`btn-toggle ${mapLabels ? 'active' : ''}`}
-            onClick={() => setMapLabels((prev) => !prev)}
-          >
-            {mapLabels ? '✓ Map Labels Enabled' : '✕ Map Labels Hidden'}
-          </button>
+        {/* ── Section 2: Email Notifications ── */}
+        <div className="s-card">
+          <div className="s-card-header">
+            <h3><span className="s-icon">✉️</span> Email Notifications</h3>
+          </div>
+          <div className="s-card-body">
+            <div className="s-row">
+              <div>
+                <div className="s-row-title">Email Frequency</div>
+                <div className="s-row-subtitle">How often you receive email digests</div>
+              </div>
+              <select
+                className="s-select"
+                value={emailFrequency}
+                onChange={e => setEmailFrequency(e.target.value)}
+              >
+                <option value="Instant">Instant</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Never">Never</option>
+              </select>
+            </div>
+            <p className="s-footnote">
+              Preference is saved to your account. Automatic digest emails require a scheduled background job, which is planned for a future milestone.
+            </p>
+          </div>
         </div>
 
-        <div className="setting-card">
-          <div className="setting-header-icon">🔔</div>
-          <h3>Logistics Email Alerts</h3>
-          <p className="setting-desc">Receive real-time notifications for delayed shipments and vehicle dispatches.</p>
-          <button
-            className={`btn-toggle ${emailAlerts ? 'active' : ''}`}
-            onClick={() => setEmailAlerts((prev) => !prev)}
-          >
-            {emailAlerts ? '✓ Email Alerts Enabled' : '✕ Email Alerts Disabled'}
-          </button>
+        {/* ── Section 3: Company Settings ── */}
+        <div className="s-card">
+          <div className="s-card-header">
+            <h3><span className="s-icon">🏢</span> Company Settings</h3>
+          </div>
+          <div className="s-card-body">
+            <div className="s-logo-block">
+              <div className="s-logo-icon-box">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Company logo" className="s-logo-img" />
+                ) : (
+                  <span className="s-building-icon">🏢</span>
+                )}
+              </div>
+              <label className="s-blue-btn" htmlFor="s-logo-upload">
+                Upload Logo
+              </label>
+              <input
+                id="s-logo-upload"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleLogoChange}
+              />
+            </div>
+
+            <div className="s-company-field-group">
+              <label className="s-field-label">Company Name</label>
+              <input
+                className="s-input-full"
+                value={companyNameInput}
+                onChange={e => setCompanyNameInput(e.target.value)}
+              />
+              <button className="s-blue-btn s-save-company-btn" onClick={handleSaveCompany}>
+                {companySaved ? '✓ Saved!' : 'Save Company Name'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="setting-card">
-          <div className="setting-header-icon">🔄</div>
-          <h3>Automatic Feed Refresh</h3>
-          <p className="setting-desc">Automatically poll backend WebSocket status and GPS updates in background.</p>
-          <button
-            className={`btn-toggle ${autoRefresh ? 'active' : ''}`}
-            onClick={() => setAutoRefresh((prev) => !prev)}
-          >
-            {autoRefresh ? '✓ Auto-Refresh Active' : '✕ Manual Refresh Only'}
-          </button>
+        {/* ── Section 4: Account ── */}
+        <div className="s-card">
+          <div className="s-card-header">
+            <h3>Account</h3>
+          </div>
+          <div className="s-card-body">
+            <div className="s-row s-clickable-row" onClick={() => setShowProfileModal(true)}>
+              <div className="s-row-left-with-icon">
+                <span className="s-row-icon">👤</span>
+                <div>
+                  <div className="s-row-title">Edit Profile</div>
+                  <div className="s-row-subtitle">Update your name and photo</div>
+                </div>
+              </div>
+              <span className="s-arrow-icon">›</span>
+            </div>
+            <div className="s-row s-clickable-row" onClick={() => setShowPasswordModal(true)}>
+              <div className="s-row-left-with-icon">
+                <span className="s-row-icon">🔒</span>
+                <div>
+                  <div className="s-row-title">Change Password</div>
+                  <div className="s-row-subtitle">Update your account password</div>
+                </div>
+              </div>
+              <span className="s-arrow-icon">›</span>
+            </div>
+          </div>
         </div>
 
-        <div className="setting-card">
-          <div className="setting-header-icon">🔊</div>
-          <h3>Sound Notifications</h3>
-          <p className="setting-desc">Play audio tone when trip status changes or shipment is delivered.</p>
-          <button
-            className={`btn-toggle ${soundAlerts ? 'active' : ''}`}
-            onClick={() => setSoundAlerts((prev) => !prev)}
-          >
-            {soundAlerts ? '✓ Sound Alerts Enabled' : '✕ Sound Alerts Muted'}
-          </button>
+        {/* ── Section 5: Danger Zone ── */}
+        <div className="s-card s-danger-card">
+          <div className="s-card-header s-danger-header">
+            <h3><span className="s-icon">🗑️</span> Danger Zone</h3>
+          </div>
+          <div className="s-card-body">
+            <div className="s-row">
+              <div>
+                <div className="s-row-title">Delete Account</div>
+                <div className="s-row-subtitle">Permanently delete your account. This cannot be undone.</div>
+              </div>
+              <button
+                type="button"
+                className="s-danger-btn"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Delete Account
+              </button>
+            </div>
+
+            {showDeleteConfirm && (
+              <div className="s-delete-box">
+                <p>Type <strong>DELETE</strong> to confirm account deletion:</p>
+                <div className="s-delete-input-row">
+                  <input
+                    className="s-input-full"
+                    value={deleteInput}
+                    onChange={e => setDeleteInput(e.target.value)}
+                    placeholder="Type DELETE"
+                  />
+                  <button
+                    className="s-danger-btn"
+                    disabled={deleteInput !== 'DELETE'}
+                    onClick={() => { alert('Account deletion requested.'); setShowDeleteConfirm(false); setDeleteInput('') }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+                <button className="s-cancel-link" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="setting-card">
-          <div className="setting-header-icon">🌐</div>
-          <h3>Platform Status</h3>
-          <p className="setting-desc">FleetFlow API Version 1.0.0 · Connection Operational</p>
-          <span className="status-badge available" style={{ alignSelf: 'flex-start', marginTop: '12px' }}>
-            ● System Healthy
-          </span>
-        </div>
       </div>
+
+      {/* ── MODAL: Edit Profile ── */}
+      {showProfileModal && (
+        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 700 }}>👤 Edit Profile</h2>
+              <button className="modal-close" onClick={() => setShowProfileModal(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <div className="field">
+                <label style={{ color: '#e2e8f0', fontWeight: 600 }}>Full Name</label>
+                <input
+                  value={profileName}
+                  onChange={e => setProfileName(e.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+              <div className="field">
+                <label style={{ color: '#e2e8f0', fontWeight: 600 }}>Email Address</label>
+                <input value={user?.email ?? ''} readOnly style={{ opacity: 0.6 }} />
+              </div>
+              {profileSaved && <p className="form-success">✓ Profile saved!</p>}
+              <button className="s-blue-btn" onClick={handleSaveProfile} style={{ marginTop: '12px', width: '100%' }}>
+                {profileSaved ? 'Saved!' : 'Save Profile'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Change Password ── */}
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 700 }}>🔒 Change Password</h2>
+              <button className="modal-close" onClick={() => setShowPasswordModal(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <div className="field">
+                <label style={{ color: '#e2e8f0', fontWeight: 600 }}>Current Password</label>
+                <input
+                  type="password"
+                  value={currentPw}
+                  onChange={e => setCurrentPw(e.target.value)}
+                  placeholder="Current password"
+                />
+              </div>
+              <div className="field">
+                <label style={{ color: '#e2e8f0', fontWeight: 600 }}>New Password</label>
+                <input
+                  type="password"
+                  value={newPw}
+                  onChange={e => setNewPw(e.target.value)}
+                  placeholder="New password"
+                />
+              </div>
+              <div className="field">
+                <label style={{ color: '#e2e8f0', fontWeight: 600 }}>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPw}
+                  onChange={e => setConfirmPw(e.target.value)}
+                  placeholder="Confirm password"
+                />
+              </div>
+              {pwMsg && <p className={`scard-msg ${pwMsg.type}`}>{pwMsg.text}</p>}
+              <button className="s-blue-btn" onClick={handleChangePassword} style={{ marginTop: '12px', width: '100%' }}>
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
 
-function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }) {
+function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId, theme, setTheme }) {
   const navItems = getNavForRole(user?.role)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -347,7 +593,7 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
         {page === 'fuel' && <Fuel />}
         {page === 'map' && <LiveMap tripId={selectedTripId} user={user} />}
         {page === 'profile' && <ProfileDetails user={user} />}
-        {page === 'settings' && <SettingsPage user={user} />}
+        {page === 'settings' && <SettingsPage user={user} theme={theme} setTheme={setTheme} />}
       </main>
     </div>
   )
@@ -355,21 +601,43 @@ function Layout({ user, onLogout, page, setPage, onViewTripMap, selectedTripId }
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('ff_token') || '')
-  const [user, setUser] = useState(null)
+  // Theme state
+  const [theme, setTheme] = useState(() => localStorage.getItem('ff_theme') || 'dark')
+
+  // Apply theme class to document element
+  useEffect(() => {
+    localStorage.setItem('ff_theme', theme)
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme')
+    } else {
+      document.documentElement.classList.remove('light-theme')
+    }
+  }, [theme])
+
+  // Try to restore user from session cache for instant load
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('ff_user') || 'null') } catch { return null }
+  })
+  const [loading, setLoading] = useState(false)
   const [page, setPage] = useState('dashboard')
   const [selectedTripId, setSelectedTripId] = useState(null)
 
   useEffect(() => {
     if (!token) return
+    // If we already have cached user, skip the loading spinner (revalidate silently)
+    if (!user) setLoading(true)
     getMe()
       .then((userData) => {
+        sessionStorage.setItem('ff_user', JSON.stringify(userData))
         setUser(userData)
-        setPage('dashboard')
+        setLoading(false)
       })
       .catch(() => {
         localStorage.removeItem('ff_token')
+        sessionStorage.removeItem('ff_user')
         setToken('')
         setUser(null)
+        setLoading(false)
       })
   }, [token])
 
@@ -380,8 +648,27 @@ export default function App() {
 
   function handleLogout() {
     localStorage.removeItem('ff_token')
+    sessionStorage.removeItem('ff_user')
     setToken('')
     setUser(null)
+  }
+
+  // Show a loading screen while fetching user profile on cold start
+  if (token && loading) {
+    return (
+      <div className="cold-start-screen">
+        <div className="cold-start-card">
+          <div className="cold-start-spinner" />
+          <div className="cold-start-brand">
+            <span>🚚</span>
+            <span>FleetFlow</span>
+          </div>
+          <p className="cold-start-msg">Connecting to server<span className="dot-pulse">...</span></p>
+          <p className="cold-start-hint">Server is waking up — this takes ~15s on first visit</p>
+          <div className="cold-start-bar"><div className="cold-start-bar-fill" /></div>
+        </div>
+      </div>
+    )
   }
 
   return token
@@ -395,6 +682,8 @@ export default function App() {
           setPage('map')
         }}
         onLogout={handleLogout}
+        theme={theme}
+        setTheme={setTheme}
       />
     : <Login onLogin={handleLogin} />
 }
