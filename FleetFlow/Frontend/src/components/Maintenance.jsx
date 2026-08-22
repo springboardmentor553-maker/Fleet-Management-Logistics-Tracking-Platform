@@ -217,7 +217,7 @@ const [overdue, setOverdue] = useState([]);
           <h3 style={{ color: '#f1f5f9', fontSize: 18, marginBottom: 14 }}>
             Fleet Vehicle Health Reports & Inspection Alerts
           </h3>
-          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="stats-grid maint-reports-grid">
             {reports.map((rep) => {
               const v = vehicles.find((veh) => veh.id === rep.vehicle_id)
               const scoreColor = rep.health_score >= 85 ? '#22c55e' : rep.health_score >= 70 ? '#f59e0b' : '#ef4444'
@@ -268,14 +268,7 @@ const [overdue, setOverdue] = useState([]);
           </div>
         </div>
       )}
-<div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-    marginBottom: "30px",
-  }}
->
+<div className="maint-dues-grid">
   {/* Upcoming */}
   <div className="stat-card">
     <h3 style={{ marginBottom: 15 }}>📅 Upcoming Maintenance</h3>
