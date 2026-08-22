@@ -114,15 +114,34 @@ def create_alert(
     db.add(notification)
     db.commit()
     return alert
+from app.tasks.maintenance_tasks import run_maintenance_alerts_check
+
+# ─── POST /maintenance-alerts/generate-auto ───────────────────────────────────
+@router.post("/generate-auto")
+def generate_auto_alerts(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Scans all active maintenance schedules and automatically generates overdue/due/upcoming alerts."""
+    return run_maintenance_alerts_check(db)
+
+
 # ─── GET /maintenance-alerts/ ─────────────────────────────────────────────────
 @router.get("/", response_model=List[MaintenanceAlertResponse])
 def get_all_alerts(
     alert_status: Optional[str] = None,
     alert_type:   Optional[str] = None,
     vehicle_id:   Optional[int] = None,
+    auto_check:   bool = True,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    if auto_check:
+        try:
+            run_maintenance_alerts_check(db)
+        except Exception:
+            pass
+
     query = db.query(MaintenanceAlert)
     if alert_status:
         query = query.filter(MaintenanceAlert.alert_status == alert_status)

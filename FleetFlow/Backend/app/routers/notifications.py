@@ -57,6 +57,8 @@ def create_notification(
     return notif
 
 
+from app.tasks.maintenance_tasks import run_maintenance_alerts_check
+
 # ── GET /notifications/ ──────────────────────────────────────────────────────
 @router.get("/", response_model=List[NotificationResponse])
 def get_notifications(
@@ -67,6 +69,11 @@ def get_notifications(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    try:
+        run_maintenance_alerts_check(db)
+    except Exception:
+        pass
+
     query = db.query(Notification).filter(
         (Notification.user_id == current_user.id) | (Notification.user_id == None)
     )

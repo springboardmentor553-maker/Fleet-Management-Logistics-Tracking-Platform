@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  getAlerts, createAlert, updateAlertStatus, deleteAlert, getMaintenanceReport,
+  getAlerts, createAlert, triggerAutoAlerts, updateAlertStatus, deleteAlert, getMaintenanceReport,
 } from '../api/maintenance_alerts'
 import { getMaintenanceRecords } from '../api/maintenance'
 import { getVehicles } from '../api/vehicles'
@@ -71,6 +71,7 @@ export default function MaintenanceAlerts() {
   const [maintRecs,  setMaintRecs]  = useState([])
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState('')
+  const [autoMsg,    setAutoMsg]    = useState('')
 
   /* filters */
   const [filterStatus, setFilterStatus] = useState('ALL')
@@ -105,6 +106,19 @@ export default function MaintenanceAlerts() {
   }
 
   useEffect(loadAll, [])
+
+  async function handleAutoCheck() {
+    setAutoMsg('Scanning maintenance schedules...')
+    try {
+      const res = await triggerAutoAlerts()
+      setAutoMsg(`✓ Scan complete! Created ${res.alerts_created || 0} alert(s) & ${res.notifications_created || 0} notification(s).`)
+      loadAll()
+      setTimeout(() => setAutoMsg(''), 4000)
+    } catch (err) {
+      setAutoMsg(`Failed to scan: ${err.message}`)
+      setTimeout(() => setAutoMsg(''), 4000)
+    }
+  }
 
   /* ── form helpers ── */
   const handleChange = (e) => {

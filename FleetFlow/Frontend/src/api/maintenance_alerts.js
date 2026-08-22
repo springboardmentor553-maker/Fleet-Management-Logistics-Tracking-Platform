@@ -10,6 +10,9 @@ export const getAlertById = (id) =>
 export const createAlert = (data) =>
   api.post('/maintenance-alerts/', data).then((r) => r.data)
 
+export const triggerAutoAlerts = () =>
+  api.post('/maintenance-alerts/generate-auto').then((r) => r.data)
+
 export const updateAlertStatus = (id, data) =>
   api.patch(`/maintenance-alerts/${id}`, data).then((r) => r.data)
 
