@@ -1,0 +1,38 @@
+# Virtual Environment
+venv/
+
+# Reset password
+backend\.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment Variables
+.env
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Alembic cache
+backend/alembic/__pycache__/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+dist/
+
+# API key
+frontend/.env
+
+uploads/
+
+backend/celerybeat-schedule
+backend/celerybeat-schedule-shm
+backend/celerybeat-schedule-wal
