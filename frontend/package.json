@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.2",
-    "vite": "^7.3.0",
+    "axios": "^1.19.0",
+    "leaflet": "^1.9.4",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
-  },
-  "devDependencies": {}
+    "react-dom": "^19.2.1",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^3.10.1",
+    "vite": "^7.3.0"
+  }
 }
