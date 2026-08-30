@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react'
 import StatCard from './StatCard'
-import AdminDashboard from './AdminDashboard'
-import FleetManagerDashboard from './FleetManagerDashboard'
-import DispatcherDashboard from './DispatcherDashboard'
-import DriverDashboard from './DriverDashboard'
 import { getDashboardStats } from '../api/dashboard'
 
 const CARDS = [
@@ -79,23 +75,5 @@ function DefaultDashboard({ onViewLive }) {
 }
 
 export default function Dashboard({ user, onNavigate, onViewTripMap, onViewLive }) {
-  const role = user?.role
-
-  if (role === 'admin') {
-    return <AdminDashboard onNavigate={onNavigate} />
-  }
-
-  if (role === 'fleet_manager') {
-    return <FleetManagerDashboard onNavigate={onNavigate} />
-  }
-
-  if (role === 'dispatcher') {
-    return <DispatcherDashboard onNavigate={onNavigate} />
-  }
-
-  if (role === 'driver') {
-    return <DriverDashboard onNavigate={onNavigate} onViewTripMap={onViewTripMap} />
-  }
-
   return <DefaultDashboard onViewLive={onViewLive} />
 }
