@@ -94,6 +94,11 @@ def get_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    try:
+        run_maintenance_alerts_check(db)
+    except Exception:
+        pass
+
     base = db.query(Notification).filter(
         (Notification.user_id == current_user.id) | (Notification.user_id == None)
     )
