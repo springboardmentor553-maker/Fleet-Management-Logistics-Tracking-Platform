@@ -15,6 +15,7 @@ class VehicleCreate(BaseModel):
     fuel_type: str = Field(..., example="Diesel", description="Petrol | Diesel | Electric | CNG | Hybrid")
     assigned_driver_id: Optional[int] = Field(None, example=1, description="Driver ID to assign (optional)")
     current_status: str = Field("available", example="available", description="available | in_transit | maintenance")
+    fuel_level: float = Field(100.0, ge=0.0, le=100.0, description="Fuel level percentage (0-100)")
 
     @field_validator("vehicle_type")
     @classmethod
@@ -37,6 +38,13 @@ class VehicleCreate(BaseModel):
             raise ValueError(f"current_status must be one of {sorted(STATUS_TYPES)}")
         return v
 
+    @field_validator("fuel_level")
+    @classmethod
+    def valid_fuel_level(cls, v: float) -> float:
+        if v < 0.0 or v > 100.0:
+            raise ValueError("Fuel level percentage must be between 0.0% and 100.0%")
+        return v
+
 
 class VehicleUpdate(BaseModel):
     plate_number: Optional[str] = Field(None, example="TN-01-AB-1234")
@@ -46,6 +54,7 @@ class VehicleUpdate(BaseModel):
     fuel_type: Optional[str] = Field(None, example="Diesel")
     assigned_driver_id: Optional[int] = Field(None, example=1)
     current_status: Optional[str] = Field(None, example="available")
+    fuel_level: Optional[float] = Field(None, ge=0.0, le=100.0)
 
     @field_validator("vehicle_type")
     @classmethod
@@ -68,6 +77,13 @@ class VehicleUpdate(BaseModel):
             raise ValueError(f"current_status must be one of {sorted(STATUS_TYPES)}")
         return v
 
+    @field_validator("fuel_level")
+    @classmethod
+    def valid_fuel_level(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and (v < 0.0 or v > 100.0):
+            raise ValueError("Fuel level percentage must be between 0.0% and 100.0%")
+        return v
+
 
 class AssignedDriverInfo(BaseModel):
     id: int
@@ -87,6 +103,7 @@ class VehicleResponse(BaseModel):
     assigned_driver_id: Optional[int]
     assigned_driver: Optional[AssignedDriverInfo]
     current_status: str
+    fuel_level: float = 100.0
     created_at: datetime
 
     model_config = {"from_attributes": True}

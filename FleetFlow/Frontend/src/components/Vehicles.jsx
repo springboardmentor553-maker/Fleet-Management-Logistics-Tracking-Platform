@@ -14,6 +14,7 @@ const EMPTY = {
   fuel_type: '',
   assigned_driver_id: '',
   current_status: 'available',
+  fuel_level: 100,
 }
 
 const STATUS_CLASS = {
@@ -62,6 +63,7 @@ export default function Vehicles() {
       fuel_type:          v.fuel_type,
       assigned_driver_id: v.assigned_driver_id ?? '',
       current_status:     v.current_status,
+      fuel_level:         v.fuel_level !== undefined && v.fuel_level !== null ? v.fuel_level : 100,
     })
     setEditing(v.id); setFormErr(''); setShowForm(true)
   }
@@ -80,6 +82,7 @@ export default function Vehicles() {
     const payload = {
       ...form,
       capacity_kg:        parseFloat(form.capacity_kg),
+      fuel_level:         parseFloat(form.fuel_level !== undefined && form.fuel_level !== '' ? form.fuel_level : 100),
       assigned_driver_id: form.assigned_driver_id === '' ? null : parseInt(form.assigned_driver_id),
     }
     try {
@@ -126,6 +129,7 @@ export default function Vehicles() {
                 <th>Model</th>
                 <th>Capacity</th>
                 <th>Fuel</th>
+                <th>Fuel Level</th>
                 <th>Assigned Driver</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -133,7 +137,7 @@ export default function Vehicles() {
             </thead>
             <tbody>
               {vehicles.length === 0 && (
-                <tr><td colSpan={9} className="empty-row">No vehicles registered yet.</td></tr>
+                <tr><td colSpan={10} className="empty-row">No vehicles registered yet.</td></tr>
               )}
               {vehicles.map((v) => (
                 <tr key={v.id}>
@@ -143,6 +147,15 @@ export default function Vehicles() {
                   <td>{v.model}</td>
                   <td>{v.capacity_kg.toLocaleString()} kg</td>
                   <td><span className="fuel-badge">{v.fuel_type}</span></td>
+                  <td>
+                    {(() => {
+                      const fl = v.fuel_level !== undefined && v.fuel_level !== null ? v.fuel_level : 100;
+                      if (fl < 10) return <span className="status-badge" style={{ backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold' }}>🔴 {fl}% Critical 🚨</span>;
+                      if (fl < 20) return <span className="status-badge" style={{ backgroundColor: '#f97316', color: '#fff', fontWeight: 'bold' }}>🟠 {fl}% Low ⚠️</span>;
+                      if (fl <= 30) return <span className="status-badge" style={{ backgroundColor: '#eab308', color: '#000' }}>🟡 {fl}% Warning</span>;
+                      return <span className="status-badge" style={{ backgroundColor: '#22c55e', color: '#fff' }}>🟢 {fl}% Normal</span>;
+                    })()}
+                  </td>
                   <td>
                     {v.assigned_driver
                       ? <span className="driver-chip">👤 {v.assigned_driver.name}</span>
@@ -174,7 +187,6 @@ export default function Vehicles() {
 
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid">
-                {/* Registration Number */}
                 <div className="field">
                   <label>Registration Number</label>
                   <input
@@ -186,7 +198,6 @@ export default function Vehicles() {
                   />
                 </div>
 
-                {/* Vehicle Type */}
                 <div className="field">
                   <label>Vehicle Type</label>
                   <select name="vehicle_type" value={form.vehicle_type} onChange={handleChange} required>
@@ -195,7 +206,6 @@ export default function Vehicles() {
                   </select>
                 </div>
 
-                {/* Model */}
                 <div className="field">
                   <label>Model</label>
                   <input
@@ -207,7 +217,6 @@ export default function Vehicles() {
                   />
                 </div>
 
-                {/* Capacity */}
                 <div className="field">
                   <label>Capacity (kg)</label>
                   <input
@@ -222,7 +231,6 @@ export default function Vehicles() {
                   />
                 </div>
 
-                {/* Fuel Type */}
                 <div className="field">
                   <label>Fuel Type</label>
                   <select name="fuel_type" value={form.fuel_type} onChange={handleChange} required>

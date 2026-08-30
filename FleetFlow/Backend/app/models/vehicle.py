@@ -15,6 +15,7 @@ class Vehicle(Base):
     fuel_type = Column(String, nullable=False)             # Petrol, Diesel, Electric, CNG
     assigned_driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
     current_status = Column(String, default="available")  # available, in_transit, maintenance
+    fuel_level = Column(Float, default=100.0, nullable=False)  # Remaining fuel percentage (0.0 - 100.0)
     latitude   = Column(Float, nullable=True)
     longitude  = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

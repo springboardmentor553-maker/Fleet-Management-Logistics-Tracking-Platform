@@ -31,7 +31,7 @@ if HAS_CELERY:
         "fleetflow",
         broker=BROKER_URL,
         backend=RESULT_URL,
-        include=["app.tasks.maintenance_tasks"],
+        include=["app.tasks.maintenance_tasks", "app.tasks.fuel_tasks"],
     )
 else:
     class DummyCelery:
@@ -63,6 +63,11 @@ if HAS_CELERY:
         # Also run a quick check every 5 minutes during development / testing
         "check-maintenance-every-5-min": {
             "task": "app.tasks.maintenance_tasks.check_maintenance_schedules",
+            "schedule": crontab(minute="*/5"),
+        },
+        # Check low fuel levels every 5 minutes
+        "check-low-fuel-every-5-min": {
+            "task": "app.tasks.fuel_tasks.check_low_fuel_schedules",
             "schedule": crontab(minute="*/5"),
         },
     },

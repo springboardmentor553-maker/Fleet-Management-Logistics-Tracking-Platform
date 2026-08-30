@@ -148,8 +148,20 @@ def add_fuel_record(
     )
 
     db.add(record)
+    
+    # Refueling scenario: set vehicle fuel level back to full (100.0%) and re-evaluate alerts
+    vehicle = db.query(Vehicle).filter(Vehicle.id == data.vehicle_id).first()
+    if vehicle:
+        vehicle.fuel_level = 100.0
+
     db.commit()
     db.refresh(record)
+
+    try:
+        from app.tasks.fuel_tasks import run_low_fuel_alerts_check
+        run_low_fuel_alerts_check(db)
+    except Exception:
+        pass
 
     return record
 

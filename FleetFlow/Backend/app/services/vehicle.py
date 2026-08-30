@@ -52,6 +52,11 @@ def update_vehicle(vehicle_id: int, data: VehicleUpdate, db: Session) -> Vehicle
     for field, value in changes.items():
         setattr(vehicle, field, value)
     db.commit()
+    
+    if "fuel_level" in changes:
+        from app.tasks.fuel_tasks import run_low_fuel_alerts_check
+        run_low_fuel_alerts_check(db)
+
     return get_vehicle_by_id(vehicle_id, db)
 
 

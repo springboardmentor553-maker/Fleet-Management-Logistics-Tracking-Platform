@@ -51,6 +51,7 @@ def init_db():
         columns_to_add = [
             ("assigned_driver_id", "INTEGER REFERENCES drivers(id)"),
             ("current_status", "VARCHAR DEFAULT 'available'"),
+            ("fuel_level", "FLOAT DEFAULT 100.0"),
             ("latitude", "FLOAT"),
             ("longitude", "FLOAT"),
         ]
