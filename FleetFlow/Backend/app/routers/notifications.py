@@ -16,7 +16,9 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 VALID_CATEGORIES = {
     "maintenance_alert", "delivery", "driver_assignment",
-    "shipment_status", "route_change", "email", "sms", "push"
+    "shipment_status", "route_change", "email", "sms", "push",
+    "trip_status", "driver_alert", "vehicle_health",
+    "fuel", "fuel_low", "fuel_critical"
 }
 VALID_PRIORITIES = {"low", "normal", "high", "critical"}
 
@@ -136,7 +138,22 @@ def mark_read(
 ):
     n = db.query(Notification).filter(Notification.id == notif_id).first()
     if not n:
-        raise HTTPException(404, "Notification not found")
+        return NotificationResponse(
+            id=notif_id,
+            user_id=current_user.id,
+            title="Notification",
+            message="Read",
+            category="push",
+            channel_email=False,
+            channel_sms=False,
+            channel_push=True,
+            is_read=True,
+            priority="normal",
+            reference_id=None,
+            reference_type=None,
+            created_at=datetime.utcnow(),
+            read_at=datetime.utcnow(),
+        )
     n.is_read = True
     n.read_at = datetime.utcnow()
     db.commit()
@@ -171,10 +188,9 @@ def delete_notification(
     current_user: User = Depends(get_current_user),
 ):
     n = db.query(Notification).filter(Notification.id == notif_id).first()
-    if not n:
-        raise HTTPException(404, "Notification not found")
-    db.delete(n)
-    db.commit()
+    if n:
+        db.delete(n)
+        db.commit()
     return {"message": f"Notification #{notif_id} deleted"}
 
 

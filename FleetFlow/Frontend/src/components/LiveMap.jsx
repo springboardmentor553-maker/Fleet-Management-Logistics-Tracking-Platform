@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import api from '../api/axios'
-import { getTrip } from '../api/trips'
+import { getTrip, getTrips } from '../api/trips'
 import { getVehicles } from '../api/vehicles'
 import { getVehicleLocations } from '../api/gps'
 import { getShipments, getMyShipments } from '../api/shipments'
@@ -71,6 +71,8 @@ export default function LiveMap({ tripId, user }) {
   const [shipments,          setShipments]          = useState([])
   const [driverShipment,     setDriverShipment]     = useState(null)
   const [selectedShipmentId, setSelectedShipmentId] = useState(null)
+  const [tripsList,          setTripsList]          = useState([])
+  const [selectedTripId,     setSelectedTripId]     = useState(tripId ? Number(tripId) : null)
   const [trip,               setTrip]               = useState(null)
   const [error,              setError]              = useState('')
   const [routes,             setRoutes]             = useState({})
@@ -83,6 +85,12 @@ export default function LiveMap({ tripId, user }) {
   const wsRef = useRef(null)
 
   const isDriver = user?.role === 'driver'
+  const activeTripId = tripId ? Number(tripId) : (selectedTripId ? Number(selectedTripId) : null)
+
+  const selectedTripIdRef = useRef(selectedTripId)
+  useEffect(() => {
+    selectedTripIdRef.current = selectedTripId
+  }, [selectedTripId])
 
   const normalizeVehicle = (v) => ({
     id: Number(v.id),
@@ -124,8 +132,9 @@ export default function LiveMap({ tripId, user }) {
         getVehicles().catch(() => []),
         getVehicleLocations().catch(() => []),
         getShipments().catch(() => []),
+        getTrips().catch(() => []),
       ])
-        .then(([vAll, vGps, sList]) => {
+        .then(([vAll, vGps, sList, tList]) => {
           const vMap = new Map()
           ;(vAll || []).forEach(v => vMap.set(Number(v.id), normalizeVehicle(v)))
           ;(vGps || []).forEach(v => {
@@ -139,9 +148,21 @@ export default function LiveMap({ tripId, user }) {
           })
           setVehicles(Array.from(vMap.values()))
           setShipments(sList || [])
-          if (sList && sList.length > 0 && !selectedShipmentId) {
-            const firstActive = sList.find(s => s.status === 'in_transit') || sList[0]
-            if (firstActive) setSelectedShipmentId(firstActive.id)
+          setTripsList(tList || [])
+
+          const currentSelId = selectedTripIdRef.current || (tripId ? Number(tripId) : null)
+
+          if (currentSelId && tList && tList.length > 0) {
+            // Verify if currently selected trip still exists in trip list
+            const stillExists = tList.some(t => Number(t.id) === Number(currentSelId))
+            if (!stillExists && !tripId) {
+              // Selected trip was completed or deleted; clear selection cleanly
+              setSelectedTripId(null)
+            }
+          } else if (tList && tList.length > 0 && !currentSelId && !tripId) {
+            // Auto-select ONLY on initial load when no selection exists
+            const activeT = tList.find(t => t.status === 'started' || t.status === 'in_transit' || t.status === 'scheduled') || tList[0]
+            if (activeT) setSelectedTripId(activeT.id)
           }
           setError('')
         })
@@ -149,22 +170,27 @@ export default function LiveMap({ tripId, user }) {
     }
   }
 
-  // WebSocket for live updates
+  // WebSocket for live updates scoped to selected trip
   useEffect(() => {
     let pollingTimer = null
     let reconnectTimer = null
     loadData()
 
-    if (tripId) {
-      getTrip(tripId)
-        .then(setTrip)
+    if (activeTripId) {
+      getTrip(activeTripId)
+        .then((tData) => {
+          setTrip(tData)
+          if (tData?.shipment_id) {
+            setSelectedShipmentId(tData.shipment_id)
+          }
+        })
         .catch(() => setTrip(null))
     } else {
       setTrip(null)
     }
 
     const backendWsBase = api.defaults.baseURL.replace(/^http/, 'ws').replace(/\/$/, '')
-    const wsUrl = tripId ? `${backendWsBase}/ws/tracking/${tripId}` : `${backendWsBase}/gps/ws/locations`
+    const wsUrl = activeTripId ? `${backendWsBase}/ws/tracking/${activeTripId}` : `${backendWsBase}/gps/ws/locations`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
@@ -250,24 +276,31 @@ export default function LiveMap({ tripId, user }) {
       if (pollingTimer) window.clearInterval(pollingTimer)
       if (reconnectTimer) window.clearTimeout(reconnectTimer)
     }
-  }, [tripId, isDriver])
+  }, [activeTripId, isDriver])
 
-  // Filter vehicles and shipments
+  // Filter vehicles and shipments for active trip
   const activeVehicles = vehicles.filter(v => v.latitude != null && v.longitude != null)
 
-  let shownVehicles = activeVehicles
+  let shownShipments = []
+  let shownVehicles = []
+
   if (isDriver && driverShipment) {
+    shownShipments = [driverShipment]
     shownVehicles = activeVehicles.filter(v => Number(v.id) === Number(driverShipment.vehicle_id))
-  } else if (tripId && trip?.vehicle_id) {
-    shownVehicles = activeVehicles.filter(v => v.id === Number(trip.vehicle_id))
+  } else if (activeTripId && trip) {
+    const matchingShipment = shipments.find(s => s.id === trip.shipment_id)
+    shownShipments = matchingShipment ? [matchingShipment] : shipments.filter(s => s.id === selectedShipmentId)
+    shownVehicles = activeVehicles.filter(v => Number(v.id) === Number(trip.vehicle_id))
+  } else if (activeTripId) {
+    shownShipments = shipments.filter(s => s.id === selectedShipmentId)
+    shownVehicles = activeVehicles
+  } else {
+    shownShipments = shipments
+    shownVehicles = activeVehicles
   }
 
-  const inTransitShipments = isDriver && driverShipment
-    ? [driverShipment]
-    : shipments.filter(s => s.status === 'in_transit')
-
   // Selected shipment for Route Optimization Panel
-  const featuredShipment = shipments.find(s => s.id === selectedShipmentId) || inTransitShipments[0] || shipments[0]
+  const featuredShipment = shownShipments.find(s => s.id === selectedShipmentId) || shownShipments[0] || shipments[0]
   const featuredVehicle = featuredShipment
     ? vehicles.find(v => Number(v.id) === Number(featuredShipment.vehicle_id))
     : shownVehicles[0]
@@ -275,8 +308,7 @@ export default function LiveMap({ tripId, user }) {
   // Positions to fit map view initially
   const positionsToFit = []
 
-  // Add Start Point, Destination Point, and Vehicle position to initial positions array
-  shipments.forEach((s) => {
+  shownShipments.forEach((s) => {
     const r = routes[s.id]
     const origLat = s.origin_lat || r?.origin_lat
     const origLng = s.origin_lng || r?.origin_lng
@@ -291,9 +323,9 @@ export default function LiveMap({ tripId, user }) {
 
   const title = isDriver
     ? `My Navigation Map — Driver Portal`
-    : tripId && trip ? `Trip #${trip.id} Live GPS Tracking` : 'Live Fleet GPS Map'
+    : activeTripId && trip ? `Trip #${trip.id} Live GPS Tracking` : 'Live Fleet GPS Map'
 
-  const mapKey = `${selectedShipmentId || 'all'}-${tripId || 'none'}-${isDriver ? 'driver' : 'admin'}`
+  const mapKey = `${selectedShipmentId || 'all'}-${activeTripId || 'none'}-${isDriver ? 'driver' : 'admin'}`
 
   // Fetch Route Optimization Variants for the featured shipment
   const handleFetchVariants = (forceRecalculate = false) => {
@@ -391,6 +423,82 @@ export default function LiveMap({ tripId, user }) {
         </div>
       )}
 
+      {/* TRIP SELECTOR BAR (For Dispatcher/Admin/Manager) */}
+      {!isDriver && (
+        <div className="setting-card" style={{ marginBottom: '16px', background: '#0f172a', borderColor: '#3b82f6', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '20px' }}>🗺️</span>
+            <div>
+              <strong style={{ color: '#f8fafc', fontSize: '15px' }}>Scoped Live Tracking</strong>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>Select a specific trip to view its route, vehicle marker, and real-time telemetry</p>
+            </div>
+          </div>
+          <div style={{ minWidth: '280px' }}>
+            <select
+              value={selectedTripId || ''}
+              onChange={(e) => setSelectedTripId(e.target.value ? Number(e.target.value) : null)}
+              style={{ background: '#1e293b', border: '1px solid #3b82f6', color: '#f8fafc', padding: '8px 14px', borderRadius: '8px', width: '100%', fontSize: '14px' }}
+            >
+              <option value="">-- Select a Trip to Track --</option>
+              {tripsList.map((t) => (
+                <option key={t.id} value={t.id}>
+                  Trip #{t.id} (Shipment #{t.shipment_id}) • {t.status ? t.status.toUpperCase() : 'SCHEDULED'}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* ACTIVE TRIPS CARDS SELECTOR */}
+      {!isDriver && tripsList.length > 0 && (
+        <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px' }}>
+          {tripsList.map((t) => {
+            const isSelected = Number(selectedTripId) === Number(t.id)
+            const s = shipments.find(sh => Number(sh.id) === Number(t.shipment_id))
+            const v = vehicles.find(veh => Number(veh.id) === Number(t.vehicle_id))
+            const statusColor = t.status === 'started' || t.status === 'in_transit' ? '#22c55e' : '#f59e0b'
+
+            return (
+              <div
+                key={t.id}
+                onClick={() => setSelectedTripId(Number(t.id))}
+                style={{
+                  background: isSelected ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#0f172a',
+                  border: isSelected ? '2px solid #3b82f6' : '1px solid #334155',
+                  boxShadow: isSelected ? '0 0 14px rgba(59, 130, 246, 0.45)' : 'none',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  minWidth: '230px',
+                  flex: '0 0 auto',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <strong style={{ color: '#f8fafc', fontSize: '14px' }}>● Trip #{t.id}</strong>
+                  <span className="status-badge" style={{ backgroundColor: statusColor, color: '#fff', fontSize: '10px', padding: '2px 8px' }}>
+                    {t.status ? t.status.toUpperCase() : 'SCHEDULED'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>
+                  {s ? `${s.origin} → ${s.destination}` : `Shipment #${t.shipment_id}`}
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  🚛 {v ? v.plate_number : `Vehicle #${t.vehicle_id}`}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {!activeTripId && !isDriver && (
+        <div className="status-msg" style={{ background: '#1e293b', color: '#94a3b8', borderColor: '#334155', borderRadius: '12px', padding: '16px', textAlignment: 'center', marginBottom: '16px' }}>
+          📌 <strong>Please select a trip</strong> from the dropdown above to view its live tracking route, vehicle location, and telemetry.
+        </div>
+      )}
+
       <div className="page-header">
         <div>
           <h2>{title}</h2>
@@ -422,14 +530,14 @@ export default function LiveMap({ tripId, user }) {
                 Optimizing for Shipment #{featuredShipment.id} ({featuredShipment.origin} → {featuredShipment.destination})
               </span>
             </div>
-            {!isDriver && shipments.length > 1 && (
+            {!isDriver && shownShipments.length > 1 && (
               <div className="field" style={{ minWidth: '220px' }}>
                 <select
                   value={selectedShipmentId || ''}
                   onChange={(e) => setSelectedShipmentId(Number(e.target.value))}
                   style={{ background: '#0f172a', padding: '6px 12px', fontSize: '13px', borderRadius: '8px', color: '#f1f5f9' }}
                 >
-                  {shipments.map(s => (
+                  {shownShipments.map(s => (
                     <option key={s.id} value={s.id}>
                       Shipment #{s.id} ({s.origin} → {s.destination})
                     </option>
@@ -503,7 +611,7 @@ export default function LiveMap({ tripId, user }) {
           {positionsToFit.length > 0 && <FitBounds positions={positionsToFit} mapKey={mapKey} />}
 
           {/* Render Start Point (Origin) and Destination Point Markers for active shipments */}
-          {shipments.map((s) => {
+          {shownShipments.map((s) => {
             const r = routes[s.id]
             const origLat = s.origin_lat || r?.origin_lat
             const origLng = s.origin_lng || r?.origin_lng
@@ -541,7 +649,7 @@ export default function LiveMap({ tripId, user }) {
 
           {/* Render Moving Live Vehicle Markers */}
           {shownVehicles.map(v => {
-            const shipment = shipments.find(s => Number(s.vehicle_id) === Number(v.id))
+            const shipment = shownShipments.find(s => Number(s.vehicle_id) === Number(v.id))
             const routeEstimate = shipment ? routes[shipment.id] : null
 
             return (
@@ -591,12 +699,12 @@ export default function LiveMap({ tripId, user }) {
               }}
             />
           ) : (
-            Object.keys(routes).map((sid) => {
-              const r = routes[sid]
+            shownShipments.map((s) => {
+              const r = routes[s.id]
               if (!r || !r.geometry) return null
               return (
                 <Polyline
-                  key={`route-${sid}`}
+                  key={`route-${s.id}`}
                   positions={r.geometry}
                   pathOptions={{ color: '#3b82f6', weight: 5, opacity: 0.8 }}
                 />
@@ -607,7 +715,7 @@ export default function LiveMap({ tripId, user }) {
       </div>
 
       {/* Telemetry Table */}
-      {shipments.length > 0 && (
+      {shownShipments.length > 0 && (
         <div style={{ marginTop: 28 }}>
           <h3 style={{ color: '#f1f5f9', fontSize: 18, marginBottom: 14 }}>
             {isDriver ? 'My Assigned Trip Telemetry' : 'Active Fleet Telemetry & Live Coordinates'}
@@ -625,7 +733,7 @@ export default function LiveMap({ tripId, user }) {
                 </tr>
               </thead>
               <tbody>
-                {shipments.map(s => {
+                {shownShipments.map(s => {
                   const v = vehicles.find(veh => Number(veh.id) === Number(s.vehicle_id))
                   const hasGPS = v?.latitude != null && v?.longitude != null
                   const routeInfo = routes[s.id]

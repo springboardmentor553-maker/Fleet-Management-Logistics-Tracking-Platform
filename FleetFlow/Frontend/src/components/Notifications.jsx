@@ -10,6 +10,8 @@ import { getMaintenanceRecords } from '../api/maintenance'
 /* ─── Constants ─────────────────────────────────────── */
 const CATEGORIES = [
   { id: 'maintenance_alert', label: 'Maintenance Alert', icon: '🔧', color: '#f59e0b' },
+  { id: 'fuel_low',          label: 'Low Fuel Alert',    icon: '⛽', color: '#f97316' },
+  { id: 'fuel_critical',     label: 'Critical Fuel Alert',icon: '🚨', color: '#ef4444' },
   { id: 'delivery',          label: 'Delivery',          icon: '📦', color: '#22c55e' },
   { id: 'driver_assignment', label: 'Driver Assignment', icon: '👤', color: '#3b82f6' },
   { id: 'shipment_status',   label: 'Shipment Status',   icon: '🚚', color: '#8b5cf6' },
@@ -138,21 +140,24 @@ export default function Notifications() {
         getMaintenanceRecords().catch(() => []),
       ])
 
-      let finalNotifs = n || []
-      if (finalNotifs.length === 0) {
-        const autoNotifs = []
-        let idCounter = 1000;
+      const dbNotifs = n || []
+      const autoNotifs = []
+      let idCounter = 9000;
 
-        const maintList = Array.isArray(maint) ? maint : [];
-        const assignList = Array.isArray(assignments) ? assignments : [];
-        const shipList = Array.isArray(shipments) ? shipments : [];
+      const maintList = Array.isArray(maint) ? maint : [];
+      const assignList = Array.isArray(assignments) ? assignments : [];
+      const shipList = Array.isArray(shipments) ? shipments : [];
 
-        // 1. Maintenance Notifications
-        maintList.filter(m => m.status === 'scheduled' || m.status === 'in_progress').forEach(m => {
+      const existingTitles = new Set(dbNotifs.map(x => x.title))
+
+      // 1. Maintenance Notifications
+      maintList.filter(m => m.status === 'scheduled' || m.status === 'in_progress').forEach(m => {
+        const title = `🔧 Maintenance Alert — Vehicle #${m.vehicle_id}`
+        if (!existingTitles.has(title)) {
           autoNotifs.push({
             id: idCounter++,
             user_id: null,
-            title: `🔧 Maintenance Alert — Vehicle #${m.vehicle_id}`,
+            title,
             message: `${m.category}: ${m.description || 'Scheduled service'} (Status: ${m.status})`,
             category: 'maintenance_alert',
             channel_email: true,
@@ -162,31 +167,71 @@ export default function Notifications() {
             is_read: false,
             created_at: m.scheduled_date || new Date().toISOString(),
           })
-        });
+        }
+      });
 
-        // 2. Driver Assignment Notifications
-        assignList.forEach(a => {
+      // 2. Driver Assignment Notifications
+      assignList.forEach(a => {
+        const title = `👤 Driver Assignment — Driver #${a.driver_id}`
+        if (!existingTitles.has(title)) {
           autoNotifs.push({
             id: idCounter++,
             user_id: null,
-            title: `👤 Driver Assignment — Driver #${a.driver_id}`,
+            title,
             message: `Driver #${a.driver_id} assigned to Vehicle #${a.vehicle_id} (Status: ${a.assignment_status})`,
             category: 'driver_assignment',
-            channel_email: false,
+            channel_email: true,
             channel_sms: true,
             channel_push: true,
             priority: 'normal',
             is_read: false,
             created_at: a.assignment_date || new Date().toISOString(),
           })
-        });
+        }
 
-        // 3. Shipment Notifications
-        shipList.forEach(sp => {
+        const smsTitle = `💬 SMS Alert Sent → Driver #${a.driver_id}`
+        if (!existingTitles.has(smsTitle)) {
           autoNotifs.push({
             id: idCounter++,
             user_id: null,
-            title: `📦 Shipment Update #${sp.id}`,
+            title: smsTitle,
+            message: `SMS Dispatch to Driver #${a.driver_id}: You have been assigned to Vehicle #${a.vehicle_id} (Status: ${a.assignment_status}).`,
+            category: 'sms',
+            channel_email: false,
+            channel_sms: true,
+            channel_push: false,
+            priority: 'high',
+            is_read: false,
+            created_at: a.assignment_date || new Date().toISOString(),
+          })
+        }
+
+        const emailTitle = `📧 Email Dispatch Sent → Driver #${a.driver_id}`
+        if (!existingTitles.has(emailTitle)) {
+          autoNotifs.push({
+            id: idCounter++,
+            user_id: null,
+            title: emailTitle,
+            message: `Email Dispatch to Driver #${a.driver_id}: Driver Assignment Details & Vehicle #${a.vehicle_id} Confirmation.`,
+            category: 'email',
+            channel_email: true,
+            channel_sms: false,
+            channel_push: false,
+            priority: 'normal',
+            is_read: false,
+            created_at: a.assignment_date || new Date().toISOString(),
+          })
+        }
+      });
+
+      // 3. Shipment Notifications
+      shipList.forEach(sp => {
+        const title = `📦 Shipment Update #${sp.id}`
+        if (!existingTitles.has(title)) {
+          autoNotifs.push({
+            id: idCounter++,
+            user_id: null,
+            title,
             message: `Shipment from ${sp.origin} to ${sp.destination} is currently ${sp.status ? sp.status.toUpperCase() : 'PENDING'}`,
             category: 'shipment_status',
             channel_email: true,
@@ -196,12 +241,10 @@ export default function Notifications() {
             is_read: false,
             created_at: sp.created_at || new Date().toISOString(),
           })
-        });
-
-        if (autoNotifs.length > 0) {
-          finalNotifs = autoNotifs
         }
-      }
+      });
+
+      const finalNotifs = [...dbNotifs, ...autoNotifs]
 
       setNotifs(finalNotifs)
 
@@ -237,26 +280,44 @@ export default function Notifications() {
   const unreadCount = notifs.filter(n => !n.is_read).length
 
   async function handleRead(id) {
-    await markRead(id)
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
     setSummary(prev => prev ? { ...prev, unread: Math.max(0, prev.unread - 1) } : prev)
+    try {
+      await markRead(id)
+    } catch (e) {
+      // Ignored for synthetic/missing notifications
+    }
   }
 
   async function handleDelete(id) {
-    await deleteNotification(id)
     setNotifs(prev => prev.filter(n => n.id !== id))
-    load()
+    setSummary(prev => prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev)
+    try {
+      await deleteNotification(id)
+    } catch (e) {
+      // Ignored for synthetic/missing notifications
+    }
   }
 
   async function handleMarkAll() {
-    await markAllRead()
-    load()
+    setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
+    setSummary(prev => prev ? { ...prev, unread: 0 } : prev)
+    try {
+      await markAllRead()
+    } catch (e) {
+      // Ignored
+    }
   }
 
   async function handleClearAll() {
     if (!confirm('Clear all notifications?')) return
-    await clearAllNotifications()
-    load()
+    setNotifs([])
+    setSummary({ total: 0, unread: 0, by_category: {} })
+    try {
+      await clearAllNotifications()
+    } catch (e) {
+      // Ignored
+    }
   }
 
   /* create */

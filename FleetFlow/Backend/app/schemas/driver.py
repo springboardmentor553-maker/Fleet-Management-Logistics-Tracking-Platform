@@ -1,6 +1,17 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime, date
+
+
+def validate_and_normalize_license(v: Optional[str]) -> Optional[str]:
+    if v is None:
+        return v
+    v_clean = v.strip().upper()
+    if not v_clean:
+        raise ValueError("License number cannot be empty")
+    if len(v_clean) < 5 or len(v_clean) > 20:
+        raise ValueError("License number must be between 5 and 20 characters long")
+    return v_clean
 
 
 class DriverCreate(BaseModel):
@@ -9,6 +20,12 @@ class DriverCreate(BaseModel):
     phone: str = Field(..., example="+91 98765 43210", description="Contact phone number")
     license_number: str = Field(..., example="TN-01-2024-001234", description="Unique driving license number")
     assigned_vehicle_id: Optional[int] = None
+
+    @field_validator("license_number")
+    @classmethod
+    def validate_license(cls, v: str) -> str:
+        res = validate_and_normalize_license(v)
+        return res or ""
 
 
 class DriverUpdate(BaseModel):
@@ -21,6 +38,12 @@ class DriverUpdate(BaseModel):
     attendance_status: Optional[str] = None  # present, absent, on_leave
     safety_score: Optional[int] = None
     rating: Optional[float] = None
+
+    @field_validator("license_number")
+    @classmethod
+    def validate_license(cls, v: Optional[str]) -> Optional[str]:
+        return validate_and_normalize_license(v)
+
 
 
 class DriverResponse(BaseModel):

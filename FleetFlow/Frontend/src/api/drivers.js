@@ -11,3 +11,4 @@ export const recordAttendance    = (id, data) => api.post(`/drivers/${id}/attend
 export const getDriverAttendance = (id)       => api.get(`/drivers/${id}/attendance`).then((r) => r.data)
 export const getDriverLogs       = (id)       => api.get(`/drivers/${id}/logs`).then((r) => r.data)
 export const assignDriverVehicle = (id, vId)  => api.patch(`/drivers/${id}/assign-vehicle`, null, { params: { vehicle_id: vId } }).then((r) => r.data)
+export const getDriverPerformance = (id)       => api.get(`/drivers/${id}/performance`).then((r) => r.data)

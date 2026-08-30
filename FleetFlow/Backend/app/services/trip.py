@@ -11,6 +11,7 @@ from app.models.vehicle import Vehicle
 
 from app.schemas.trip import TripCreate
 from app.services.maps import geocode_location
+from app.services.notification_service import notify_event, notify_driver_event
 
 
 # ============================================================
@@ -322,6 +323,19 @@ def create_trip(data: TripCreate, db: Session):
 
     db.refresh(trip)
 
+    notify_driver_event(
+        db=db,
+        driver=driver,
+        title=f"Trip #{trip.id} Scheduled & Assigned",
+        message=f"Trip #{trip.id} scheduled for Shipment #{trip.shipment_id} with Vehicle #{trip.vehicle_id}.",
+        category="trip_status",
+        priority="high",
+        reference_type="trip",
+        reference_id=trip.id,
+        channel_email=True,
+        channel_sms=True,
+    )
+
     return trip
 
 
@@ -561,6 +575,35 @@ def update_trip_status(
     db.commit()
 
     db.refresh(trip)
+
+    if new_status == "started":
+        notify_event(
+            db=db,
+            title=f"Trip #{trip.id} Started",
+            message=f"Trip #{trip.id} has officially started.",
+            category="trip_status",
+            reference_type="trip",
+            reference_id=trip.id,
+        )
+    elif new_status == "completed":
+        notify_event(
+            db=db,
+            title=f"Trip #{trip.id} Completed",
+            message=f"Trip #{trip.id} has been completed successfully.",
+            category="trip_status",
+            reference_type="trip",
+            reference_id=trip.id,
+        )
+    elif new_status == "cancelled":
+        notify_event(
+            db=db,
+            title=f"Trip #{trip.id} Cancelled",
+            message=f"Trip #{trip.id} has been cancelled.",
+            category="trip_status",
+            priority="high",
+            reference_type="trip",
+            reference_id=trip.id,
+        )
 
     return trip
 

@@ -8,6 +8,7 @@ import {
   recordAttendance,
   getDriverLogs,
   assignDriverVehicle,
+  getDriverPerformance,
 } from '../api/drivers'
 import { getVehicles } from '../api/vehicles'
 
@@ -33,6 +34,9 @@ export default function Drivers() {
   const [logsModal,     setLogsModal]     = useState(false)
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [logs,          setLogs]          = useState([])
+  const [perfModal,     setPerfModal]     = useState(false)
+  const [perfData,      setPerfData]      = useState(null)
+  const [perfLoading,   setPerfLoading]   = useState(false)
 
   function loadData() {
     setLoading(true)
@@ -82,12 +86,23 @@ export default function Drivers() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    if (name === 'license_number') {
+      setForm((prev) => ({ ...prev, [name]: value.toUpperCase() }))
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormErr('')
+    
+    const cleanLicense = (form.license_number || '').trim().toUpperCase()
+    if (!cleanLicense || cleanLicense.length < 5 || cleanLicense.length > 20) {
+      setFormErr('Driving license number must be between 5 and 20 characters long.')
+      return
+    }
+
     setSaving(true)
 
     try {
@@ -96,7 +111,7 @@ export default function Drivers() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          license_number: form.license_number,
+          license_number: cleanLicense,
           assigned_vehicle_id: form.assigned_vehicle_id ? parseInt(form.assigned_vehicle_id) : null,
         })
       } else {
@@ -104,7 +119,7 @@ export default function Drivers() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          license_number: form.license_number,
+          license_number: cleanLicense,
           assigned_vehicle_id: form.assigned_vehicle_id ? parseInt(form.assigned_vehicle_id) : null,
         })
       }
@@ -161,6 +176,20 @@ export default function Drivers() {
       setLogsModal(true)
     } catch (err) {
       alert(err.message)
+    }
+  }
+
+  const handleViewPerformance = async (d) => {
+    setSelectedDriver(d)
+    setPerfLoading(true)
+    setPerfModal(true)
+    try {
+      const data = await getDriverPerformance(d.id)
+      setPerfData(data)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setPerfLoading(false)
     }
   }
 
@@ -306,9 +335,13 @@ export default function Drivers() {
                       </div>
                     </td>
                     <td>
-                      <div className="driver-stats">
-                        <span className="driver-trips">{d.completed_trips_count || 0} Trips</span>
-                        <span className="driver-km">{d.total_distance_km || 0} km Total</span>
+                      <div className="driver-stats" onClick={() => handleViewPerformance(d)} style={{ cursor: 'pointer' }}>
+                        <span className="driver-completed" style={{ color: '#22c55e', fontWeight: 600 }}>
+                          ✓ {d.completed_trips_count || 0} Completed
+                        </span>
+                        <span className="driver-km" style={{ color: '#38bdf8', fontSize: '12px' }}>
+                          📍 {d.total_distance_km || 0} km Total
+                        </span>
                       </div>
                     </td>
                     <td>
@@ -318,7 +351,10 @@ export default function Drivers() {
                       </div>
                     </td>
                     <td className="actions">
-                      <button className="btn-primary" style={{ fontSize: 12, padding: '5px 12px' }} onClick={() => handleViewLogs(d)}>
+                      <button className="btn-primary" style={{ fontSize: 12, padding: '5px 10px', background: '#3b82f6' }} onClick={() => handleViewPerformance(d)}>
+                        📊 Performance
+                      </button>
+                      <button className="btn-primary" style={{ fontSize: 12, padding: '5px 10px' }} onClick={() => handleViewLogs(d)}>
                         📋 Logs
                       </button>
                       <button className="btn-edit" onClick={() => openEditModal(d)}>
@@ -444,6 +480,50 @@ export default function Drivers() {
             </div>
             <div className="modal-actions" style={{ marginTop: 16 }}>
               <button type="button" className="btn-cancel" onClick={() => setLogsModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRIP PERFORMANCE MODAL */}
+      {perfModal && selectedDriver && (
+        <div className="modal-overlay" onClick={() => setPerfModal(false)}>
+          <div className="modal modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📊 Trip Performance — {selectedDriver.name}</h3>
+              <button className="modal-close" onClick={() => setPerfModal(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px 0' }}>
+              {perfLoading ? (
+                <div className="status-msg">Calculating performance metrics...</div>
+              ) : perfData ? (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                      <div style={{ color: '#94a3b8', fontSize: '13px' }}>Total Trips</div>
+                      <div style={{ color: '#f8fafc', fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{perfData.total_trips}</div>
+                    </div>
+                    <div style={{ background: '#1e293b', border: '1px solid #22c55e', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                      <div style={{ color: '#94a3b8', fontSize: '13px' }}>Completed Trips</div>
+                      <div style={{ color: '#22c55e', fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{perfData.completed_trips}</div>
+                    </div>
+                    <div style={{ background: '#1e293b', border: '1px solid #38bdf8', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                      <div style={{ color: '#94a3b8', fontSize: '13px' }}>Total Distance</div>
+                      <div style={{ color: '#38bdf8', fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{perfData.total_kilometers} km</div>
+                    </div>
+                  </div>
+                  <div style={{ background: '#0f172a', borderRadius: '10px', padding: '14px', fontSize: '13px', color: '#94a3b8' }}>
+                    📌 <em>Note:</em> Only completed trips are counted toward distance and completion totals. Active, scheduled, or cancelled trips are excluded from completed distance totals.
+                  </div>
+                </div>
+              ) : (
+                <div className="status-msg error">Failed to load performance data.</div>
+              )}
+            </div>
+            <div className="modal-actions" style={{ marginTop: 16 }}>
+              <button type="button" className="btn-cancel" onClick={() => setPerfModal(false)}>
                 Close
               </button>
             </div>

@@ -16,6 +16,7 @@ from app.schemas.driver_assignment import (
 )
 
 from app.utils.roles import Role, require_roles
+from app.services.notification_service import notify_event, notify_driver_event
 
 
 router = APIRouter(
@@ -192,6 +193,19 @@ def assign_driver(
 
     db.commit()
     db.refresh(assignment)
+
+    notify_driver_event(
+        db=db,
+        driver=driver,
+        title="Driver Assignment Created",
+        message=f"You have been assigned to Vehicle '{vehicle.plate_number}'" + (f" for Trip #{data.trip_id}" if data.trip_id else "") + ".",
+        category="driver_assignment",
+        priority="high",
+        reference_type="driver",
+        reference_id=driver.id,
+        channel_email=True,
+        channel_sms=True,
+    )
 
     return assignment
 
