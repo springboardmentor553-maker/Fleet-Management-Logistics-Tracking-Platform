@@ -1,4 +1,15 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+
+BASE_DIR = Path(__file__).resolve().parent.parent  # Backend/
+ROOT_DIR = BASE_DIR.parent                        # FleetFlow/
+
+# Pre-load environment variables into os.environ for Celery & dependencies
+for env_path in [BASE_DIR / ".env", ROOT_DIR / ".env"]:
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
 
 
 class Settings(BaseSettings):
@@ -27,8 +38,14 @@ class Settings(BaseSettings):
     FAST2SMS_API_KEY: str = ""
 
     class Config:
-        env_file = (".env", "../.env")
+        env_file = [
+            str(BASE_DIR / ".env"),
+            str(ROOT_DIR / ".env"),
+            ".env",
+            "../.env",
+        ]
         extra = "ignore"
 
 
 settings = Settings()
+

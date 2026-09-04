@@ -21,7 +21,12 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+BASE_DIR = Path(__file__).resolve().parent.parent  # Backend/
+ROOT_DIR = BASE_DIR.parent                        # FleetFlow/
+
+for env_path in [BASE_DIR / ".env", ROOT_DIR / ".env"]:
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
 
 BROKER_URL  = os.getenv("CELERY_BROKER_URL",  "redis://localhost:6379/0")
 RESULT_URL  = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")

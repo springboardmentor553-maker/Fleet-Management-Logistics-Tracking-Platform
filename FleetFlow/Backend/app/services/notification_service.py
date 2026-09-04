@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 def _dispatch_real_smtp_email(to_email: str, subject: str, body: str) -> tuple[str, str]:
     """
     Sends a real email over SMTP (e.g. Gmail / SendGrid / Custom SMTP).
-    Returns (status, message) where status is 'SUCCESS', 'FAILED', or 'NOT_CONFIGURED'.
+    Returns (status, message) where status is 'SENT', 'FAILED', or 'NOT_CONFIGURED'.
     """
     if not to_email:
         return "FAILED", "No driver email address provided"
 
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        logger.info(f"📧 [SMTP LOG] Credentials missing. Set SMTP_USER & SMTP_PASSWORD in .env for live email to {to_email}")
+        logger.info(f"📧 Email Dispatch (NOT_CONFIGURED) → {to_email}. Reason: SMTP credentials missing in .env")
         return "NOT_CONFIGURED", "SMTP credentials missing in .env"
 
     try:
@@ -51,10 +51,10 @@ def _dispatch_real_smtp_email(to_email: str, subject: str, body: str) -> tuple[s
             server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
             server.sendmail(from_addr, [to_email], msg.as_string())
 
-        logger.info(f"✅ 📧 [LIVE SMTP EMAIL DELIVERED] Sent email to {to_email}")
-        return "SUCCESS", f"Delivered via SMTP ({settings.SMTP_HOST})"
+        logger.info(f"📧 Email Dispatch (SENT) → {to_email}")
+        return "SENT", f"Delivered via SMTP ({settings.SMTP_HOST})"
     except Exception as exc:
-        logger.error(f"❌ [SMTP ERROR] Failed to send email to {to_email}: {exc}")
+        logger.error(f"📧 Email Dispatch (FAILED) → {to_email}. Reason: {exc}")
         return "FAILED", f"SMTP authentication / connection failure: {exc}"
 
 
@@ -237,8 +237,8 @@ def send_email_notification(
     except Exception as exc:
         email_status, status_detail = "FAILED", f"Dispatch exception: {exc}"
 
-    if email_status == "SUCCESS":
-        email_title = f"📧 Email Dispatch Sent → {email_str}"
+    if email_status in ["SENT", "SUCCESS"]:
+        email_title = f"📧 Email Dispatch (SENT) → {email_str}"
         email_body = f"Email Dispatch to {driver_name} ({email_str}): {title} - {message} [SMTP Status: Delivered]"
     else:
         email_title = f"📧 Email Dispatch ({email_status}) → {email_str}"
