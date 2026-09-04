@@ -81,10 +81,38 @@ def run_low_fuel_alerts_check(db: Session) -> int:
             if existing_unread:
                 continue
 
+            # If switching from fuel_low to fuel_critical, resolve old fuel_low alert so critical alert takes over
+            if is_critical:
+                old_low_alerts = (
+                    db.query(Notification)
+                    .filter(
+                        Notification.reference_type == "vehicle",
+                        Notification.reference_id == v.id,
+                        Notification.category == "fuel_low",
+                        Notification.is_read == False,
+                    )
+                    .all()
+                )
+                for alert in old_low_alerts:
+                    alert.is_read = True
+                if old_low_alerts:
+                    try:
+                        db.commit()
+                    except Exception:
+                        db.rollback()
+
             # Create Notification & Dispatch to Driver (if assigned) & Admin/Fleet Manager
             driver = None
             if v.assigned_driver_id:
                 driver = db.query(Driver).filter(Driver.id == v.assigned_driver_id).first()
+            if not driver:
+                driver = db.query(Driver).filter(Driver.assigned_vehicle_id == v.id).first()
+                if driver and not v.assigned_driver_id:
+                    v.assigned_driver_id = driver.id
+                    try:
+                        db.commit()
+                    except Exception:
+                        db.rollback()
 
             if driver:
                 notify_driver_event(
@@ -116,7 +144,7 @@ def run_low_fuel_alerts_check(db: Session) -> int:
                 )
 
             alerts_created += 1
-            logger.info(f"⛽ [LOW FUEL ALERT GENERATED] Vehicle '{v.plate_number}' fuel level = {fuel}%")
+            logger.info(f"⛽ [LOW FUEL ALERT GENERATED] Vehicle '{v.plate_number}' fuel level = {fuel}%, Driver: {driver.name if driver else 'Unassigned'}")
 
     return alerts_created
 

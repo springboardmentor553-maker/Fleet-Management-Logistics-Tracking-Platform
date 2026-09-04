@@ -3,6 +3,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import requests
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime
 from typing import Optional
 import logging
@@ -210,7 +211,7 @@ def send_sms_notification(
         category="sms",
         priority="high",
         reference_type="driver",
-        reference_id=reference_id or (driver.id if driver else None),
+        reference_id=driver.id if driver else reference_id,
         channel_email=False,
         channel_sms=True,
         channel_push=False,
@@ -250,7 +251,7 @@ def send_email_notification(
         category="email",
         priority="normal",
         reference_type="driver",
-        reference_id=reference_id or (driver.id if driver else None),
+        reference_id=driver.id if driver else reference_id,
         channel_email=True,
         channel_sms=False,
         channel_push=False,
@@ -276,7 +277,7 @@ def notify_driver_event(
     """
     driver_user = None
     if driver and driver.email:
-        driver_user = db.query(User).filter(User.email.lower() == driver.email.lower()).first()
+        driver_user = db.query(User).filter(func.lower(User.email) == driver.email.lower()).first()
 
     target_user_id = driver_user.id if driver_user else None
     ref_id = reference_id or (driver.id if driver else None)

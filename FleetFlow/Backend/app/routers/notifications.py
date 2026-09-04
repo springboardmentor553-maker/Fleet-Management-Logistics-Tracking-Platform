@@ -60,6 +60,7 @@ def create_notification(
 
 
 from app.tasks.maintenance_tasks import run_maintenance_alerts_check
+from app.tasks.fuel_tasks import run_low_fuel_alerts_check
 
 # ── GET /notifications/ ──────────────────────────────────────────────────────
 @router.get("/", response_model=List[NotificationResponse])
@@ -73,6 +74,7 @@ def get_notifications(
 ):
     try:
         run_maintenance_alerts_check(db)
+        run_low_fuel_alerts_check(db)
     except Exception:
         pass
 
@@ -96,6 +98,7 @@ def get_summary(
 ):
     try:
         run_maintenance_alerts_check(db)
+        run_low_fuel_alerts_check(db)
     except Exception:
         pass
 
