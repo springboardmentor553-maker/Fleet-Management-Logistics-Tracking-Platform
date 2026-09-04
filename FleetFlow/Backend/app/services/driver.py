@@ -4,7 +4,47 @@ from app.models.driver import Driver
 from app.schemas.driver import DriverCreate, DriverUpdate
 
 
+from datetime import datetime
+from sqlalchemy import func
+from app.models.user import User
+
+
+def sync_driver_users(db: Session):
+    """
+    Ensures any user with role == 'driver' has a corresponding record in the drivers table.
+    """
+    driver_users = db.query(User).filter(func.lower(User.role) == "driver").all()
+    created_any = False
+    for u in driver_users:
+        existing = db.query(Driver).filter(func.lower(Driver.email) == u.email.lower()).first()
+        if not existing:
+            email_prefix = u.email.split('@')[0].upper().replace('.', '').replace('-', '')[:8]
+            lic_val = f"DL-{email_prefix}-{u.id}"
+            if db.query(Driver).filter(Driver.license_number == lic_val).first():
+                lic_val = f"DL-{u.id}-{int(datetime.utcnow().timestamp())}"
+            d = Driver(
+                name=u.name,
+                email=u.email,
+                phone=f"+9198765{10000 + u.id}",
+                license_number=lic_val,
+                is_available=True,
+                attendance_status="present",
+                safety_score=95,
+                completed_trips_count=0,
+                total_distance_km=0.0,
+                rating=4.8,
+            )
+            db.add(d)
+            created_any = True
+    if created_any:
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+
+
 def get_all_drivers(db: Session) -> list[Driver]:
+    sync_driver_users(db)
     return db.query(Driver).order_by(Driver.id).all()
 
 

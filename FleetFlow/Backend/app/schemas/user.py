@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 VALID_ROLES = {"admin", "fleet_manager", "driver", "dispatcher"}
 
@@ -10,6 +10,8 @@ class UserRegister(BaseModel):
     email: EmailStr = Field(..., example="john@fleetflow.com", description="Unique email address")
     password: str = Field(..., example="secret123", min_length=6, description="Password (min 6 chars)")
     role: str = Field("admin", example="admin", description="One of: admin, fleet_manager, driver, dispatcher")
+    phone: Optional[str] = Field(None, example="+919876543210")
+    license_number: Optional[str] = Field(None, example="DL-123456")
 
     @field_validator("role")
     @classmethod
