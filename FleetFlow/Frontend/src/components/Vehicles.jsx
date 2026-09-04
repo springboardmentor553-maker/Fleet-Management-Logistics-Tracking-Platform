@@ -105,6 +105,15 @@ export default function Vehicles() {
     }
   }
 
+  async function handleQuickFuel(vehicleId, level) {
+    try {
+      await updateVehicle(vehicleId, { fuel_level: level })
+      load()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
   return (
     <div className="page-content">
       <div className="page-header">
@@ -129,7 +138,7 @@ export default function Vehicles() {
                 <th>Model</th>
                 <th>Capacity</th>
                 <th>Fuel</th>
-                <th>Fuel Level</th>
+                <th>Fuel Level & Quick Set</th>
                 <th>Assigned Driver</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -148,13 +157,22 @@ export default function Vehicles() {
                   <td>{v.capacity_kg.toLocaleString()} kg</td>
                   <td><span className="fuel-badge">{v.fuel_type}</span></td>
                   <td>
-                    {(() => {
-                      const fl = v.fuel_level !== undefined && v.fuel_level !== null ? v.fuel_level : 100;
-                      if (fl < 10) return <span className="status-badge" style={{ backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold' }}>🔴 {fl}% Critical 🚨</span>;
-                      if (fl < 20) return <span className="status-badge" style={{ backgroundColor: '#f97316', color: '#fff', fontWeight: 'bold' }}>🟠 {fl}% Low ⚠️</span>;
-                      if (fl <= 30) return <span className="status-badge" style={{ backgroundColor: '#eab308', color: '#000' }}>🟡 {fl}% Warning</span>;
-                      return <span className="status-badge" style={{ backgroundColor: '#22c55e', color: '#fff' }}>🟢 {fl}% Normal</span>;
-                    })()}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div>
+                        {(() => {
+                          const fl = v.fuel_level !== undefined && v.fuel_level !== null ? v.fuel_level : 100;
+                          if (fl < 10) return <span className="status-badge" style={{ backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold' }}>🔴 {fl}% Critical 🚨</span>;
+                          if (fl < 20) return <span className="status-badge" style={{ backgroundColor: '#f97316', color: '#fff', fontWeight: 'bold' }}>🟠 {fl}% Low ⚠️</span>;
+                          if (fl <= 30) return <span className="status-badge" style={{ backgroundColor: '#eab308', color: '#000' }}>🟡 {fl}% Warning</span>;
+                          return <span className="status-badge" style={{ backgroundColor: '#22c55e', color: '#fff' }}>🟢 {fl}% Normal</span>;
+                        })()}
+                      </div>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button type="button" style={{ background: '#f97316', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }} title="Set fuel to 15% (Low Fuel Alert)" onClick={() => handleQuickFuel(v.id, 15)}>⚡ 15%</button>
+                        <button type="button" style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }} title="Set fuel to 8% (Critical Fuel Alert)" onClick={() => handleQuickFuel(v.id, 8)}>🚨 8%</button>
+                        <button type="button" style={{ background: '#22c55e', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 6px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }} title="Refuel vehicle to 100%" onClick={() => handleQuickFuel(v.id, 100)}>⛽ 100%</button>
+                      </div>
+                    </div>
                   </td>
                   <td>
                     {v.assigned_driver
@@ -248,6 +266,22 @@ export default function Vehicles() {
                       <option key={d.id} value={d.id}>{d.name} ({d.license_number})</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Fuel Level (%) */}
+                <div className="field">
+                  <label>Fuel Level (%)</label>
+                  <input
+                    name="fuel_level"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={form.fuel_level}
+                    onChange={handleChange}
+                    placeholder="100"
+                    required
+                  />
                 </div>
 
                 {/* Current Status */}

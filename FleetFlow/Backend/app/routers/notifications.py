@@ -78,9 +78,13 @@ def get_notifications(
     except Exception:
         pass
 
-    query = db.query(Notification).filter(
-        (Notification.user_id == current_user.id) | (Notification.user_id == None)
-    )
+    user_role = (current_user.role or "").lower()
+    if user_role in ["admin", "fleet_manager", "dispatcher"]:
+        query = db.query(Notification)
+    else:
+        query = db.query(Notification).filter(
+            (Notification.user_id == current_user.id) | (Notification.user_id == None)
+        )
     if category:
         query = query.filter(Notification.category == category)
     if is_read is not None:
@@ -102,9 +106,13 @@ def get_summary(
     except Exception:
         pass
 
-    base = db.query(Notification).filter(
-        (Notification.user_id == current_user.id) | (Notification.user_id == None)
-    )
+    user_role = (current_user.role or "").lower()
+    if user_role in ["admin", "fleet_manager", "dispatcher"]:
+        base = db.query(Notification)
+    else:
+        base = db.query(Notification).filter(
+            (Notification.user_id == current_user.id) | (Notification.user_id == None)
+        )
     total, unread_count = base.with_entities(
         func.count(Notification.id),
         func.count(case((Notification.is_read == False, 1))),
