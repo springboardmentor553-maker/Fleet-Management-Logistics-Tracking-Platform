@@ -347,6 +347,24 @@ def assign_shipment(
 
     db.refresh(shipment)
 
+    try:
+        from app.services.notification_service import notify_driver_event
+        notify_driver_event(
+            db=db,
+            driver=driver,
+            title=f"👤 Driver Assignment — {driver.name}",
+            message=f"You have been assigned to Vehicle '{vehicle.plate_number}' for Shipment #{shipment.id} (Trip #{trip.id}) from {shipment.origin} to {shipment.destination}.",
+            category="driver_assignment",
+            priority="high",
+            reference_type="driver",
+            reference_id=driver.id,
+            channel_email=True,
+            channel_sms=True,
+            channel_push=True,
+        )
+    except Exception:
+        pass
+
     return shipment
 
 
