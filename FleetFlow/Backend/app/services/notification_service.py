@@ -184,6 +184,7 @@ def send_sms_notification(
     title: str,
     message: str,
     reference_id: Optional[int] = None,
+    reference_type: Optional[str] = "driver",
 ) -> Notification:
     """
     Dispatches a dedicated SMS notification record for driver's phone with explicit provider status.
@@ -198,11 +199,14 @@ def send_sms_notification(
         sms_status, status_detail = "FAILED", f"Dispatch exception: {exc}"
 
     if sms_status == "SUCCESS":
-        sms_title = f"💬 SMS Alert Sent → {phone_str}"
+        sms_title = f"💬 SMS Alert (SENT) — {title} → {phone_str}"
         sms_body = f"SMS Dispatch to {driver_name} ({phone_str}): {title} - {message} [Provider Status: Delivered]"
     else:
-        sms_title = f"💬 SMS Alert ({sms_status}) → {phone_str}"
+        sms_title = f"💬 SMS Alert ({sms_status}) — {title} → {phone_str}"
         sms_body = f"SMS Dispatch to {driver_name} ({phone_str}): {title} - {message} [{sms_status}: {status_detail}]"
+
+    ref_type = reference_type or "driver"
+    ref_id = reference_id or (driver.id if driver else None)
 
     return notify_event(
         db=db,
@@ -210,8 +214,8 @@ def send_sms_notification(
         message=sms_body,
         category="sms",
         priority="high",
-        reference_type="driver",
-        reference_id=driver.id if driver else reference_id,
+        reference_type=ref_type,
+        reference_id=ref_id,
         channel_email=False,
         channel_sms=True,
         channel_push=False,
@@ -224,6 +228,7 @@ def send_email_notification(
     title: str,
     message: str,
     reference_id: Optional[int] = None,
+    reference_type: Optional[str] = "driver",
 ) -> Notification:
     """
     Dispatches a dedicated Email notification record for driver's email with explicit SMTP status.
@@ -238,11 +243,14 @@ def send_email_notification(
         email_status, status_detail = "FAILED", f"Dispatch exception: {exc}"
 
     if email_status in ["SENT", "SUCCESS"]:
-        email_title = f"📧 Email Dispatch (SENT) → {email_str}"
+        email_title = f"📧 Email Dispatch (SENT) — {title} → {email_str}"
         email_body = f"Email Dispatch to {driver_name} ({email_str}): {title} - {message} [SMTP Status: Delivered]"
     else:
-        email_title = f"📧 Email Dispatch ({email_status}) → {email_str}"
+        email_title = f"📧 Email Dispatch ({email_status}) — {title} → {email_str}"
         email_body = f"Email Dispatch to {driver_name} ({email_str}): {title} - {message} [{email_status}: {status_detail}]"
+
+    ref_type = reference_type or "driver"
+    ref_id = reference_id or (driver.id if driver else None)
 
     return notify_event(
         db=db,
@@ -250,8 +258,8 @@ def send_email_notification(
         message=email_body,
         category="email",
         priority="normal",
-        reference_type="driver",
-        reference_id=driver.id if driver else reference_id,
+        reference_type=ref_type,
+        reference_id=ref_id,
         channel_email=True,
         channel_sms=False,
         channel_push=False,
@@ -300,14 +308,14 @@ def notify_driver_event(
     # 2. Dedicated SMS Channel Dispatch (Isolated execution)
     if channel_sms and driver and driver.phone:
         try:
-            send_sms_notification(db, driver, title, message, reference_id=ref_id)
+            send_sms_notification(db, driver, title, message, reference_id=ref_id, reference_type=reference_type)
         except Exception as exc:
             logger.error(f"❌ [SMS DISPATCH EXCEPTION] {exc}")
 
     # 3. Dedicated Email Channel Dispatch (Isolated execution)
     if channel_email and driver and driver.email:
         try:
-            send_email_notification(db, driver, title, message, reference_id=ref_id)
+            send_email_notification(db, driver, title, message, reference_id=ref_id, reference_type=reference_type)
         except Exception as exc:
             logger.error(f"❌ [EMAIL DISPATCH EXCEPTION] {exc}")
 
